@@ -13,15 +13,7 @@ export default function Home() {
           <br/>
           KNIFE
         </h1>
-        <p style={{
-          fontFamily: "'VT323', monospace",
-          fontSize: '2rem',
-          color: 'var(--text-dim)',
-          marginTop: '2rem',
-          letterSpacing: '4px'
-        }}>
-          HOVER TOOL TO BEGIN
-        </p>
+
       </div>
 
       <div className="home-footer" style={{ position: 'fixed', bottom: 20, left: 48, right: 48 }}>
