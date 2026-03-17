@@ -1044,7 +1044,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .sk-blade-visual {
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, transform 0.15s ease;
 }
 
 /* Blade Label */

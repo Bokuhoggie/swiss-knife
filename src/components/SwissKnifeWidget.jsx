@@ -205,18 +205,22 @@ function KnifeHandleHorizontal({ open }) {
    TOOL CONFIG (Divided by pivot side)
 ============================================================ */
 const LEFT_TOOLS = [
-  { label: 'IMAGE', route: '/image', color: '#00D4FF', Blade: BladeSVG,       angleOpen: -60, angleClosed: 90, flip: false, flipY: true },
-  { label: 'AUDIO', route: '/audio', color: '#FF3CAC', Blade: ScissorsSVG,    angleOpen: -40, angleClosed: 90, flip: false, flipY: true },
-  { label: 'VIDEO', route: '/video', color: '#C77DFF', Blade: ScrewdriverSVG, angleOpen: -20, angleClosed: 90, flip: false, flipY: false },
+  { label: 'IMAGE', route: '/image', color: '#00D4FF', Blade: BladeSVG,       angleOpen: -60, angleClosed: 90, flip: false, flipY: true, side: 'left' },
+  { label: 'AUDIO', route: '/audio', color: '#FF3CAC', Blade: ScissorsSVG,    angleOpen: -40, angleClosed: 90, flip: false, flipY: true, side: 'left' },
+  { label: 'VIDEO', route: '/video', color: '#C77DFF', Blade: ScrewdriverSVG, angleOpen: -20, angleClosed: 90, flip: false, flipY: false, side: 'left' },
+]
+
+const CENTER_TOOLS = [
+  { label: 'SETTINGS', route: '/settings', color: '#AAAACC', Blade: ScrewdriverSVG, angleOpen: 0, angleClosed: 0, flip: false, flipY: false, side: 'center' },
 ]
 
 const RIGHT_TOOLS = [
-  { label: 'DOWNLOAD', route: '/download', color: '#00FF87', Blade: CanOpenerSVG, angleOpen: 20, angleClosed: -90, flip: true, flipY: true },
-  { label: 'PDF',      route: '/pdf',      color: '#FFD60A', Blade: NailFileSVG,  angleOpen: 40, angleClosed: -90, flip: true, flipY: true },
-  { label: 'HASH',     route: '/hash',     color: '#39FF14', Blade: CorkscrewSVG, angleOpen: 60, angleClosed: -90, flip: true, flipY: true },
+  { label: 'DOWNLOAD', route: '/download', color: '#00FF87', Blade: CanOpenerSVG, angleOpen: 20, angleClosed: -90, flip: true, flipY: true, side: 'right' },
+  { label: 'PDF',      route: '/pdf',      color: '#FFD60A', Blade: NailFileSVG,  angleOpen: 40, angleClosed: -90, flip: true, flipY: true, side: 'right' },
+  { label: 'HASH',     route: '/hash',     color: '#39FF14', Blade: CorkscrewSVG, angleOpen: 60, angleClosed: -90, flip: true, flipY: true, side: 'right' },
 ]
 
-const ALL_TOOLS = [...LEFT_TOOLS, ...RIGHT_TOOLS]
+const ALL_TOOLS = [...LEFT_TOOLS, ...CENTER_TOOLS, ...RIGHT_TOOLS]
 
 /* ============================================================
    WIDGET
@@ -280,8 +284,8 @@ export default function SwissKnifeWidget() {
             bottom: 0,
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '600px',
-            height: '350px',
+            width: '360px',
+            height: '240px',
             pointerEvents: open ? 'auto' : 'none',
             zIndex: 1
           }} 
@@ -289,12 +293,15 @@ export default function SwissKnifeWidget() {
 
         {/* ─── BLADES ─── Rendered behind handle context */}
         {ALL_TOOLS.map((tool, i) => {
-          const isLeft = i < 3
           const ToolBlade = tool.Blade
           
-          // Determine local anchor point on the handle
-          const pivotX = isLeft ? LEFT_PIVOT_X : RIGHT_PIVOT_X
-          const pivotY = isLeft ? LEFT_PIVOT_Y : RIGHT_PIVOT_Y
+          // Determine local anchor point on the handle based on side
+          const pivotX = tool.side === 'left' ? LEFT_PIVOT_X 
+                       : tool.side === 'right' ? RIGHT_PIVOT_X 
+                       : 100 // center pivot
+          const pivotY = tool.side === 'center' ? 38 
+                       : tool.side === 'left' ? LEFT_PIVOT_Y 
+                       : RIGHT_PIVOT_Y
           
           // Offset blade absolute position so its (21, 190) sits on (pivotX, pivotY)
           const leftOffset = pivotX - BLADE_PIVOT_X
@@ -313,8 +320,8 @@ export default function SwissKnifeWidget() {
                 zIndex: hovered === tool.route ? 15 : 10,
                 // Sequential transition delay (both opening & closing)
                 transitionDelay: open 
-                  ? `${isLeft ? i * 60 : (5 - i) * 60}ms` 
-                  : `${isLeft ? (2 - i) * 50 : (i - 3) * 50}ms`
+                  ? `${tool.side === 'left' ? i * 60 : tool.side === 'center' ? 100 : (6 - i) * 60}ms` 
+                  : `${tool.side === 'left' ? (2 - i) * 50 : tool.side === 'center' ? 50 : (i - 4) * 50}ms`
               }}
               onClick={(e) => {
                 e.stopPropagation()
@@ -328,7 +335,11 @@ export default function SwissKnifeWidget() {
               <div 
                 className="sk-blade-visual"
                 style={{
-                  transform: `${tool.flipY ? 'scaleY(-1)' : ''}${tool.flip ? ' scaleX(-1)' : ''}`.trim() || 'none',
+                  transform: [
+                    hovered === tool.route ? 'scale(1.15)' : '',
+                    tool.flipY ? 'scaleY(-1)' : '',
+                    tool.flip ? 'scaleX(-1)' : ''
+                  ].filter(Boolean).join(' ') || 'none',
                   filter: hovered === tool.route 
                     ? `drop-shadow(0 0 12px ${tool.color}) brightness(1.3)`
                     : `drop-shadow(0 0 4px rgba(0,0,0,0.8))`
