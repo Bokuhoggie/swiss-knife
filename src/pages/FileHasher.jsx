@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconHash } from '../components/Icons.jsx'
 
 const ALGORITHMS = ['md5', 'sha1', 'sha256', 'sha512']
 const api = window.swissKnife
@@ -53,9 +54,9 @@ export default function FileHasher() {
     : null
 
   return (
-    <div className="page-anim">
+    <div className="page-anim" style={{ '--accent': '#39FF14' }}>
       <div className="page-header">
-        <h1 className="page-title">🔐 File Hasher</h1>
+        <h1 className="page-title"><IconHash size={20} /> File Hasher</h1>
         <p className="page-subtitle">Verify file integrity with MD5, SHA-1, SHA-256, and SHA-512</p>
       </div>
 
@@ -67,7 +68,7 @@ export default function FileHasher() {
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
-          <span className="dropzone-icon">🔐</span>
+          <div className="dropzone-icon"><IconHash size={36} /></div>
           {file
             ? <><div className="dropzone-title">{basename(file)}</div><div className="dropzone-sub">Drop another file or click to change</div></>
             : <><div className="dropzone-title">Drop any file here or click to browse</div><div className="dropzone-sub">Compute MD5, SHA-1, SHA-256, SHA-512 instantly</div></>}

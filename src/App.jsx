@@ -1,5 +1,5 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
-import Sidebar from './components/Sidebar.jsx'
+import SwissKnifeWidget from './components/SwissKnifeWidget.jsx'
 import Home from './pages/Home.jsx'
 import ImageConverter from './pages/ImageConverter.jsx'
 import AudioConverter from './pages/AudioConverter.jsx'
@@ -12,7 +12,6 @@ export default function App() {
   return (
     <HashRouter>
       <div className="app-shell">
-        <Sidebar />
         <main className="main-content">
           <div className="page-scroll">
             <Routes>
@@ -26,6 +25,7 @@ export default function App() {
             </Routes>
           </div>
         </main>
+        <SwissKnifeWidget />
       </div>
     </HashRouter>
   )

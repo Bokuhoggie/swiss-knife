@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconImage } from '../components/Icons.jsx'
 
 const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
 const api = window.swissKnife
@@ -50,9 +51,12 @@ export default function ImageConverter() {
   const basename = (p) => p.split('/').pop().split('\\').pop()
 
   return (
-    <div className="page-anim">
+    <div className="page-anim" style={{ '--accent': '#00D4FF' }}>
       <div className="page-header">
-        <h1 className="page-title">🖼 Image Converter</h1>
+        <h1 className="page-title">
+          <IconImage size={24} style={{ marginRight: 16, verticalAlign: 'middle' }} />
+          Image Converter
+        </h1>
         <p className="page-subtitle">Convert images between JPG, PNG, WebP, AVIF, GIF, BMP, and TIFF</p>
       </div>
 
@@ -65,7 +69,7 @@ export default function ImageConverter() {
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
-          <span className="dropzone-icon">🖼</span>
+          <div className="dropzone-icon"><IconImage size={36} /></div>
           <div className="dropzone-title">Drop images here or click to browse</div>
           <div className="dropzone-sub">Supports JPG, PNG, WebP, AVIF, GIF, BMP, TIFF — multiple files OK</div>
         </div>
@@ -77,7 +81,7 @@ export default function ImageConverter() {
               const result = results.find(r => r.inputPath === f)
               return (
                 <div key={i} className="file-item">
-                  <span className="file-item-icon">🖼</span>
+                  <span className="file-item-icon"><IconImage size={16} /></span>
                   <span className="file-item-name">{basename(f)}</span>
                   {result && (
                     <span className={`file-item-status ${result.success ? 'success' : 'error'}`}>

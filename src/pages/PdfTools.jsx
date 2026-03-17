@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconPDF } from '../components/Icons.jsx'
 
 const api = window.swissKnife
 
@@ -183,9 +184,9 @@ const TABS = ['Merge', 'Split', 'Compress']
 export default function PdfTools() {
   const [activeTab, setActiveTab] = useState('Merge')
   return (
-    <div className="page-anim">
+    <div className="page-anim" style={{ '--accent': '#FFD60A' }}>
       <div className="page-header">
-        <h1 className="page-title">📄 PDF Tools</h1>
+        <h1 className="page-title"><IconPDF size={20} /> PDF Tools</h1>
         <p className="page-subtitle">Merge, split, and compress PDF documents locally</p>
       </div>
       <div className="card">

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconVideo } from '../components/Icons.jsx'
 
 const FORMATS = ['mp4', 'mkv', 'avi', 'mov', 'webm']
 const RESOLUTIONS = ['', '1920x1080', '1280x720', '854x480', '640x360']
@@ -61,9 +62,9 @@ export default function VideoConverter() {
   }
 
   return (
-    <div className="page-anim">
+    <div className="page-anim" style={{ '--accent': '#C77DFF' }}>
       <div className="page-header">
-        <h1 className="page-title">🎬 Video Converter</h1>
+        <h1 className="page-title"><IconVideo size={20} /> Video Converter</h1>
         <p className="page-subtitle">Convert videos between MP4, MKV, AVI, MOV, and WebM</p>
       </div>
 
@@ -76,9 +77,7 @@ export default function VideoConverter() {
           onDrop={handleDrop}
         >
           <span className="dropzone-icon">🎬</span>
-          {file
-            ? <><div className="dropzone-title">{basename(file)}</div><div className="dropzone-sub">Click to change file</div></>
-            : <><div className="dropzone-title">Drop a video here or click to browse</div><div className="dropzone-sub">Supports MP4, MKV, AVI, MOV, WebM, FLV, WMV</div></>}
+          <div className="dropzone-icon"><IconVideo size={36} /></div>
         </div>
 
         {loading && (

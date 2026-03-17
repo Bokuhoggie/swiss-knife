@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconAudio } from '../components/Icons.jsx'
 
 const FORMATS = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
 const BITRATES = ['64k', '128k', '192k', '256k', '320k']
@@ -64,9 +65,9 @@ export default function AudioConverter() {
   }
 
   return (
-    <div className="page-anim">
+    <div className="page-anim" style={{ '--accent': '#FF3CAC' }}>
       <div className="page-header">
-        <h1 className="page-title">🎵 Audio Converter</h1>
+        <h1 className="page-title"><IconAudio size={20} /> Audio Converter</h1>
         <p className="page-subtitle">Convert audio between MP3, WAV, FLAC, AAC, OGG, M4A, and Opus</p>
       </div>
 
@@ -78,7 +79,7 @@ export default function AudioConverter() {
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
-          <span className="dropzone-icon">🎵</span>
+          <div className="dropzone-icon"><IconAudio size={36} /></div>
           <div className="dropzone-title">Drop audio files here or click to browse</div>
           <div className="dropzone-sub">Supports MP3, WAV, FLAC, AAC, OGG, M4A, WMA, Opus</div>
         </div>
@@ -90,7 +91,7 @@ export default function AudioConverter() {
               const isCurrent = loading && i === currentIdx
               return (
                 <div key={i} className="file-item">
-                  <span className="file-item-icon">🎵</span>
+                  <span className="file-item-icon"><IconAudio size={16} /></span>
                   <span className="file-item-name">{basename(f)}</span>
                   {isCurrent && progress && (
                     <span className="file-item-status pending">{Math.round(progress.percent || 0)}%</span>

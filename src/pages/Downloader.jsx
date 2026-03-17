@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconDownload } from '../components/Icons.jsx'
 
 const QUALITIES = ['1080p', '720p', '480p', '360p']
 const api = window.swissKnife
@@ -44,9 +45,9 @@ export default function Downloader() {
   }
 
   return (
-    <div className="page-anim">
+    <div className="page-anim" style={{ '--accent': '#00FF87' }}>
       <div className="page-header">
-        <h1 className="page-title">⬇ Video Downloader</h1>
+        <h1 className="page-title"><IconDownload size={20} /> Video Downloader</h1>
         <p className="page-subtitle">Download videos from YouTube, Twitter, Reddit, and hundreds of other sites via yt-dlp</p>
       </div>
 
