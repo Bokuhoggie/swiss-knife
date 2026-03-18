@@ -13,7 +13,7 @@ export default function AudioConverter() {
   const { state } = useLocation()
   const [tab, setTab] = useState('convert')
 
-  const [files, setFiles]               = useState([])
+  const [files, setFiles]               = useState([]) // Array of { path, selected }
   const [outputFormat, setOutputFormat] = useState('mp3')
   const [bitrate, setBitrate]           = useState('192k')
   const [sampleRate, setSampleRate]     = useState('44100')
@@ -22,7 +22,8 @@ export default function AudioConverter() {
   const [loading, setLoading]           = useState(false)
   const [progress, setProgress]         = useState(null)
   const [dragOver, setDragOver]         = useState(false)
-  const [currentIdx, setCurrentIdx]     = useState(0)
+  const [isFlashing, setIsFlashing]     = useState(false)
+  const [currentIdx, setCurrentIdx]     = useState(-1)
 
   // Advanced
   const [channels, setChannels]   = useState('')
@@ -50,15 +51,21 @@ export default function AudioConverter() {
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
   const addFiles = (paths) => {
-    const unique = paths.filter(p => p && !files.includes(p))
-    setFiles(prev => [...prev, ...unique])
+    const unique = paths.filter(p => p && !files.some(f => f.path === p))
+    const objects = unique.map(p => ({ path: p, selected: true }))
+    setFiles(prev => [...prev, ...objects])
     setResults([])
   }
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const paths = getDropPaths(e)
-    if (paths.length) addFiles(paths)
+    if (paths.length) {
+      addFiles(paths)
+      setIsFlashing(true)
+      setTimeout(() => setIsFlashing(false), 500)
+      window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/audio' }))
+    }
   }
 
   const handleBrowse = async () => {
@@ -72,27 +79,29 @@ export default function AudioConverter() {
   }
 
   const convert = async () => {
-    if (!files.length) return
+    const selectedFiles = files.filter(f => f.selected).map(f => f.path)
+    if (!selectedFiles.length) return
     if (!outputDir) { alert('Please select an output folder first.'); return }
     setLoading(true); setResults([])
     api.audio.onProgress(data => setProgress(data))
     const allResults = []
     for (let i = 0; i < files.length; i++) {
+      if (!files[i].selected) continue;
       setCurrentIdx(i); setProgress(null)
       try {
         const res = await api.audio.convert({
-          filePath: files[i], outputFormat, outputDir, bitrate, sampleRate,
+          filePath: files[i].path, outputFormat, outputDir, bitrate, sampleRate,
           channels: channels || undefined,
           normalize,
           fadeIn: fadeIn > 0 ? fadeIn : undefined,
         })
-        allResults.push({ ...res, inputPath: files[i] })
+        allResults.push({ ...res, inputPath: files[i].path })
       } catch (err) {
-        allResults.push({ success: false, error: err?.message || 'Conversion failed', inputPath: files[i] })
+        allResults.push({ success: false, error: err?.message || 'Conversion failed', inputPath: files[i].path })
       }
     }
     api.audio.offProgress()
-    setResults(allResults); setProgress(null); setLoading(false)
+    setResults(allResults); setProgress(null); setLoading(false); setCurrentIdx(-1)
   }
 
   return (
@@ -111,10 +120,10 @@ export default function AudioConverter() {
         {tab === 'convert' && (
           <>
             <div
-              className={`dropzone${dragOver ? ' drag-over' : ''}`}
+              className={`dropzone${dragOver ? ' drag-over' : ''}${isFlashing ? ' flash-active' : ''}`}
               onClick={handleBrowse}
               onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-              onDragLeave={() => setDragOver(false)}
+              onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false) }}
               onDrop={handleDrop}
             >
               <div className="dropzone-icon"><IconAudio size={36} /></div>
@@ -123,19 +132,48 @@ export default function AudioConverter() {
             </div>
 
             {files.length > 0 && (
-              <div className="file-list">
-                {files.map((f, i) => {
-                  const result = results.find(r => r.inputPath === f)
+              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="form-label">Files ({files.filter(f => f.selected).length}/{files.length} selected)</span>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    const allSelected = files.every(f => f.selected)
+                    setFiles(files.map(f => ({ ...f, selected: !allSelected })))
+                  }}
+                >
+                  {files.every(f => f.selected) ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+            )}
+
+            {files.length > 0 && (
+              <div className="file-list" style={{ marginTop: 4 }}>
+                {files.map((fileObj, i) => {
+                  const result = results.find(r => r.inputPath === fileObj.path)
                   const isCurrent = loading && i === currentIdx
                   return (
-                    <div key={i} className="file-item">
+                    <div key={i} className="file-item" style={{ opacity: fileObj.selected ? 1 : 0.5 }}>
+                      <input
+                        type="checkbox"
+                        checked={fileObj.selected}
+                        onChange={(e) => {
+                          const next = [...files]
+                          next[i].selected = e.target.checked
+                          setFiles(next)
+                        }}
+                        style={{ accentColor: 'var(--accent)', marginRight: 4, cursor: 'pointer' }}
+                        title="Toggle conversion for this file"
+                      />
                       <span className="file-item-icon"><IconAudio size={16} /></span>
-                      <span className="file-item-name">{basename(f)}</span>
+                      <span className="file-item-name" title={fileObj.path}>{basename(fileObj.path)}</span>
                       {isCurrent && progress && (
                         <span className="file-item-status pending">{Math.round(progress.percent || 0)}%</span>
                       )}
                       {result && (
-                        <span className={`file-item-status ${result.success ? 'success' : 'error'}`}>
+                        <span 
+                          className={`file-item-status ${result.success ? 'success' : 'error'}`}
+                          title={result.error || ''}
+                        >
                           {result.success ? '✓ Done' : '✗ Error'}
                         </span>
                       )}
@@ -146,10 +184,10 @@ export default function AudioConverter() {
               </div>
             )}
 
-            {loading && progress && (
+            {loading && progress && currentIdx >= 0 && files[currentIdx] && (
               <div className="progress-wrap">
                 <div className="progress-label">
-                  <span>Converting {basename(files[currentIdx])}…</span>
+                  <span>Converting {basename(files[currentIdx].path)}…</span>
                   <span>{Math.round(progress.percent || 0)}%</span>
                 </div>
                 <div className="progress-track">
@@ -179,9 +217,16 @@ export default function AudioConverter() {
               </div>
               <div style={{ flex: 1 }} />
               <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
-              <button className="btn btn-primary" onClick={convert} disabled={loading || !files.length}>
+              <button 
+                className="btn btn-primary" 
+                onClick={convert} 
+                disabled={loading || !files.some(f => f.selected)}
+              >
                 {loading ? <span className="spinner">⟳</span> : null}
-                {loading ? 'Converting…' : `Convert ${files.length > 1 ? `${files.length} files` : 'Audio'}`}
+                {loading 
+                  ? 'Converting…' 
+                  : `Convert ${files.filter(f => f.selected).length > 1 ? `${files.filter(f => f.selected).length} files` : 'Audio'}`
+                }
               </button>
             </div>
           </>

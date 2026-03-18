@@ -257,8 +257,30 @@ export default function SwissKnifeWidget() {
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(null)
   const [isShaking, setIsShaking] = useState(false)
+  const [flickingTool, setFlickingTool] = useState(null)
+  const [peekingTool, setPeekingTool] = useState(null)
+  const [dragOverWidget, setDragOverWidget] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+
+  // Listen for blade flick events
+  useEffect(() => {
+    const handleFlick = (e) => {
+      const route = e.detail
+      setFlickingTool(route)
+      // Tuck the blade back in after 1.2 seconds
+      setTimeout(() => setFlickingTool(null), 1200)
+    }
+    const handlePeek = (e) => {
+      setPeekingTool(e.detail)
+    }
+    window.addEventListener('blade-flick', handleFlick)
+    window.addEventListener('blade-peek', handlePeek)
+    return () => {
+      window.removeEventListener('blade-flick', handleFlick)
+      window.removeEventListener('blade-peek', handlePeek)
+    }
+  }, [])
 
   // Dynamic layout based on route
   const isHome = location.pathname === '/'
@@ -297,8 +319,15 @@ export default function SwissKnifeWidget() {
 
   const handleWidgetDrop = (e) => {
     e.preventDefault(); e.stopPropagation()
+    setDragOverWidget(false)
     const filePath = getFirstDropPath(e)
     if (!filePath) return
+
+    // Prevent immediate hover snap-open on /inspector transition
+    window.__skSuppressHover = true
+    setTimeout(() => { window.__skSuppressHover = false }, 1500)
+
+    window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/inspector' }))
     setPendingFile(filePath)
     setOpen(false)
     navigate('/inspector')
@@ -307,12 +336,18 @@ export default function SwissKnifeWidget() {
   return (
     <div
       className={`sk-widget-container ${isHome ? 'sk-size-large' : 'sk-size-small'}`}
-      onDragOver={(e) => e.preventDefault()}
+      onDragOver={(e) => { e.preventDefault(); setDragOverWidget(true) }}
+      onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOverWidget(false) }}
       onDrop={handleWidgetDrop}
     >
       <div 
         className={`sk-knife-assembly ${isHome ? 'sk-float' : ''}`}
-        onMouseEnter={() => { if (!isHome) setOpen(true) }}
+        style={{
+          filter: dragOverWidget ? 'drop-shadow(0 0 16px rgba(255, 159, 28, 0.8))' : 'none',
+          transform: dragOverWidget ? 'scale(1.05)' : 'none',
+          transition: 'all 0.2s ease-out'
+        }}
+        onMouseEnter={() => { if (!isHome && !window.__skSuppressHover) setOpen(true) }}
         onMouseLeave={() => { if (!isHome) setOpen(false) }}
       >
         {/* Invisible bridge to catch hovers across the fanned blades */}
@@ -343,25 +378,37 @@ export default function SwissKnifeWidget() {
           const leftOffset = pivotX - BLADE_PIVOT_X
           const topOffset = pivotY - BLADE_PIVOT_Y
 
-          const currentAngle = open ? tool.angleOpen : tool.angleClosed
+          const isOpen = open || flickingTool === tool.route
+          const isPeeking = peekingTool === tool.route && !isOpen
+          
+          let currentAngle = tool.angleClosed
+          if (isOpen) currentAngle = tool.angleOpen
+          else if (isPeeking) {
+             // Halfway open trick
+             currentAngle = tool.angleClosed + (tool.angleOpen - tool.angleClosed) * 0.4
+          }
 
           return (
             <button
               key={tool.route}
-              className={`sk-blade-item ${open ? 'open' : ''} ${hovered === tool.route ? 'hovered' : ''}`}
+              className={`sk-blade-item ${(isOpen || isPeeking) ? 'open' : ''} ${hovered === tool.route ? 'hovered' : ''}`}
               style={{
                 left: `${leftOffset}px`,
                 top: `${topOffset}px`,
                 transform: `rotate(${currentAngle}deg)`,
-                zIndex: hovered === tool.route ? 15 : 10,
+                zIndex: (hovered === tool.route || flickingTool === tool.route || isPeeking) ? 15 : 10,
                 // Sequential transition delay (both opening & closing)
-                transitionDelay: open
-                  ? `${isLeft ? i * 60 : (6 - i) * 60}ms`
-                  : `${isLeft ? (2 - i) * 50 : (i - 3) * 50}ms`
+                // If flicking, pop it out instantly
+                transitionDelay: (flickingTool === tool.route || isPeeking) 
+                  ? '0ms'
+                  : (open
+                    ? `${isLeft ? i * 60 : (6 - i) * 60}ms`
+                    : `${isLeft ? (2 - i) * 50 : (i - 3) * 50}ms`)
               }}
               onClick={(e) => {
                 e.stopPropagation()
                 setOpen(false)
+                setFlickingTool(null)
                 navigate(tool.route)
               }}
               onMouseEnter={() => setHovered(tool.route)}
@@ -375,7 +422,7 @@ export default function SwissKnifeWidget() {
                     tool.flipY ? 'scaleY(-1)' : '',
                     tool.flip ? 'scaleX(-1)' : ''
                   ].filter(Boolean).join(' ') || 'none',
-                  filter: hovered === tool.route 
+                  filter: (hovered === tool.route || flickingTool === tool.route || isPeeking)
                     ? `drop-shadow(0 0 12px ${tool.color}) brightness(1.3)`
                     : `drop-shadow(0 0 4px rgba(0,0,0,0.8))`
                 }}

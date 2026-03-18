@@ -9,26 +9,46 @@ const api = window.swissKnife
 
 /**
  * Extract the native file path from a dropped File object.
- * Uses Electron's webUtils.getPathForFile (modern) with File.path fallback.
+ * Uses Electron's webUtils.getPathForFile via the preload bridge.
  */
 export function getDropPath(file) {
   if (!file) return ''
   try {
-    // Modern Electron 32+ API (exposed via preload)
     if (api?.getPathForFile) return api.getPathForFile(file) || ''
   } catch { /* fall through */ }
-  // Legacy fallback
   return file.path || ''
 }
 
 /**
- * Extract file paths from a drop event's dataTransfer.
- * Returns an array of non-empty path strings.
+ * Extract file paths from a drop event.
  */
 export function getDropPaths(e) {
-  return Array.from(e.dataTransfer?.files || [])
+  let paths = Array.from(e.dataTransfer?.files || [])
     .map(f => getDropPath(f))
     .filter(Boolean)
+    
+  // Fallback: If no files were parsed (e.g. dragged from a web browser or Antigravity),
+  // they might be represented as text/uri-list (links to local files).
+  if (paths.length === 0 && e.dataTransfer) {
+    const uriStr = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain') || ''
+    const lines = uriStr.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+    for (const line of lines) {
+      if (line.startsWith('file:///')) {
+        try {
+          const decoded = decodeURIComponent(line.substring(8)) // Remove file:///
+          // Handle Windows paths vs Unix paths
+          const isWindows = /^[A-Z]:\//i.test(decoded) || /^[A-Z]:\\/i.test(decoded)
+          paths.push(isWindows ? decoded : '/' + decoded)
+        } catch (err) {}
+      } else if (/^[A-Z]:\\[^/:*?"<>|]+$/i.test(line) || line.startsWith('/')) {
+        // Plain absolute path from text
+        paths.push(line)
+      }
+    }
+  }
+
+  // Deduplicate
+  return [...new Set(paths)]
 }
 
 /**
@@ -36,6 +56,6 @@ export function getDropPaths(e) {
  * Returns the path string or '' if none.
  */
 export function getFirstDropPath(e) {
-  const file = e.dataTransfer?.files?.[0]
-  return file ? getDropPath(file) : ''
+  const paths = getDropPaths(e)
+  return paths.length > 0 ? paths[0] : ''
 }

@@ -36,7 +36,10 @@ function MergeTab() {
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const paths = getDropPaths(e)
-    if (paths.length) addFiles(paths)
+    if (paths.length) {
+      addFiles(paths)
+      window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/pdf' }))
+    }
   }
 
   const pickFiles = async () => {
@@ -69,7 +72,7 @@ function MergeTab() {
         style={{ marginBottom: 16, padding: '24px' }}
         onClick={pickFiles}
         onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-        onDragLeave={() => setDragOver(false)}
+        onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false) }}
         onDrop={handleDrop}
       >
         <div className="dropzone-icon"><IconPDF size={28} /></div>

@@ -10,13 +10,14 @@ export default function ImageConverter() {
   const { state } = useLocation()
   const [tab, setTab] = useState('convert')
 
-  const [files, setFiles]               = useState([])
+  const [files, setFiles]               = useState([]) // Array of { path, selected }
   const [outputFormat, setOutputFormat] = useState('png')
   const [quality, setQuality]           = useState(85)
   const [outputDir, setOutputDir]       = useState('')
   const [results, setResults]           = useState([])
   const [loading, setLoading]           = useState(false)
   const [dragOver, setDragOver]         = useState(false)
+  const [isFlashing, setIsFlashing]     = useState(false)
 
   // Advanced
   const [width, setWidth]               = useState('')
@@ -43,15 +44,21 @@ export default function ImageConverter() {
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
   const addFiles = (paths) => {
-    const unique = paths.filter(p => p && !files.includes(p))
-    setFiles(prev => [...prev, ...unique])
+    const unique = paths.filter(p => p && !files.some(f => f.path === p))
+    const objects = unique.map(p => ({ path: p, selected: true }))
+    setFiles(prev => [...prev, ...objects])
     setResults([])
   }
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const paths = getDropPaths(e)
-    if (paths.length) addFiles(paths)
+    if (paths.length) {
+      addFiles(paths)
+      setIsFlashing(true)
+      setTimeout(() => setIsFlashing(false), 500)
+      window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/image' }))
+    }
   }
 
   const handleBrowse = async () => {
@@ -65,19 +72,20 @@ export default function ImageConverter() {
   }
 
   const convert = async () => {
-    if (!files.length) return
+    const selectedFiles = files.filter(f => f.selected).map(f => f.path)
+    if (!selectedFiles.length) return
     if (!outputDir) { alert('Please select an output folder first.'); return }
     setLoading(true); setResults([])
     try {
       const res = await api.image.convert({
-        filePaths: files, outputFormat, outputDir, quality,
+        filePaths: selectedFiles, outputFormat, outputDir, quality,
         width:  width  ? parseInt(width)  : undefined,
         height: height ? parseInt(height) : undefined,
         keepMetadata,
       })
       setResults(res)
     } catch (err) {
-      setResults(files.map(f => ({ inputPath: f, success: false, error: err?.message || 'Conversion failed' })))
+      setResults(selectedFiles.map(f => ({ inputPath: f, success: false, error: err?.message || 'Conversion failed' })))
     } finally {
       setLoading(false)
     }
@@ -102,10 +110,10 @@ export default function ImageConverter() {
         {tab === 'convert' && (
           <>
             <div
-              className={`dropzone${dragOver ? ' drag-over' : ''}`}
+              className={`dropzone${dragOver ? ' drag-over' : ''}${isFlashing ? ' flash-active' : ''}`}
               onClick={handleBrowse}
               onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-              onDragLeave={() => setDragOver(false)}
+              onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false) }}
               onDrop={handleDrop}
             >
               <div className="dropzone-icon"><IconImage size={36} /></div>
@@ -114,15 +122,44 @@ export default function ImageConverter() {
             </div>
 
             {files.length > 0 && (
-              <div className="file-list">
-                {files.map((f, i) => {
-                  const result = results.find(r => r.inputPath === f)
+              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span className="form-label">Files ({files.filter(f => f.selected).length}/{files.length} selected)</span>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    const allSelected = files.every(f => f.selected)
+                    setFiles(files.map(f => ({ ...f, selected: !allSelected })))
+                  }}
+                >
+                  {files.every(f => f.selected) ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+            )}
+
+            {files.length > 0 && (
+              <div className="file-list" style={{ marginTop: 4 }}>
+                {files.map((fileObj, i) => {
+                  const result = results.find(r => r.inputPath === fileObj.path)
                   return (
-                    <div key={i} className="file-item">
-                      <span className="file-item-icon"><IconImage size={16} /></span>
-                      <span className="file-item-name">{basename(f)}</span>
+                    <div key={i} className="file-item" style={{ opacity: fileObj.selected ? 1 : 0.5 }}>
+                      <input
+                        type="checkbox"
+                        checked={fileObj.selected}
+                        onChange={(e) => {
+                          const next = [...files]
+                          next[i].selected = e.target.checked
+                          setFiles(next)
+                        }}
+                        style={{ accentColor: 'var(--accent)', marginRight: 4, cursor: 'pointer' }}
+                        title="Toggle conversion for this file"
+                      />
+                      <span className="file-item-icon" style={{ marginLeft: 4 }}><IconImage size={16} /></span>
+                      <span className="file-item-name" title={fileObj.path}>{basename(fileObj.path)}</span>
                       {result && (
-                        <span className={`file-item-status ${result.success ? 'success' : 'error'}`}>
+                        <span 
+                          className={`file-item-status ${result.success ? 'success' : 'error'}`}
+                          title={result.error || ''}
+                        >
                           {result.success ? '✓ Done' : '✗ Error'}
                         </span>
                       )}
@@ -148,9 +185,16 @@ export default function ImageConverter() {
               </div>
               <div style={{ flex: 1 }} />
               <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
-              <button className="btn btn-primary" onClick={convert} disabled={loading || !files.length}>
+              <button 
+                className="btn btn-primary" 
+                onClick={convert} 
+                disabled={loading || !files.some(f => f.selected)}
+              >
                 {loading ? <span className="spinner">⟳</span> : null}
-                {loading ? 'Converting…' : `Convert ${files.length > 1 ? `${files.length} files` : 'Image'}`}
+                {loading 
+                  ? 'Converting…' 
+                  : `Convert ${files.filter(f => f.selected).length > 1 ? `${files.filter(f => f.selected).length} files` : 'Image'}`
+                }
               </button>
             </div>
           </>

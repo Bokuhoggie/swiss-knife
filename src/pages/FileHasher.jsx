@@ -30,6 +30,7 @@ export default function FileHasher() {
       setResult(null)
       setCopied(null)
       await compute(filePath)
+      window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/hash' }))
     }
   }
 
@@ -76,7 +77,7 @@ export default function FileHasher() {
           className={`dropzone${dragOver ? ' drag-over' : ''}`}
           onClick={handleBrowse}
           onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-          onDragLeave={() => setDragOver(false)}
+          onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false) }}
           onDrop={handleDrop}
         >
           <div className="dropzone-icon"><IconHash size={36} /></div>

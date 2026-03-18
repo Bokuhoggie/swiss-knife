@@ -75,8 +75,11 @@ export default function FileInspector() {
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
-    const filePath = getFirstDropPath(e)
-    if (filePath) analyze(filePath)
+    const path = getFirstDropPath(e)
+    if (path) {
+      analyze(path) // Keep analyze to process the file
+      window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/inspector' }))
+    }
   }
 
   const computeHash = async () => {
@@ -114,7 +117,7 @@ export default function FileInspector() {
           className={`card inspector-drop${dragOver ? ' drag-over-inspector' : ''}`}
           onClick={browse}
           onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-          onDragLeave={() => setDragOver(false)}
+          onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false) }}
           onDrop={handleDrop}
           style={{ cursor: 'pointer', textAlign: 'center', padding: '60px 24px' }}
         >
@@ -167,7 +170,17 @@ export default function FileInspector() {
                   </span>
                 )}
                 {info.suggestedTool && (
-                  <button className="btn btn-primary" onClick={openInTool} style={{ fontSize: 6 }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent('blade-peek', { detail: null }))
+                      window.dispatchEvent(new CustomEvent('blade-flick', { detail: info.suggestedTool }))
+                      openInTool()
+                    }} 
+                    onMouseEnter={() => window.dispatchEvent(new CustomEvent('blade-peek', { detail: info.suggestedTool }))}
+                    onMouseLeave={() => window.dispatchEvent(new CustomEvent('blade-peek', { detail: null }))}
+                    style={{ fontSize: 6 }}
+                  >
                     Open in {info.suggestedToolLabel} ↗
                   </button>
                 )}

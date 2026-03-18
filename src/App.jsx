@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import SwissKnifeWidget from './components/SwissKnifeWidget.jsx'
 import Home from './pages/Home.jsx'
@@ -22,6 +22,8 @@ import { getFirstDropPath } from './dropHelpers.js'
 function handleGlobalDrop(e) {
   const filePath = getFirstDropPath(e)
   if (!filePath) return
+  
+  window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/inspector' }))
 
   setPendingFile(filePath)
   if (!window.location.hash.startsWith('#/inspector')) {
@@ -31,6 +33,18 @@ function handleGlobalDrop(e) {
 
 export default function App() {
   const [dragOverApp, setDragOverApp] = useState(false)
+  const [debugPaths, setDebugPaths] = useState('[]')
+
+  useEffect(() => {
+    const handleDrop = () => {
+      setTimeout(() => {
+         setDebugPaths(JSON.stringify(window.swissKnife?.getDroppedPaths?.() || []) + 
+                      ' | Err: ' + (window.swissKnife?.getDropError?.() || 'none'))
+      }, 50)
+    }
+    window.addEventListener('drop', handleDrop)
+    return () => window.removeEventListener('drop', handleDrop)
+  }, [])
 
   return (
     <HashRouter>
@@ -46,6 +60,9 @@ export default function App() {
         {/* ── Draggable title bar ── */}
         <div className="title-bar">
           <span className="title-bar-label">Swiss Knife</span>
+          <span style={{color: 'red', marginLeft: 'auto', fontSize: 10}}>
+            DBG: {debugPaths}
+          </span>
         </div>
 
         <main className="main-content">

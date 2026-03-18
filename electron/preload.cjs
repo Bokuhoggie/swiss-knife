@@ -2,9 +2,22 @@
 
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
+window.addEventListener('dragenter', (e) => { e.preventDefault(); }, true);
+window.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+}, true);
+
 contextBridge.exposeInMainWorld('swissKnife', {
   // File path from drag events (Electron 32+ — File.path is deprecated)
-  getPathForFile: (file) => webUtils.getPathForFile(file),
+  getPathForFile: (file) => {
+    try {
+      return webUtils.getPathForFile(file);
+    } catch (e) {
+      console.error('webUtils.getPathForFile failed:', e);
+      return '';
+    }
+  },
 
   image: {
     convert: (opts) => ipcRenderer.invoke('image:convert', opts),
