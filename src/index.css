@@ -107,8 +107,35 @@ body::after {
    ============================================ */
 .app-shell {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   background: var(--bg-base);
+}
+
+/* ── Title bar (window drag region) ── */
+.title-bar {
+  height: 36px;
+  min-height: 36px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding-left: 14px;
+  -webkit-app-region: drag;
+  z-index: 100;
+}
+.title-bar-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Main area sits below the title bar */
+.app-shell > main.main-content {
+  flex: 1;
+  min-height: 0;
 }
 
 /* ============================================

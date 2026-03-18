@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import SwissKnifeWidget from './components/SwissKnifeWidget.jsx'
 import Home from './pages/Home.jsx'
@@ -9,11 +10,43 @@ import PdfTools from './pages/PdfTools.jsx'
 import FileHasher from './pages/FileHasher.jsx'
 import FileInspector from './pages/FileInspector.jsx'
 import Settings from './pages/Settings.jsx'
+import { setPendingFile } from './globalDrop.js'
+
+/**
+ * App-level drop handler.
+ * Component dropzones call e.stopPropagation() so this ONLY fires
+ * for drops that land outside any tool-specific dropzone.
+ * Routes unhandled file drops to the File Inspector.
+ */
+function handleGlobalDrop(e) {
+  const file = e.dataTransfer?.files?.[0]
+  if (!file?.path) return
+
+  setPendingFile(file.path)
+  if (!window.location.hash.startsWith('#/inspector')) {
+    window.location.hash = '#/inspector'
+  }
+}
 
 export default function App() {
+  const [dragOverApp, setDragOverApp] = useState(false)
+
   return (
     <HashRouter>
-      <div className="app-shell">
+      <div
+        className="app-shell"
+        onDragOver={(e) => { e.preventDefault(); setDragOverApp(true) }}
+        onDragLeave={(e) => {
+          // Only clear when leaving the app shell itself (not entering a child)
+          if (e.currentTarget === e.target) setDragOverApp(false)
+        }}
+        onDrop={(e) => { setDragOverApp(false); handleGlobalDrop(e) }}
+      >
+        {/* ── Draggable title bar ── */}
+        <div className="title-bar">
+          <span className="title-bar-label">Swiss Knife</span>
+        </div>
+
         <main className="main-content">
           <div className="page-scroll">
             <Routes>

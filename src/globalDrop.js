@@ -2,9 +2,9 @@
  * globalDrop — cross-component channel for files dropped outside a dropzone.
  *
  * Flow:
- *   1. src/main.jsx catches document-level 'drop' events that no component
- *      handled (checked via e.defaultPrevented).
- *   2. It stores the path here and navigates to /inspector.
+ *   1. App.jsx's onDrop fires for drops that land outside any component dropzone
+ *      (component dropzones call stopPropagation to prevent this).
+ *   2. It stores the file path here and navigates to /inspector.
  *   3. FileInspector reads the pending file on mount OR listens while mounted.
  */
 
