@@ -14,7 +14,7 @@ function setupImageHandlers(ipcMain, dialog) {
     return canceled ? [] : filePaths;
   });
 
-  ipcMain.handle('image:convert', async (event, { filePaths, outputFormat, outputDir, quality, width, height }) => {
+  ipcMain.handle('image:convert', async (event, { filePaths, outputFormat, outputDir, quality, width, height, keepMetadata }) => {
     const results = [];
     for (const filePath of filePaths) {
       try {
@@ -23,6 +23,8 @@ function setupImageHandlers(ipcMain, dialog) {
         const outPath = path.join(outputDir, `${baseName}.${ext}`);
 
         let processor = sharp(filePath);
+        // Preserve EXIF/ICC/XMP metadata (sharp strips it by default)
+        if (keepMetadata) processor = processor.withMetadata();
         if (width || height) {
           processor = processor.resize(width || null, height || null, { fit: 'inside' });
         }

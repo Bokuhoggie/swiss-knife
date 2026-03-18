@@ -15,7 +15,11 @@ function setupAudioHandlers(ipcMain, dialog) {
     return canceled ? [] : filePaths;
   });
 
-  ipcMain.handle('audio:convert', async (event, { filePath, outputFormat, outputDir, bitrate, sampleRate }) => {
+  ipcMain.handle('audio:convert', async (event, {
+    filePath, outputFormat, outputDir, bitrate, sampleRate,
+    // Advanced
+    channels, normalize, fadeIn,
+  }) => {
     return new Promise((resolve) => {
       const baseName = path.basename(filePath, path.extname(filePath));
       const outPath = path.join(outputDir, `${baseName}.${outputFormat}`);
@@ -23,6 +27,14 @@ function setupAudioHandlers(ipcMain, dialog) {
       let cmd = ffmpeg(filePath);
       if (bitrate) cmd = cmd.audioBitrate(bitrate);
       if (sampleRate) cmd = cmd.audioFrequency(parseInt(sampleRate));
+      if (channels === 'mono') cmd = cmd.audioChannels(1);
+      else if (channels === 'stereo') cmd = cmd.audioChannels(2);
+
+      // Audio filter chain
+      const filters = [];
+      if (normalize) filters.push('loudnorm=I=-16:TP=-1.5:LRA=11');
+      if (fadeIn && fadeIn > 0) filters.push(`afade=t=in:d=${fadeIn}`);
+      if (filters.length) cmd = cmd.audioFilters(filters.join(','));
 
       cmd
         .output(outPath)

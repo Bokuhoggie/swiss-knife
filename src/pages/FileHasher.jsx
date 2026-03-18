@@ -1,16 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { IconHash } from '../components/Icons.jsx'
 
 const ALGORITHMS = ['md5', 'sha1', 'sha256', 'sha512']
 const api = window.swissKnife
 
 export default function FileHasher() {
+  const { state } = useLocation()
   const [file, setFile] = useState(null)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(null)
   const [compareVal, setCompareVal] = useState('')
   const [dragOver, setDragOver] = useState(false)
+
+  useEffect(() => {
+    if (state?.file) { setFile(state.file); setResult(null) }
+  }, [state?.file])
 
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 

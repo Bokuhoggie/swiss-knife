@@ -1,18 +1,19 @@
 import { NavLink } from 'react-router-dom'
 import {
   IconHome, IconImage, IconAudio, IconVideo,
-  IconDownload, IconPDF, IconHash,
+  IconDownload, IconPDF, IconHash, IconInspect,
   IconChevronLeft, IconChevronRight, IconKnife
 } from './Icons.jsx'
 
 const NAV_ITEMS = [
-  { label: 'Home',            to: '/',         Icon: IconHome,     section: 'General'   },
-  { label: 'Image Converter', to: '/image',    Icon: IconImage,    section: 'Convert'   },
-  { label: 'Audio Converter', to: '/audio',    Icon: IconAudio,    section: 'Convert'   },
-  { label: 'Video Converter', to: '/video',    Icon: IconVideo,    section: 'Convert'   },
-  { label: 'Downloader',      to: '/download', Icon: IconDownload, section: 'Download'  },
-  { label: 'PDF Tools',       to: '/pdf',      Icon: IconPDF,      section: 'Documents' },
-  { label: 'File Hasher',     to: '/hash',     Icon: IconHash,     section: 'Utilities' },
+  { label: 'Home',            to: '/',          Icon: IconHome,     section: 'General'   },
+  { label: 'Image Converter', to: '/image',     Icon: IconImage,    section: 'Convert'   },
+  { label: 'Audio Converter', to: '/audio',     Icon: IconAudio,    section: 'Convert'   },
+  { label: 'Video Converter', to: '/video',     Icon: IconVideo,    section: 'Convert'   },
+  { label: 'Downloader',      to: '/download',  Icon: IconDownload, section: 'Download'  },
+  { label: 'PDF Tools',       to: '/pdf',       Icon: IconPDF,      section: 'Documents' },
+  { label: 'File Hasher',     to: '/hash',      Icon: IconHash,     section: 'Utilities' },
+  { label: 'File Inspector',  to: '/inspector', Icon: IconInspect,  section: 'Inspect', special: true },
 ]
 
 const sections = [...new Set(NAV_ITEMS.map(i => i.section))]
@@ -36,14 +37,16 @@ export default function Sidebar({ collapsed, onToggle }) {
         {sections.map(section => (
           <div key={section}>
             <div className="nav-section-label">{section}</div>
-          {NAV_ITEMS.filter(i => i.section === section).map((item) => {
+            {NAV_ITEMS.filter(i => i.section === section).map((item) => {
               const NavIcon = item.Icon
               return (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   end={item.to === '/'}
-                  className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                  className={({ isActive }) =>
+                    `nav-item${isActive ? ' active' : ''}${item.special ? ' nav-item-inspect' : ''}`
+                  }
                   title={item.label}
                 >
                   <span className="nav-item-icon"><NavIcon size={16} /></span>

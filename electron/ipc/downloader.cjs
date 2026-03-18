@@ -2,9 +2,25 @@
 
 const path = require('path');
 const os = require('os');
+const fs = require('fs');
+const { app } = require('electron');
 const YTDlpWrap = require('yt-dlp-wrap').default;
 
-const ytDlp = new YTDlpWrap();
+// Resolve or auto-download the yt-dlp binary into the app's userData folder.
+// This means the app works on Windows without yt-dlp in PATH.
+async function getYtDlpInstance() {
+  const binaryName = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
+  const userDataPath = app.getPath('userData');
+  const binaryPath = path.join(userDataPath, binaryName);
+
+  if (!fs.existsSync(binaryPath)) {
+    console.log('[downloader] yt-dlp binary not found, downloading from GitHub...');
+    await YTDlpWrap.downloadFromGithub(binaryPath);
+    console.log('[downloader] yt-dlp downloaded to:', binaryPath);
+  }
+
+  return new YTDlpWrap(binaryPath);
+}
 
 function setupDownloaderHandlers(ipcMain, dialog) {
   ipcMain.handle('downloader:selectFolder', async () => {
@@ -14,11 +30,19 @@ function setupDownloaderHandlers(ipcMain, dialog) {
     return canceled ? null : filePaths[0];
   });
 
-  ipcMain.handle('downloader:download', async (event, { url, outputDir, formatType, quality }) => {
-    return new Promise((resolve) => {
-      const outFolder = outputDir || os.homedir() + '/Downloads';
+  ipcMain.handle('downloader:download', async (event, { url, outputDir, formatType, quality, audioFormat, embedThumbnail, embedSubs, subsLang, rateLimit }) => {
+    return new Promise(async (resolve) => {
+      // Use path.join so separators are correct on Windows
+      const outFolder = outputDir || path.join(os.homedir(), 'Downloads');
 
       // formatType: 'video' | 'audio'
+      let ytDlp;
+      try {
+        ytDlp = await getYtDlpInstance();
+      } catch (err) {
+        return resolve({ success: false, error: `Failed to initialize yt-dlp: ${err.message}` });
+      }
+
       const args = [
         url,
         '-o', path.join(outFolder, '%(title)s.%(ext)s'),
@@ -26,13 +50,23 @@ function setupDownloaderHandlers(ipcMain, dialog) {
       ];
 
       if (formatType === 'audio') {
-        args.push('-x', '--audio-format', 'mp3');
+        // audioFormat comes from Advanced settings (defaults to mp3)
+        args.push('-x', '--audio-format', audioFormat || 'mp3');
       } else {
-        // Best video up to chosen quality
         const heightMap = { '1080p': 1080, '720p': 720, '480p': 480, '360p': 360 };
         const maxH = heightMap[quality] || 1080;
-        args.push('-f', `bestvideo[height<=${maxH}]+bestaudio/best[height<=${maxH}]`, '--merge-output-format', 'mp4');
+        // Prefer mp4+m4a (h264+aac) — avoids opus/webm being embedded in MP4
+        // which causes playback issues in many players. Falls back to best available.
+        args.push(
+          '-f', `bestvideo[height<=${maxH}][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=${maxH}]+bestaudio/best[height<=${maxH}]`,
+          '--merge-output-format', 'mp4',
+        );
       }
+
+      // Advanced options
+      if (embedThumbnail) args.push('--embed-thumbnail');
+      if (embedSubs) args.push('--embed-subs', '--sub-lang', subsLang || 'en');
+      if (rateLimit && rateLimit.trim()) args.push('--limit-rate', rateLimit.trim());
 
       const dlp = ytDlp.exec(args);
 
@@ -42,7 +76,8 @@ function setupDownloaderHandlers(ipcMain, dialog) {
           // Parse percent from "[download]  45.2% of ..."
           const match = eventData.match(/(\d+\.?\d*)%/);
           const percent = match ? parseFloat(match[1]) : 0;
-          const titleMatch = eventData.match(/Destination: .+\/(.+)$/);
+          // Handle both / and \ path separators (Windows uses \)
+          const titleMatch = eventData.match(/Destination: .+[/\\](.+)$/);
           if (titleMatch) lastTitle = titleMatch[1];
           event.sender.send('downloader:progress', { percent, title: lastTitle });
         }

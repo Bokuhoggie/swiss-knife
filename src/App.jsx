@@ -7,6 +7,7 @@ import VideoConverter from './pages/VideoConverter.jsx'
 import Downloader from './pages/Downloader.jsx'
 import PdfTools from './pages/PdfTools.jsx'
 import FileHasher from './pages/FileHasher.jsx'
+import FileInspector from './pages/FileInspector.jsx'
 import Settings from './pages/Settings.jsx'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/download" element={<Downloader />} />
               <Route path="/pdf" element={<PdfTools />} />
               <Route path="/hash" element={<FileHasher />} />
+              <Route path="/inspector" element={<FileInspector />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </div>

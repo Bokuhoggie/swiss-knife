@@ -61,15 +61,26 @@ function setupPdfHandlers(ipcMain, dialog) {
     }
   });
 
-  ipcMain.handle('pdf:compress', async (_, { filePath, outputDir }) => {
-    // pdf-lib reserializes which often compresses; true compression needs ghostscript
+  ipcMain.handle('pdf:compress', async (_, { filePath, outputDir, compressionLevel = 'medium' }) => {
+    // pdf-lib reserializes and removes unused objects; useObjectStreams gives additional stream compression
     try {
       const bytes = fs.readFileSync(filePath);
-      const doc = await PDFDocument.load(bytes);
+      const originalSize = bytes.length;
+      // Load with appropriate options based on level
+      const loadOptions = compressionLevel === 'high'
+        ? { ignoreEncryption: true }
+        : {};
+      const doc = await PDFDocument.load(bytes, loadOptions);
       const outPath = path.join(outputDir, `compressed_${path.basename(filePath)}`);
-      const pdfBytes = await doc.save({ useObjectStreams: true });
+      const saveOptions = {
+        useObjectStreams: compressionLevel !== 'low',
+        addDefaultPage: false,
+        objectsPerTick: compressionLevel === 'high' ? 10 : 50,
+      };
+      const pdfBytes = await doc.save(saveOptions);
       fs.writeFileSync(outPath, pdfBytes);
-      return { success: true, outputPath: outPath };
+      const savedBytes = originalSize - pdfBytes.length;
+      return { success: true, outputPath: outPath, savedBytes: Math.max(0, savedBytes) };
     } catch (err) {
       return { success: false, error: err.message };
     }

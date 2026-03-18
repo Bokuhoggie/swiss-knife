@@ -100,6 +100,35 @@ function NailFileSVG({ color, flip }) {
   )
 }
 
+function MagnifyGlassSVG({ color, flip }) {
+  return (
+    <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
+      <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
+        {/* Mounting collar */}
+        <rect x="13" y="4" width="16" height="6" fill="#9090A8"/>
+        <rect x="14" y="5" width="14" height="4" fill="#C0C0D0"/>
+        {/* Handle stick */}
+        <rect x="18" y="10" width="6" height="110" fill={color} opacity="0.92"/>
+        <rect x="20" y="10" width="3"  height="110" fill="rgba(255,255,255,0.18)"/>
+        {/* Lens ring — pixel-art circle */}
+        <rect x="9"  y="120" width="24" height="5"  fill={color} opacity="0.95"/>
+        <rect x="5"  y="125" width="5"  height="5"  fill={color} opacity="0.95"/>
+        <rect x="32" y="125" width="5"  height="5"  fill={color} opacity="0.95"/>
+        <rect x="3"  y="130" width="5"  height="26" fill={color} opacity="0.95"/>
+        <rect x="34" y="130" width="5"  height="26" fill={color} opacity="0.95"/>
+        <rect x="5"  y="156" width="5"  height="5"  fill={color} opacity="0.95"/>
+        <rect x="32" y="156" width="5"  height="5"  fill={color} opacity="0.95"/>
+        <rect x="9"  y="161" width="24" height="5"  fill={color} opacity="0.95"/>
+        {/* Lens interior glow */}
+        <rect x="8"  y="125" width="26" height="36" fill={color} opacity="0.06"/>
+        {/* Glare */}
+        <rect x="8"  y="130" width="7"  height="7"  fill="rgba(255,255,255,0.28)"/>
+        <rect x="17" y="122" width="5"  height="4"  fill="rgba(255,255,255,0.18)"/>
+      </g>
+    </svg>
+  )
+}
+
 function CorkscrewSVG({ color, flip }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
@@ -211,9 +240,10 @@ const LEFT_TOOLS = [
 ]
 
 const RIGHT_TOOLS = [
-  { label: 'DOWNLOAD', route: '/download', color: '#00FF87', Blade: CanOpenerSVG, angleOpen: 20, angleClosed: -90, flip: true, flipY: true },
-  { label: 'PDF',      route: '/pdf',      color: '#FFD60A', Blade: NailFileSVG,  angleOpen: 40, angleClosed: -90, flip: true, flipY: true },
-  { label: 'HASH',     route: '/hash',     color: '#39FF14', Blade: CorkscrewSVG, angleOpen: 60, angleClosed: -90, flip: true, flipY: true },
+  { label: 'DOWNLOAD', route: '/download',  color: '#00FF87', Blade: CanOpenerSVG,   angleOpen: 20, angleClosed: -90, flip: true, flipY: true },
+  { label: 'PDF',      route: '/pdf',       color: '#FFD60A', Blade: NailFileSVG,    angleOpen: 40, angleClosed: -90, flip: true, flipY: true },
+  { label: 'HASH',     route: '/hash',      color: '#39FF14', Blade: CorkscrewSVG,   angleOpen: 60, angleClosed: -90, flip: true, flipY: true },
+  { label: 'INSPECT',  route: '/inspector', color: '#FF9F1C', Blade: MagnifyGlassSVG, angleOpen: 80, angleClosed: -90, flip: true, flipY: true },
 ]
 
 const ALL_TOOLS = [...LEFT_TOOLS, ...RIGHT_TOOLS]
@@ -312,8 +342,8 @@ export default function SwissKnifeWidget() {
                 transform: `rotate(${currentAngle}deg)`,
                 zIndex: hovered === tool.route ? 15 : 10,
                 // Sequential transition delay (both opening & closing)
-                transitionDelay: open 
-                  ? `${isLeft ? i * 60 : (5 - i) * 60}ms` 
+                transitionDelay: open
+                  ? `${isLeft ? i * 60 : (6 - i) * 60}ms`
                   : `${isLeft ? (2 - i) * 50 : (i - 3) * 50}ms`
               }}
               onClick={(e) => {

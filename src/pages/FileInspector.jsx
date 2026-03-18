@@ -1,0 +1,214 @@
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { IconInspect } from '../components/Icons.jsx'
+import { consumePendingFile } from '../globalDrop.js'
+
+const api = window.swissKnife
+
+// Category → accent colour
+const CATEGORY_ACCENT = {
+  image: '#00D4FF',
+  audio: '#FF3CAC',
+  video: '#C77DFF',
+  pdf:   '#FFD60A',
+}
+
+// Human-readable category badge
+const CATEGORY_LABEL = {
+  image: 'IMAGE',
+  audio: 'AUDIO',
+  video: 'VIDEO',
+  pdf:   'PDF',
+}
+
+function StatCard({ label, value }) {
+  return (
+    <div className="stat-card">
+      <div className="stat-label">{label}</div>
+      <div className="stat-value">{value ?? '—'}</div>
+    </div>
+  )
+}
+
+export default function FileInspector() {
+  const [info, setInfo]         = useState(null)
+  const [loading, setLoading]   = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const [hash, setHash]         = useState(null)
+  const [hashing, setHashing]   = useState(false)
+  const navigate = useNavigate()
+
+  const analyze = useCallback(async (filePath) => {
+    if (!filePath) return
+    setLoading(true); setInfo(null); setHash(null)
+    const result = await api.inspector.analyze(filePath)
+    setInfo(result)
+    setLoading(false)
+  }, [])
+
+  // Read pending file on mount (dropped outside a component before we mounted)
+  // and stay subscribed to future global drops while mounted.
+  useEffect(() => {
+    const pending = consumePendingFile()
+    if (pending) analyze(pending)
+
+    const handler = () => {
+      const f = consumePendingFile()
+      if (f) analyze(f)
+    }
+    window.addEventListener('global-file-drop', handler)
+    return () => window.removeEventListener('global-file-drop', handler)
+  }, [analyze])
+
+  const browse = async () => {
+    const f = await api.inspector.selectFile()
+    if (f) analyze(f)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault(); setDragOver(false)
+    const f = e.dataTransfer.files[0]
+    if (f) analyze(f.path)
+  }
+
+  const computeHash = async () => {
+    if (!info?.path) return
+    setHashing(true)
+    const res = await api.hash.compute({ filePath: info.path, algorithms: ['sha256', 'md5'] })
+    setHash(res?.hashes || null)
+    setHashing(false)
+  }
+
+  const openInTool = () => {
+    if (!info?.suggestedTool) return
+    navigate(info.suggestedTool, { state: { file: info.path } })
+  }
+
+  const accent = (info?.category && CATEGORY_ACCENT[info.category]) || '#FF9F1C'
+
+  return (
+    <div className="page-anim" style={{ '--accent': accent }}>
+      <div className="page-header">
+        <h1 className="page-title">
+          <IconInspect size={20} />
+          File Inspector
+        </h1>
+        <p className="page-subtitle">Drop any file to instantly analyze its format, metadata, and properties</p>
+      </div>
+
+      {/* Drop zone — shown when no file loaded */}
+      {!info && !loading && (
+        <div
+          className={`card inspector-drop${dragOver ? ' drag-over-inspector' : ''}`}
+          onClick={browse}
+          onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          style={{ cursor: 'pointer', textAlign: 'center', padding: '60px 24px' }}
+        >
+          <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.5 }}>🔍</div>
+          <div className="dropzone-title">Drop any file here, or click to browse</div>
+          <div className="dropzone-sub" style={{ marginTop: 8 }}>
+            Images · Audio · Video · PDFs · Archives · Code · Executables — anything
+          </div>
+          <div className="dropzone-sub" style={{ marginTop: 4, color: 'var(--text-muted)' }}>
+            Or drop a file anywhere in the app to send it here automatically
+          </div>
+        </div>
+      )}
+
+      {loading && (
+        <div className="card" style={{ textAlign: 'center', padding: '40px 24px' }}>
+          <span className="spinner" style={{ fontSize: 28 }}>⟳</span>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, marginTop: 16, color: 'var(--text-secondary)' }}>
+            SCANNING…
+          </div>
+        </div>
+      )}
+
+      {info && !loading && (
+        <>
+          {/* ── File header ── */}
+          <div className="card inspector-header" style={{ marginBottom: 12 }}>
+            <div className="inspector-file-row">
+              <div className="inspector-file-icon" style={{ color: accent }}>
+                {info.category === 'image' ? '🖼' :
+                 info.category === 'audio' ? '🎵' :
+                 info.category === 'video' ? '🎬' :
+                 info.category === 'pdf'   ? '📄' : '📁'}
+              </div>
+              <div className="inspector-file-info">
+                <div className="inspector-file-name">{info.name}</div>
+                <div className="inspector-file-path">{info.path}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', flexShrink: 0 }}>
+                {info.category && (
+                  <span className="inspector-badge" style={{ '--badge-color': accent }}>
+                    {CATEGORY_LABEL[info.category]}
+                  </span>
+                )}
+                {info.suggestedTool && (
+                  <button className="btn btn-primary" onClick={openInTool} style={{ fontSize: 6 }}>
+                    Open in {info.suggestedToolLabel} ↗
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Base stats ── */}
+          <div className="stat-grid" style={{ marginBottom: 12 }}>
+            <StatCard label="Size"      value={info.sizeStr} />
+            <StatCard label="Extension" value={`.${info.ext}`} />
+            <StatCard label="MIME Type" value={info.mime} />
+            <StatCard label="Modified"  value={info.modified} />
+            <StatCard label="Created"   value={info.created} />
+          </div>
+
+          {/* ── Type-specific details ── */}
+          {info.details && Object.keys(info.details).length > 0 && (
+            <div className="card" style={{ marginBottom: 12 }}>
+              <div className="inspector-section-title" style={{ color: accent }}>
+                // {info.category?.toUpperCase()} PROPERTIES
+              </div>
+              <div className="stat-grid">
+                {Object.entries(info.details).map(([k, v]) => (
+                  <StatCard key={k} label={k} value={String(v)} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Hash ── */}
+          <div className="card" style={{ marginBottom: 12 }}>
+            <div className="inspector-section-title" style={{ color: 'var(--text-muted)' }}>
+              // CHECKSUMS
+            </div>
+            {!hash && (
+              <button className="btn btn-secondary" onClick={computeHash} disabled={hashing}>
+                {hashing ? <span className="spinner">⟳</span> : '🔑'}
+                {hashing ? 'Computing…' : 'Compute Hashes (SHA-256 + MD5)'}
+              </button>
+            )}
+            {hash && (
+              <div className="hash-results">
+                {Object.entries(hash).map(([algo, val]) => (
+                  <div key={algo} className="hash-row">
+                    <span className="hash-algo-label">{algo.toUpperCase()}</span>
+                    <span className="hash-val">{val}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Scan another ── */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-secondary" onClick={browse}>📂 Inspect Another File</button>
+            <button className="btn btn-ghost" onClick={() => { setInfo(null); setHash(null) }}>✕ Clear</button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

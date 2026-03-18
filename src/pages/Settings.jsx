@@ -1,42 +1,300 @@
-import { useState } from 'react'
+import { useSettings } from '../hooks/useSettings.js'
+
+const api = window.swissKnife
+
+const IMG_FORMATS   = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
+const VID_FORMATS   = ['mp4', 'mkv', 'avi', 'mov', 'webm']
+const VID_CODECS    = ['', 'libx264', 'libx265', 'vp9', 'libvpx']
+const VID_ACODECS   = ['aac', 'mp3', 'copy', 'libopus']
+const VID_ABITRATES = ['128k', '192k', '256k', '320k']
+const VID_FPS       = ['', '24', '30', '60']
+const VID_HWACCELS  = ['', 'cuda', 'dxva2', 'qsv', 'd3d11va']
+const AUD_FORMATS   = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
+const AUD_BITRATES  = ['64k', '128k', '192k', '256k', '320k']
+const AUD_RATES     = ['22050', '44100', '48000', '96000']
+const AUD_CHANNELS  = ['', 'stereo', 'mono']
+const DL_QUALITIES  = ['1080p', '720p', '480p', '360p']
+const DL_AFORMATS   = ['mp3', 'aac', 'flac', 'opus', 'wav']
+const PDF_COMPRESS  = ['low', 'medium', 'high']
+
+function Toggle({ checked, onChange }) {
+  return (
+    <label className="pixel-toggle">
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
+      <span className="pixel-toggle-track" />
+    </label>
+  )
+}
+
+function ToggleRow({ label, desc, checked, onChange }) {
+  return (
+    <div className="toggle-row">
+      <div className="toggle-info">
+        <div className="toggle-title">{label}</div>
+        {desc && <div className="toggle-desc">{desc}</div>}
+      </div>
+      <Toggle checked={!!checked} onChange={onChange} />
+    </div>
+  )
+}
+
+function Section({ title, children }) {
+  return (
+    <div className="settings-section">
+      <div className="settings-section-title">{title}</div>
+      {children}
+    </div>
+  )
+}
 
 export default function Settings() {
-  const [outputDir, setOutputDir] = useState('')
+  const { settings, update } = useSettings()
+
+  if (!settings) {
+    return (
+      <div className="page-anim" style={{ '--accent': '#AAAACC' }}>
+        <div className="page-header">
+          <h1 className="page-title">⚙ Settings</h1>
+        </div>
+        <div style={{ fontFamily: "'VT323', monospace", fontSize: '1.4rem', color: 'var(--text-muted)', padding: 32 }}>
+          Loading settings…
+        </div>
+      </div>
+    )
+  }
 
   const pickDefaultOutput = async () => {
-    const dir = await window.swissKnife?.selectOutputDir()
-    if (dir) setOutputDir(dir)
+    const dir = await api.selectOutputDir()
+    if (dir) update('general.defaultOutputDir', dir)
   }
 
   return (
     <div className="page-anim" style={{ '--accent': '#AAAACC' }}>
       <div className="page-header">
         <h1 className="page-title">⚙ Settings</h1>
-        <p className="page-subtitle">Configure Swiss Knife preferences</p>
+        <p className="page-subtitle">Defaults auto-save as you change them — no Save button needed</p>
       </div>
 
-      <div className="card">
-        <div className="form-group" style={{ marginBottom: 20 }}>
-          <label className="form-label">Default Output Folder</label>
-          <div className="controls-row">
-            <input
-              className="form-input"
-              value={outputDir}
-              readOnly
-              placeholder="No default folder set"
-              style={{ flex: 1 }}
-            />
-            <button className="btn btn-secondary" onClick={pickDefaultOutput}>
-              📁 Choose Folder
-            </button>
+      <div className="card" style={{ marginBottom: 16 }}>
+
+        {/* ─── GENERAL ─── */}
+        <Section title="// GENERAL">
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <label className="form-label">Default Output Folder</label>
+            <div className="controls-row" style={{ marginTop: 6 }}>
+              <input
+                className="form-input"
+                value={settings.general.defaultOutputDir}
+                readOnly
+                placeholder="None set — tools will prompt each time"
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-secondary" onClick={pickDefaultOutput}>📁 Choose</button>
+              {settings.general.defaultOutputDir && (
+                <button className="btn btn-ghost btn-sm" onClick={() => update('general.defaultOutputDir', '')}>✕ Clear</button>
+              )}
+            </div>
           </div>
-        </div>
+          <ToggleRow
+            label="Open folder after conversion"
+            desc="Auto-opens the output folder in Explorer when done"
+            checked={settings.general.openAfterConvert}
+            onChange={v => update('general.openAfterConvert', v)}
+          />
+        </Section>
 
         <div className="section-divider" />
 
-        <div style={{ padding: '20px 0', color: 'var(--text-secondary)', fontFamily: "'VT323', monospace", fontSize: '1.2rem' }}>
-          More settings coming soon…
-        </div>
+        {/* ─── IMAGE ─── */}
+        <Section title="// IMAGE DEFAULTS">
+          <div className="advanced-grid" style={{ marginBottom: 16 }}>
+            <div className="form-group">
+              <label className="form-label">Default Format</label>
+              <select className="form-select" value={settings.image.format} onChange={e => update('image.format', e.target.value)}>
+                {IMG_FORMATS.map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Quality: {settings.image.quality}</label>
+              <div className="range-wrap">
+                <input type="range" min={10} max={100} value={settings.image.quality} onChange={e => update('image.quality', +e.target.value)} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Max Width (px)</label>
+              <input className="form-input" type="number" min={1} placeholder="No limit" value={settings.image.width} onChange={e => update('image.width', e.target.value)} style={{ minWidth: 110 }} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Max Height (px)</label>
+              <input className="form-input" type="number" min={1} placeholder="No limit" value={settings.image.height} onChange={e => update('image.height', e.target.value)} style={{ minWidth: 110 }} />
+            </div>
+          </div>
+          <ToggleRow
+            label="Preserve metadata (EXIF/ICC)"
+            desc="Keeps camera data, colour profiles, GPS info"
+            checked={settings.image.keepMetadata}
+            onChange={v => update('image.keepMetadata', v)}
+          />
+        </Section>
+
+        <div className="section-divider" />
+
+        {/* ─── VIDEO ─── */}
+        <Section title="// VIDEO DEFAULTS">
+          <div className="advanced-grid" style={{ marginBottom: 16 }}>
+            <div className="form-group">
+              <label className="form-label">Default Format</label>
+              <select className="form-select" value={settings.video.format} onChange={e => update('video.format', e.target.value)}>
+                {VID_FORMATS.map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Video Codec</label>
+              <select className="form-select" value={settings.video.codec} onChange={e => update('video.codec', e.target.value)}>
+                <option value="">Auto</option>
+                {VID_CODECS.filter(Boolean).map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Audio Codec</label>
+              <select className="form-select" value={settings.video.audioCodec} onChange={e => update('video.audioCodec', e.target.value)}>
+                {VID_ACODECS.map(c => <option key={c} value={c}>{c.toUpperCase()}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Audio Bitrate</label>
+              <select className="form-select" value={settings.video.audioBitrate} onChange={e => update('video.audioBitrate', e.target.value)}>
+                {VID_ABITRATES.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">CRF Quality: {settings.video.crf}</label>
+              <div className="range-wrap">
+                <input type="range" min={0} max={51} value={settings.video.crf} onChange={e => update('video.crf', +e.target.value)} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Frame Rate</label>
+              <select className="form-select" value={settings.video.fps} onChange={e => update('video.fps', e.target.value)}>
+                <option value="">Original</option>
+                {VID_FPS.filter(Boolean).map(f => <option key={f} value={f}>{f} fps</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">HW Acceleration</label>
+              <select className="form-select" value={settings.video.hwAccel} onChange={e => update('video.hwAccel', e.target.value)}>
+                <option value="">None (CPU)</option>
+                <option value="cuda">NVENC (NVIDIA)</option>
+                <option value="dxva2">DXVA2 (Windows)</option>
+                <option value="qsv">QuickSync (Intel)</option>
+                <option value="d3d11va">D3D11VA (Windows)</option>
+              </select>
+            </div>
+          </div>
+        </Section>
+
+        <div className="section-divider" />
+
+        {/* ─── AUDIO ─── */}
+        <Section title="// AUDIO DEFAULTS">
+          <div className="advanced-grid" style={{ marginBottom: 16 }}>
+            <div className="form-group">
+              <label className="form-label">Default Format</label>
+              <select className="form-select" value={settings.audio.format} onChange={e => update('audio.format', e.target.value)}>
+                {AUD_FORMATS.map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Bitrate</label>
+              <select className="form-select" value={settings.audio.bitrate} onChange={e => update('audio.bitrate', e.target.value)}>
+                {AUD_BITRATES.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Sample Rate</label>
+              <select className="form-select" value={settings.audio.sampleRate} onChange={e => update('audio.sampleRate', e.target.value)}>
+                {AUD_RATES.map(r => <option key={r} value={r}>{(+r / 1000).toFixed(1)} kHz</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Channels</label>
+              <select className="form-select" value={settings.audio.channels} onChange={e => update('audio.channels', e.target.value)}>
+                <option value="">Auto</option>
+                {AUD_CHANNELS.filter(Boolean).map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Fade In (seconds)</label>
+              <input className="form-input" type="number" min={0} max={10} step={0.5} value={settings.audio.fadeIn} onChange={e => update('audio.fadeIn', +e.target.value)} style={{ minWidth: 110 }} />
+            </div>
+          </div>
+          <ToggleRow
+            label="Normalize audio by default"
+            desc="Applies EBU R128 loudness normalization (loudnorm)"
+            checked={settings.audio.normalize}
+            onChange={v => update('audio.normalize', v)}
+          />
+        </Section>
+
+        <div className="section-divider" />
+
+        {/* ─── DOWNLOADER ─── */}
+        <Section title="// DOWNLOADER DEFAULTS">
+          <div className="advanced-grid" style={{ marginBottom: 16 }}>
+            <div className="form-group">
+              <label className="form-label">Default Format</label>
+              <select className="form-select" value={settings.downloader.formatType} onChange={e => update('downloader.formatType', e.target.value)}>
+                <option value="video">Video (MP4)</option>
+                <option value="audio">Audio only</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Max Quality</label>
+              <select className="form-select" value={settings.downloader.quality} onChange={e => update('downloader.quality', e.target.value)}>
+                {DL_QUALITIES.map(q => <option key={q} value={q}>{q}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Audio-only Format</label>
+              <select className="form-select" value={settings.downloader.audioFormat} onChange={e => update('downloader.audioFormat', e.target.value)}>
+                {DL_AFORMATS.map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Subtitle Language</label>
+              <input className="form-input" value={settings.downloader.subsLang} onChange={e => update('downloader.subsLang', e.target.value)} placeholder="en" style={{ minWidth: 110 }} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Rate Limit</label>
+              <input className="form-input" value={settings.downloader.rateLimit} onChange={e => update('downloader.rateLimit', e.target.value)} placeholder="e.g. 5M" style={{ minWidth: 110 }} />
+            </div>
+          </div>
+          <ToggleRow
+            label="Embed thumbnail"
+            desc="Adds cover art to downloaded files"
+            checked={settings.downloader.embedThumbnail}
+            onChange={v => update('downloader.embedThumbnail', v)}
+          />
+          <ToggleRow
+            label="Embed subtitles"
+            desc="Burns subtitles into the output file when available"
+            checked={settings.downloader.embedSubs}
+            onChange={v => update('downloader.embedSubs', v)}
+          />
+        </Section>
+
+        <div className="section-divider" />
+
+        {/* ─── PDF ─── */}
+        <Section title="// PDF DEFAULTS">
+          <div className="form-group">
+            <label className="form-label">Compression Level</label>
+            <select className="form-select" value={settings.pdf.compressionLevel} onChange={e => update('pdf.compressionLevel', e.target.value)}>
+              {PDF_COMPRESS.map(l => <option key={l} value={l}>{l.charAt(0).toUpperCase() + l.slice(1)}</option>)}
+            </select>
+          </div>
+        </Section>
+
       </div>
     </div>
   )

@@ -1,19 +1,45 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { IconPDF } from '../components/Icons.jsx'
 
 const api = window.swissKnife
+
+const COMPRESS_LEVELS = [
+  { value: 'low',    label: 'Low — Faster, larger file' },
+  { value: 'medium', label: 'Medium — Balanced (recommended)' },
+  { value: 'high',   label: 'High — Slower, smaller file' },
+]
 
 function MergeTab() {
   const [files, setFiles] = useState([])
   const [outputDir, setOutputDir] = useState('')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+
+  useEffect(() => {
+    api.settings?.read().then(s => {
+      if (!s) return
+      if (s.general?.defaultOutputDir) setOutputDir(s.general.defaultOutputDir)
+    }).catch(() => {})
+  }, [])
 
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 
+  const addFiles = (paths) => {
+    const pdfs = paths.filter(p => p.toLowerCase().endsWith('.pdf'))
+    setFiles(prev => [...prev, ...pdfs.filter(f => !prev.includes(f))])
+    setResult(null)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault(); setDragOver(false)
+    addFiles(Array.from(e.dataTransfer.files).map(f => f.path))
+  }
+
   const pickFiles = async () => {
     const selected = await api.pdf.selectFiles()
-    if (selected.length) setFiles(prev => [...prev, ...selected.filter(f => !prev.includes(f))])
+    if (selected.length) addFiles(selected)
   }
 
   const pickOutputDir = async () => {
@@ -32,22 +58,42 @@ function MergeTab() {
 
   return (
     <div>
-      <button className="btn btn-secondary" style={{ marginBottom: 16 }} onClick={pickFiles}>+ Add PDFs</button>
-      <div className="file-list">
-        {files.map((f, i) => (
-          <div key={i} className="file-item">
-            <span className="file-item-icon">📄</span>
-            <span className="file-item-name">{basename(f)}</span>
-            <button className="file-remove-btn" onClick={() => setFiles(files.filter((_, j) => j !== i))}>✕</button>
-          </div>
-        ))}
+      <div
+        className={`dropzone${dragOver ? ' drag-over' : ''}`}
+        style={{ marginBottom: 16, padding: '24px' }}
+        onClick={pickFiles}
+        onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+      >
+        <div className="dropzone-icon"><IconPDF size={28} /></div>
+        <div className="dropzone-title" style={{ fontSize: 7 }}>Drop PDFs here or click to browse</div>
+        <div className="dropzone-sub">Multiple files OK — merge order matches list order</div>
       </div>
-      <div className="controls-row" style={{ marginTop: 20 }}>
-        <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
+
+      {files.length > 0 && (
+        <div className="file-list">
+          {files.map((f, i) => (
+            <div key={i} className="file-item">
+              <span className="file-item-icon">📄</span>
+              <span className="file-item-name">{basename(f)}</span>
+              <button
+                className="file-remove-btn"
+                onClick={() => setFiles(files.filter((_, j) => j !== i))}
+                disabled={loading}
+              >✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="controls-row" style={{ marginTop: 16 }}>
+        <button className="btn btn-secondary" onClick={pickOutputDir} disabled={loading}>📁 Output Folder</button>
         <button className="btn btn-primary" onClick={merge} disabled={loading || files.length < 2}>
           {loading ? <span className="spinner">⟳</span> : '🔗'} Merge PDFs
         </button>
       </div>
+
       {outputDir && (
         <div className="output-path-row">
           <span className="output-folder-icon">📂</span>
@@ -70,6 +116,13 @@ function SplitTab() {
   const [rangeStr, setRangeStr] = useState('1-3')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    api.settings?.read().then(s => {
+      if (!s) return
+      if (s.general?.defaultOutputDir) setOutputDir(s.general.defaultOutputDir)
+    }).catch(() => {})
+  }, [])
 
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 
@@ -103,7 +156,7 @@ function SplitTab() {
   return (
     <div>
       <div className="controls-row" style={{ marginBottom: 16, alignItems: 'center' }}>
-        <button className="btn btn-secondary" onClick={pickFile}>📄 Select PDF</button>
+        <button className="btn btn-secondary" onClick={pickFile} disabled={loading}>📄 Select PDF</button>
         {file && <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{basename(file)}</span>}
       </div>
       <div className="form-group" style={{ marginBottom: 16 }}>
@@ -111,7 +164,7 @@ function SplitTab() {
         <input className="form-input" value={rangeStr} onChange={e => setRangeStr(e.target.value)} placeholder="1-3, 5-8" />
       </div>
       <div className="controls-row">
-        <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
+        <button className="btn btn-secondary" onClick={pickOutputDir} disabled={loading}>📁 Output Folder</button>
         <button className="btn btn-primary" onClick={split} disabled={loading || !file}>
           {loading ? <span className="spinner">⟳</span> : '✂'} Split PDF
         </button>
@@ -135,18 +188,27 @@ function SplitTab() {
 function CompressTab() {
   const [file, setFile] = useState(null)
   const [outputDir, setOutputDir] = useState('')
+  const [compressionLevel, setCompressionLevel] = useState('medium')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    api.settings?.read().then(s => {
+      if (!s) return
+      if (s.general?.defaultOutputDir)      setOutputDir(s.general.defaultOutputDir)
+      if (s.pdf?.compressionLevel)          setCompressionLevel(s.pdf.compressionLevel)
+    }).catch(() => {})
+  }, [])
+
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 
-  const pickFile = async () => { const f = await api.pdf.selectFile(); if (f) setFile(f) }
+  const pickFile = async () => { const f = await api.pdf.selectFile(); if (f) { setFile(f); setResult(null) } }
   const pickOutputDir = async () => { const dir = await api.selectOutputDir(); if (dir) setOutputDir(dir) }
 
   const compress = async () => {
     if (!file || !outputDir) { alert('Select a PDF and output folder.'); return }
     setLoading(true)
-    const res = await api.pdf.compress({ filePath: file, outputDir })
+    const res = await api.pdf.compress({ filePath: file, outputDir, compressionLevel })
     setResult(res)
     setLoading(false)
   }
@@ -154,11 +216,17 @@ function CompressTab() {
   return (
     <div>
       <div className="controls-row" style={{ marginBottom: 16 }}>
-        <button className="btn btn-secondary" onClick={pickFile}>📄 Select PDF</button>
+        <button className="btn btn-secondary" onClick={pickFile} disabled={loading}>📄 Select PDF</button>
         {file && <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{basename(file)}</span>}
       </div>
+      <div className="form-group" style={{ marginBottom: 16 }}>
+        <label className="form-label">Compression Level</label>
+        <select className="form-select" value={compressionLevel} onChange={e => setCompressionLevel(e.target.value)} disabled={loading}>
+          {COMPRESS_LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+        </select>
+      </div>
       <div className="controls-row">
-        <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
+        <button className="btn btn-secondary" onClick={pickOutputDir} disabled={loading}>📁 Output Folder</button>
         <button className="btn btn-primary" onClick={compress} disabled={loading || !file}>
           {loading ? <span className="spinner">⟳</span> : '🗜'} Compress PDF
         </button>
@@ -172,7 +240,9 @@ function CompressTab() {
       )}
       {result && (
         <div className={`result-banner ${result.success ? 'success' : 'error'}`}>
-          {result.success ? `✓ Compressed: ${basename(result.outputPath)}` : `✗ ${result.error}`}
+          {result.success
+            ? `✓ Compressed: ${basename(result.outputPath)}${result.savedBytes ? ` (saved ${(result.savedBytes / 1024).toFixed(0)} KB)` : ''}`
+            : `✗ ${result.error}`}
         </div>
       )}
     </div>
@@ -183,6 +253,15 @@ const TABS = ['Merge', 'Split', 'Compress']
 
 export default function PdfTools() {
   const [activeTab, setActiveTab] = useState('Merge')
+  const { state } = useLocation()
+  const [inspectorFile, setInspectorFile] = useState(null)
+
+  useEffect(() => {
+    if (state?.file) {
+      setActiveTab('Compress')
+      setInspectorFile(state.file)
+    }
+  }, [state?.file])
   return (
     <div className="page-anim" style={{ '--accent': '#FFD60A' }}>
       <div className="page-header">
@@ -195,9 +274,9 @@ export default function PdfTools() {
             <button key={t} className={`tab-btn${activeTab === t ? ' active' : ''}`} onClick={() => setActiveTab(t)}>{t}</button>
           ))}
         </div>
-        {activeTab === 'Merge' && <MergeTab />}
-        {activeTab === 'Split' && <SplitTab />}
-        {activeTab === 'Compress' && <CompressTab />}
+        {activeTab === 'Merge'    && <MergeTab />}
+        {activeTab === 'Split'    && <SplitTab />}
+        {activeTab === 'Compress' && <CompressTab preloadFile={inspectorFile} />}
       </div>
     </div>
   )
