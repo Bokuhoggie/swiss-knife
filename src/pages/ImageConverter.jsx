@@ -48,8 +48,9 @@ export default function ImageConverter() {
   }
 
   const handleDrop = (e) => {
-    e.preventDefault(); setDragOver(false)
-    addFiles(Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean))
+    e.preventDefault(); e.stopPropagation(); setDragOver(false)
+    const paths = Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean)
+    if (paths.length) addFiles(paths)
   }
 
   const handleBrowse = async () => {
@@ -74,6 +75,8 @@ export default function ImageConverter() {
         keepMetadata,
       })
       setResults(res)
+    } catch (err) {
+      setResults(files.map(f => ({ inputPath: f, success: false, error: err?.message || 'Conversion failed' })))
     } finally {
       setLoading(false)
     }

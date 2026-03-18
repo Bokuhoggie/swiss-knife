@@ -33,8 +33,9 @@ function MergeTab() {
   }
 
   const handleDrop = (e) => {
-    e.preventDefault(); setDragOver(false)
-    addFiles(Array.from(e.dataTransfer.files).map(f => f.path))
+    e.preventDefault(); e.stopPropagation(); setDragOver(false)
+    const paths = Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean)
+    if (paths.length) addFiles(paths)
   }
 
   const pickFiles = async () => {
@@ -51,8 +52,12 @@ function MergeTab() {
     if (files.length < 2) { alert('Select at least 2 PDFs to merge.'); return }
     if (!outputDir) { alert('Select an output folder.'); return }
     setLoading(true)
-    const res = await api.pdf.merge({ filePaths: files, outputDir })
-    setResult(res)
+    try {
+      const res = await api.pdf.merge({ filePaths: files, outputDir })
+      setResult(res)
+    } catch (err) {
+      setResult({ success: false, error: err?.message || 'Merge failed' })
+    }
     setLoading(false)
   }
 
@@ -147,9 +152,13 @@ function SplitTab() {
     if (!file) { alert('Select a PDF.'); return }
     if (!outputDir) { alert('Select an output folder.'); return }
     setLoading(true)
-    const ranges = parseRanges(rangeStr)
-    const res = await api.pdf.split({ filePath: file, outputDir, ranges })
-    setResult(Array.isArray(res) ? res : [res])
+    try {
+      const ranges = parseRanges(rangeStr)
+      const res = await api.pdf.split({ filePath: file, outputDir, ranges })
+      setResult(Array.isArray(res) ? res : [res])
+    } catch (err) {
+      setResult([{ success: false, error: err?.message || 'Split failed' }])
+    }
     setLoading(false)
   }
 
@@ -208,8 +217,12 @@ function CompressTab() {
   const compress = async () => {
     if (!file || !outputDir) { alert('Select a PDF and output folder.'); return }
     setLoading(true)
-    const res = await api.pdf.compress({ filePath: file, outputDir, compressionLevel })
-    setResult(res)
+    try {
+      const res = await api.pdf.compress({ filePath: file, outputDir, compressionLevel })
+      setResult(res)
+    } catch (err) {
+      setResult({ success: false, error: err?.message || 'Compression failed' })
+    }
     setLoading(false)
   }
 

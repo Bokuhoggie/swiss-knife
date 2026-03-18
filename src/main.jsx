@@ -7,16 +7,21 @@ import { setPendingFile } from './globalDrop.js'
 // Allow drops everywhere (shows correct drag cursor, prevents browser nav).
 document.addEventListener('dragover', (e) => e.preventDefault(), false)
 
-// Global drop catch-all: always prevent Electron default navigation first,
-// then only redirect to inspector if no component dropzone handled the drop.
+// Global drop catch-all: always prevent Electron default navigation,
+// then route to inspector only if the drop did NOT land on a component dropzone.
 document.addEventListener('drop', (e) => {
-  const handledByComponent = e.defaultPrevented
-  e.preventDefault()   // ALWAYS prevent — stops Electron from loading the file as a page
-  if (handledByComponent) return
-  const files = Array.from(e.dataTransfer.files).filter(f => f.path)
-  if (files.length === 0) return
-  setPendingFile(files[0].path)
-  // Navigate to inspector via hash router
+  e.preventDefault()  // ALWAYS prevent — stops Electron from loading the file as a page
+  e.stopPropagation()
+
+  // If the drop landed inside a component dropzone, let the component handle it
+  if (e.target.closest('.dropzone, .inspector-drop')) return
+
+  const file = Array.from(e.dataTransfer.files)[0]
+  if (!file) return
+  const filePath = file.path || ''
+  if (!filePath) return
+
+  setPendingFile(filePath)
   if (!window.location.hash.startsWith('#/inspector')) {
     window.location.hash = '#/inspector'
   }

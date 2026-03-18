@@ -55,8 +55,9 @@ export default function AudioConverter() {
   }
 
   const handleDrop = (e) => {
-    e.preventDefault(); setDragOver(false)
-    addFiles(Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean))
+    e.preventDefault(); e.stopPropagation(); setDragOver(false)
+    const paths = Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean)
+    if (paths.length) addFiles(paths)
   }
 
   const handleBrowse = async () => {
@@ -77,13 +78,17 @@ export default function AudioConverter() {
     const allResults = []
     for (let i = 0; i < files.length; i++) {
       setCurrentIdx(i); setProgress(null)
-      const res = await api.audio.convert({
-        filePath: files[i], outputFormat, outputDir, bitrate, sampleRate,
-        channels: channels || undefined,
-        normalize,
-        fadeIn: fadeIn > 0 ? fadeIn : undefined,
-      })
-      allResults.push({ ...res, inputPath: files[i] })
+      try {
+        const res = await api.audio.convert({
+          filePath: files[i], outputFormat, outputDir, bitrate, sampleRate,
+          channels: channels || undefined,
+          normalize,
+          fadeIn: fadeIn > 0 ? fadeIn : undefined,
+        })
+        allResults.push({ ...res, inputPath: files[i] })
+      } catch (err) {
+        allResults.push({ success: false, error: err?.message || 'Conversion failed', inputPath: files[i] })
+      }
     }
     api.audio.offProgress()
     setResults(allResults); setProgress(null); setLoading(false)

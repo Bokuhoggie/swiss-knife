@@ -59,7 +59,7 @@ export default function VideoConverter() {
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
   const handleDrop = (e) => {
-    e.preventDefault(); setDragOver(false)
+    e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const f = e.dataTransfer.files[0]
     if (f?.path) { setFile(f.path); setResult(null) }
   }
@@ -79,17 +79,22 @@ export default function VideoConverter() {
     if (!outputDir) { alert('Please select an output folder first.'); return }
     setLoading(true); setResult(null); setProgress(null)
     api.video.onProgress(data => setProgress(data))
-    const res = await api.video.convert({
-      filePath: file, outputFormat, outputDir,
-      resolution: resolution || undefined,
-      codec: codec || undefined, crf,
-      audioCodec: audioCodec || undefined,
-      audioBitrate: audioBitrate || undefined,
-      fps: fps || undefined,
-      hwAccel: hwAccel || undefined,
-    })
+    try {
+      const res = await api.video.convert({
+        filePath: file, outputFormat, outputDir,
+        resolution: resolution || undefined,
+        codec: codec || undefined, crf,
+        audioCodec: audioCodec || undefined,
+        audioBitrate: audioBitrate || undefined,
+        fps: fps || undefined,
+        hwAccel: hwAccel || undefined,
+      })
+      setResult(res)
+    } catch (err) {
+      setResult({ success: false, error: err?.message || 'Conversion failed' })
+    }
     api.video.offProgress()
-    setResult(res); setProgress(null); setLoading(false)
+    setProgress(null); setLoading(false)
   }
 
   return (

@@ -21,10 +21,10 @@ export default function FileHasher() {
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 
   const handleDrop = async (e) => {
-    e.preventDefault()
+    e.preventDefault(); e.stopPropagation()
     setDragOver(false)
     const f = e.dataTransfer.files[0]
-    if (f) {
+    if (f?.path) {
       setFile(f.path)
       setResult(null)
       setCopied(null)
@@ -44,8 +44,12 @@ export default function FileHasher() {
 
   const compute = async (filePath) => {
     setLoading(true)
-    const res = await api.hash.compute({ filePath, algorithms: ALGORITHMS })
-    setResult(res)
+    try {
+      const res = await api.hash.compute({ filePath, algorithms: ALGORITHMS })
+      setResult(res)
+    } catch (err) {
+      setResult({ success: false, error: err?.message || 'Hash computation failed' })
+    }
     setLoading(false)
   }
 

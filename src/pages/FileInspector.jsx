@@ -38,11 +38,18 @@ export default function FileInspector() {
   const [hashing, setHashing]   = useState(false)
   const navigate = useNavigate()
 
+  const [error, setError] = useState(null)
+
   const analyze = useCallback(async (filePath) => {
     if (!filePath) return
-    setLoading(true); setInfo(null); setHash(null)
-    const result = await api.inspector.analyze(filePath)
-    setInfo(result)
+    setLoading(true); setInfo(null); setHash(null); setError(null)
+    try {
+      const result = await api.inspector.analyze(filePath)
+      if (result?.error) setError(result.error)
+      else setInfo(result)
+    } catch (err) {
+      setError(err?.message || 'Failed to analyze file')
+    }
     setLoading(false)
   }, [])
 
@@ -66,16 +73,20 @@ export default function FileInspector() {
   }
 
   const handleDrop = (e) => {
-    e.preventDefault(); setDragOver(false)
+    e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const f = e.dataTransfer.files[0]
-    if (f) analyze(f.path)
+    if (f?.path) analyze(f.path)
   }
 
   const computeHash = async () => {
     if (!info?.path) return
     setHashing(true)
-    const res = await api.hash.compute({ filePath: info.path, algorithms: ['sha256', 'md5'] })
-    setHash(res?.hashes || null)
+    try {
+      const res = await api.hash.compute({ filePath: info.path, algorithms: ['sha256', 'md5'] })
+      setHash(res?.hashes || null)
+    } catch (err) {
+      setHash(null)
+    }
     setHashing(false)
   }
 
@@ -123,6 +134,13 @@ export default function FileInspector() {
           <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: 7, marginTop: 16, color: 'var(--text-secondary)' }}>
             SCANNING…
           </div>
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="card" style={{ padding: '24px' }}>
+          <div className="result-banner error">Failed to inspect file: {error}</div>
+          <button className="btn btn-secondary" onClick={browse} style={{ marginTop: 12 }}>Try Another File</button>
         </div>
       )}
 
