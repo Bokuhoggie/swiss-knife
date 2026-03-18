@@ -5,6 +5,7 @@ const os = require('os');
 const fs = require('fs');
 const { app } = require('electron');
 const YTDlpWrap = require('yt-dlp-wrap').default;
+const ffmpegPath = require('ffmpeg-static').replace('app.asar', 'app.asar.unpacked');
 
 // Resolve or auto-download the yt-dlp binary into the app's userData folder.
 // This means the app works on Windows without yt-dlp in PATH.
@@ -30,7 +31,7 @@ function setupDownloaderHandlers(ipcMain, dialog) {
     return canceled ? null : filePaths[0];
   });
 
-  ipcMain.handle('downloader:download', async (event, { url, outputDir, formatType, quality, audioFormat, embedThumbnail, embedSubs, subsLang, rateLimit }) => {
+  ipcMain.handle('downloader:download', async (event, { url, outputDir, formatType, quality, audioFormat, embedThumbnail, embedSubs, subsLang, rateLimit, outputName }) => {
     return new Promise(async (resolve) => {
       // Use path.join so separators are correct on Windows
       const outFolder = outputDir || path.join(os.homedir(), 'Downloads');
@@ -43,10 +44,16 @@ function setupDownloaderHandlers(ipcMain, dialog) {
         return resolve({ success: false, error: `Failed to initialize yt-dlp: ${err.message}` });
       }
 
+      // Sanitize custom name: strip characters that are illegal in filenames
+      const safeName = outputName
+        ? outputName.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').replace(/\.+$/, '') || '%(title)s'
+        : '%(title)s';
+
       const args = [
         url,
-        '-o', path.join(outFolder, '%(title)s.%(ext)s'),
+        '-o', path.join(outFolder, `${safeName}.%(ext)s`),
         '--no-playlist',
+        '--ffmpeg-location', ffmpegPath,
       ];
 
       if (formatType === 'audio') {

@@ -10,6 +10,7 @@ const { setupPdfHandlers } = require('./ipc/pdf.cjs');
 const { setupHashHandlers } = require('./ipc/hash.cjs');
 const { setupSettingsHandlers } = require('./ipc/settings.cjs');
 const { setupInspectorHandlers } = require('./ipc/inspector.cjs');
+const { autoUpdater } = require('electron-updater');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
@@ -62,10 +63,64 @@ function createWindow() {
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'));
   }
+
+  return win;
+}
+
+// ─── Auto-updater ────────────────────────────────────────────────────────────
+function setupAutoUpdater(win) {
+  // Don't run in dev mode
+  if (isDev) return;
+
+  autoUpdater.autoDownload = false; // ask user first
+  autoUpdater.autoInstallOnAppQuit = false;
+
+  autoUpdater.on('update-available', (info) => {
+    win.webContents.send('updater:update-available', {
+      version: info.version,
+      releaseNotes: info.releaseNotes || '',
+    });
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    win.webContents.send('updater:no-update');
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    win.webContents.send('updater:download-progress', {
+      percent: Math.round(progress.percent),
+      transferred: progress.transferred,
+      total: progress.total,
+    });
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    win.webContents.send('updater:downloaded');
+  });
+
+  autoUpdater.on('error', (err) => {
+    win.webContents.send('updater:error', err.message);
+  });
+
+  // IPC: renderer triggers these actions
+  ipcMain.handle('updater:check', async () => {
+    try { await autoUpdater.checkForUpdates(); } catch (e) { /* silent */ }
+  });
+  ipcMain.handle('updater:download', async () => {
+    try { await autoUpdater.downloadUpdate(); } catch (e) { /* silent */ }
+  });
+  ipcMain.handle('updater:install', () => {
+    autoUpdater.quitAndInstall(false, true);
+  });
+
+  // Check for updates 8 seconds after launch (non-blocking)
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(() => {});
+  }, 8000);
 }
 
 app.whenReady().then(() => {
-  createWindow();
+  const win = createWindow();
 
   // Register all IPC handlers
   setupImageHandlers(ipcMain, dialog);
@@ -81,6 +136,8 @@ app.whenReady().then(() => {
   ipcMain.handle('shell:openPath', async (_, filePath) => {
     await shell.showItemInFolder(filePath);
   });
+
+  setupAutoUpdater(win);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

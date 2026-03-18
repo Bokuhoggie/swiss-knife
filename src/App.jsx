@@ -14,12 +14,7 @@ import Settings from './pages/Settings.jsx'
 import { setPendingFile } from './globalDrop.js'
 import { getFirstDropPath } from './dropHelpers.js'
 
-/**
- * App-level drop handler.
- * Component dropzones call e.stopPropagation() so this ONLY fires
- * for drops that land outside any tool-specific dropzone.
- * Routes unhandled file drops to the File Inspector.
- */
+// ─── Settings cog ─────────────────────────────────────────────────────────────
 function SettingsCog() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -43,10 +38,93 @@ function SettingsCog() {
   )
 }
 
+// ─── Update notifier ──────────────────────────────────────────────────────────
+function UpdateNotifier() {
+  const [state, setState] = useState('idle') // idle | available | downloading | downloaded | error
+  const [version, setVersion] = useState('')
+  const [progress, setProgress] = useState(0)
+  const [dismissed, setDismissed] = useState(false)
+
+  useEffect(() => {
+    const api = window.swissKnife?.updater
+    if (!api) return
+
+    api.onUpdateAvailable((info) => { setVersion(info.version); setState('available'); setDismissed(false) })
+    api.onProgress((p) => { setState('downloading'); setProgress(p.percent) })
+    api.onDownloaded(() => setState('downloaded'))
+    api.onError(() => setState('error'))
+
+    return () => api.offAll?.()
+  }, [])
+
+  if (dismissed || state === 'idle' || state === 'error') return null
+
+  return (
+    <div style={{
+      position: 'fixed', top: 42, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 2000,
+      background: 'var(--bg-surface)',
+      border: '1px solid var(--accent)',
+      boxShadow: '0 0 16px var(--glow-accent)',
+      borderRadius: 6,
+      padding: '8px 14px',
+      display: 'flex', alignItems: 'center', gap: 12,
+      fontSize: 12,
+      fontFamily: "'Press Start 2P', monospace",
+      color: 'var(--text-primary)',
+      minWidth: 320,
+      maxWidth: 460,
+    }}>
+      {state === 'available' && (
+        <>
+          <span style={{ color: 'var(--accent)', fontSize: 10 }}>▲ v{version} available</span>
+          <button
+            className="btn btn-primary btn-sm"
+            style={{ fontSize: 10, padding: '4px 10px', marginLeft: 'auto' }}
+            onClick={() => window.swissKnife.updater.download()}
+          >Download</button>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ fontSize: 10, padding: '4px 8px' }}
+            onClick={() => setDismissed(true)}
+          >✕</button>
+        </>
+      )}
+      {state === 'downloading' && (
+        <>
+          <span style={{ flex: 1 }}>
+            <span style={{ color: 'var(--accent)', fontSize: 10 }}>Downloading update…</span>
+            <div style={{ marginTop: 4, height: 4, background: 'var(--bg-hover)', borderRadius: 2 }}>
+              <div style={{ height: '100%', width: `${progress}%`, background: 'var(--accent)', borderRadius: 2, transition: 'width 0.3s' }} />
+            </div>
+          </span>
+          <span style={{ fontSize: 10, opacity: 0.7 }}>{progress}%</span>
+        </>
+      )}
+      {state === 'downloaded' && (
+        <>
+          <span style={{ color: 'var(--accent)', fontSize: 10 }}>✓ Ready to install</span>
+          <button
+            className="btn btn-primary btn-sm"
+            style={{ fontSize: 10, padding: '4px 10px', marginLeft: 'auto' }}
+            onClick={() => window.swissKnife.updater.install()}
+          >Restart & Install</button>
+          <button
+            className="btn btn-ghost btn-sm"
+            style={{ fontSize: 10, padding: '4px 8px' }}
+            onClick={() => setDismissed(true)}
+          >✕</button>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ─── Global drop handler ──────────────────────────────────────────────────────
 function handleGlobalDrop(e) {
   const filePath = getFirstDropPath(e)
   if (!filePath) return
-  
+
   window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/inspector' }))
 
   setPendingFile(filePath)
@@ -57,18 +135,6 @@ function handleGlobalDrop(e) {
 
 export default function App() {
   const [dragOverApp, setDragOverApp] = useState(false)
-  const [debugPaths, setDebugPaths] = useState('[]')
-
-  useEffect(() => {
-    const handleDrop = () => {
-      setTimeout(() => {
-         setDebugPaths(JSON.stringify(window.swissKnife?.getDroppedPaths?.() || []) + 
-                      ' | Err: ' + (window.swissKnife?.getDropError?.() || 'none'))
-      }, 50)
-    }
-    window.addEventListener('drop', handleDrop)
-    return () => window.removeEventListener('drop', handleDrop)
-  }, [])
 
   return (
     <ThemeProvider>
@@ -77,17 +143,12 @@ export default function App() {
         className="app-shell"
         onDragOver={(e) => { e.preventDefault(); setDragOverApp(true) }}
         onDragLeave={(e) => {
-          // Only clear when leaving the app shell itself (not entering a child)
           if (e.currentTarget === e.target) setDragOverApp(false)
         }}
         onDrop={(e) => { setDragOverApp(false); handleGlobalDrop(e) }}
       >
-        {/* ── Draggable title bar ── */}
         <div className="title-bar">
           <span className="title-bar-label">Swiss Knife</span>
-          <span style={{color: 'red', marginLeft: 'auto', fontSize: 10}}>
-            DBG: {debugPaths}
-          </span>
         </div>
 
         <main className="main-content">
@@ -107,6 +168,7 @@ export default function App() {
         </main>
         <SwissKnifeWidget />
         <SettingsCog />
+        <UpdateNotifier />
       </div>
     </HashRouter>
     </ThemeProvider>

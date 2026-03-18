@@ -14,12 +14,13 @@ function setupImageHandlers(ipcMain, dialog) {
     return canceled ? [] : filePaths;
   });
 
-  ipcMain.handle('image:convert', async (event, { filePaths, outputFormat, outputDir, quality, width, height, keepMetadata }) => {
+  ipcMain.handle('image:convert', async (event, { filePaths, outputFormat, outputDir, quality, width, height, keepMetadata, outputName }) => {
     const results = [];
     for (const filePath of filePaths) {
       try {
         const ext = outputFormat.toLowerCase();
-        const baseName = path.basename(filePath, path.extname(filePath));
+        const autoName = path.basename(filePath, path.extname(filePath));
+        const baseName = (outputName && filePaths.length === 1) ? outputName.trim() : autoName;
         const outPath = path.join(outputDir, `${baseName}.${ext}`);
 
         let processor = sharp(filePath);

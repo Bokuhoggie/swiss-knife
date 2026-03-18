@@ -17,6 +17,7 @@ export default function ImageConverter() {
   const [results, setResults]           = useState([])
   const [loading, setLoading]           = useState(false)
   const [dragOver, setDragOver]         = useState(false)
+  const [customName, setCustomName]     = useState('')
   useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [isFlashing, setIsFlashing]     = useState(false)
 
@@ -47,7 +48,7 @@ export default function ImageConverter() {
   const addFiles = (paths) => {
     const unique = paths.filter(p => p && !files.some(f => f.path === p))
     const objects = unique.map(p => ({ path: p, selected: true }))
-    setFiles(prev => [...prev, ...objects])
+    setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
   }
 
@@ -83,6 +84,7 @@ export default function ImageConverter() {
         width:  width  ? parseInt(width)  : undefined,
         height: height ? parseInt(height) : undefined,
         keepMetadata,
+        outputName: (selectedFiles.length === 1 && customName.trim()) ? customName.trim() : undefined,
       })
       setResults(res)
     } catch (err) {
@@ -168,6 +170,20 @@ export default function ImageConverter() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {files.filter(f => f.selected).length === 1 && (
+              <div className="form-group" style={{ marginTop: 8, marginBottom: 0 }}>
+                <label className="form-label">Output Filename <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></label>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder={`${basename(files.find(f => f.selected)?.path ?? '').replace(/\.[^.]+$/, '')} (keep original name)`}
+                  value={customName}
+                  onChange={e => setCustomName(e.target.value)}
+                  disabled={loading}
+                />
               </div>
             )}
 

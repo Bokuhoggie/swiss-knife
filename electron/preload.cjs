@@ -65,6 +65,20 @@ contextBridge.exposeInMainWorld('swissKnife', {
     analyze:    (filePath) => ipcRenderer.invoke('inspector:analyze', filePath),
     selectFile: ()         => ipcRenderer.invoke('inspector:selectFile'),
   },
+  updater: {
+    check:    ()   => ipcRenderer.invoke('updater:check'),
+    download: ()   => ipcRenderer.invoke('updater:download'),
+    install:  ()   => ipcRenderer.invoke('updater:install'),
+    onUpdateAvailable: (cb) => ipcRenderer.on('updater:update-available', (_, info) => cb(info)),
+    onNoUpdate:        (cb) => ipcRenderer.on('updater:no-update', () => cb()),
+    onProgress:        (cb) => ipcRenderer.on('updater:download-progress', (_, p) => cb(p)),
+    onDownloaded:      (cb) => ipcRenderer.on('updater:downloaded', () => cb()),
+    onError:           (cb) => ipcRenderer.on('updater:error', (_, msg) => cb(msg)),
+    offAll: () => {
+      ['updater:update-available','updater:no-update','updater:download-progress','updater:downloaded','updater:error']
+        .forEach(ch => ipcRenderer.removeAllListeners(ch));
+    },
+  },
 });
 
 contextBridge.exposeInMainWorld('ipcRenderer', {

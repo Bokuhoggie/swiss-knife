@@ -25,6 +25,7 @@ export default function AudioConverter() {
   const [dragOver, setDragOver]         = useState(false)
   const [isFlashing, setIsFlashing]     = useState(false)
   const [currentIdx, setCurrentIdx]     = useState(-1)
+  const [customName, setCustomName]     = useState('')
 
   // Advanced
   const [channels, setChannels]   = useState('')
@@ -54,7 +55,7 @@ export default function AudioConverter() {
   const addFiles = (paths) => {
     const unique = paths.filter(p => p && !files.some(f => f.path === p))
     const objects = unique.map(p => ({ path: p, selected: true }))
-    setFiles(prev => [...prev, ...objects])
+    setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
   }
 
@@ -95,6 +96,7 @@ export default function AudioConverter() {
           channels: channels || undefined,
           normalize,
           fadeIn: fadeIn > 0 ? fadeIn : undefined,
+          outputName: (files.filter(f => f.selected).length === 1 && customName.trim()) ? customName.trim() : undefined,
         })
         allResults.push({ ...res, inputPath: files[i].path })
       } catch (err) {
@@ -182,6 +184,20 @@ export default function AudioConverter() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {files.filter(f => f.selected).length === 1 && (
+              <div className="form-group" style={{ marginTop: 8, marginBottom: 0 }}>
+                <label className="form-label">Output Filename <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></label>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder={`${basename(files.find(f => f.selected)?.path ?? '').replace(/\.[^.]+$/, '')} (keep original name)`}
+                  value={customName}
+                  onChange={e => setCustomName(e.target.value)}
+                  disabled={loading}
+                />
               </div>
             )}
 

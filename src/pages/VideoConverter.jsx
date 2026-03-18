@@ -35,6 +35,7 @@ export default function VideoConverter() {
   const [dragOver, setDragOver]       = useState(false)
   const [currentIdx, setCurrentIdx]     = useState(-1)
   const [isFlashing, setIsFlashing]     = useState(false)
+  const [customName, setCustomName]     = useState('')
 
   const [audioCodec, setAudioCodec]     = useState('aac')
   const [audioBitrate, setAudioBitrate] = useState('192k')
@@ -66,7 +67,7 @@ export default function VideoConverter() {
   const addFiles = (paths) => {
     const unique = paths.filter(p => p && !files.some(f => f.path === p))
     const objects = unique.map(p => ({ path: p, selected: true }))
-    setFiles(prev => [...prev, ...objects])
+    setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
   }
 
@@ -114,6 +115,7 @@ export default function VideoConverter() {
           audioBitrate: audioBitrate || undefined,
           fps: fps || undefined,
           hwAccel: hwAccel || undefined,
+          outputName: (files.filter(f => f.selected).length === 1 && customName.trim()) ? customName.trim() : undefined,
         })
         allResults.push({ ...res, inputPath: files[i].path })
       } catch (err) {
@@ -202,6 +204,20 @@ export default function VideoConverter() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {files.filter(f => f.selected).length === 1 && (
+              <div className="form-group" style={{ marginTop: 8, marginBottom: 0 }}>
+                <label className="form-label">Output Filename <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></label>
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder={`${basename(files.find(f => f.selected)?.path ?? '').replace(/\.[^.]+$/, '')} (keep original name)`}
+                  value={customName}
+                  onChange={e => setCustomName(e.target.value)}
+                  disabled={loading}
+                />
               </div>
             )}
 

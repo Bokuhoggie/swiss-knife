@@ -19,9 +19,10 @@ function setupAudioHandlers(ipcMain, dialog) {
     filePath, outputFormat, outputDir, bitrate, sampleRate,
     // Advanced
     channels, normalize, fadeIn,
+    outputName,
   }) => {
     return new Promise((resolve) => {
-      const baseName = path.basename(filePath, path.extname(filePath));
+      const baseName = outputName ? outputName.trim() : path.basename(filePath, path.extname(filePath));
       const outPath = path.join(outputDir, `${baseName}.${outputFormat}`);
 
       let cmd = ffmpeg(filePath);

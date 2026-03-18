@@ -9,6 +9,7 @@ export default function Downloader() {
   const [tab, setTab] = useState('download')
 
   const [url, setUrl]             = useState('')
+  const [outputName, setOutputName] = useState('')
   const [formatType, setFormatType] = useState('video')
   const [quality, setQuality]     = useState('1080p')
   const [outputDir, setOutputDir] = useState('')
@@ -55,6 +56,7 @@ export default function Downloader() {
       embedSubs,
       subsLang,
       rateLimit: rateLimit || undefined,
+      outputName: outputName.trim() || undefined,
     })
     api.downloader.offProgress()
     setResult(res); setProgress(null); setLoading(false)
@@ -92,6 +94,18 @@ export default function Downloader() {
                   {loading ? 'Downloading…' : 'Download'}
                 </button>
               </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 16 }}>
+              <label className="form-label">Output Filename <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional — leave blank to use video title)</span></label>
+              <input
+                className="form-input"
+                type="text"
+                placeholder="e.g. my-video  (extension added automatically)"
+                value={outputName}
+                onChange={e => setOutputName(e.target.value)}
+                disabled={loading}
+              />
             </div>
 
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
