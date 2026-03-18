@@ -7,6 +7,15 @@ const { app } = require('electron');
 const YTDlpWrap = require('yt-dlp-wrap').default;
 const ffmpegPath = require('ffmpeg-static').replace('app.asar', 'app.asar.unpacked');
 
+// Ensure ffmpeg binary is executable on macOS/Linux
+if (process.platform !== 'win32' && fs.existsSync(ffmpegPath)) {
+  try {
+    fs.chmodSync(ffmpegPath, 0o755);
+  } catch (e) {
+    console.warn('[downloader] Failed to chmod ffmpeg:', e.message);
+  }
+}
+
 // Resolve or auto-download the yt-dlp binary into the app's userData folder.
 // This means the app works on Windows without yt-dlp in PATH.
 async function getYtDlpInstance() {
