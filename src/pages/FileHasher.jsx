@@ -12,6 +12,7 @@ export default function FileHasher() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [copied, setCopied] = useState(null)
+  useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [compareVal, setCompareVal] = useState('')
   const [dragOver, setDragOver] = useState(false)
 

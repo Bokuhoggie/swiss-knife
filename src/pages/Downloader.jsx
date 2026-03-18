@@ -14,6 +14,7 @@ export default function Downloader() {
   const [outputDir, setOutputDir] = useState('')
   const [loading, setLoading]     = useState(false)
   const [progress, setProgress]   = useState(null)
+  useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [result, setResult]       = useState(null)
 
   // Advanced

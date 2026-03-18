@@ -21,6 +21,7 @@ export default function AudioConverter() {
   const [results, setResults]           = useState([])
   const [loading, setLoading]           = useState(false)
   const [progress, setProgress]         = useState(null)
+  useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [dragOver, setDragOver]         = useState(false)
   const [isFlashing, setIsFlashing]     = useState(false)
   const [currentIdx, setCurrentIdx]     = useState(-1)

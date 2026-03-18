@@ -18,6 +18,9 @@
   --accent-2:       #FF3CAC;     /* neon pink */
   --accent-3:       #00D4FF;     /* neon cyan */
   --accent-4:       #FFD60A;     /* neon yellow */
+  --accent-rgb:     0, 255, 135; /* raw RGB for rgba(var(--accent-rgb), opacity) */
+  --ui-font:        'Inter', sans-serif;
+  --font-scale:     1;
 
   --success:        #00FF87;
   --warning:        #FFD60A;
@@ -59,17 +62,17 @@ html, body, #root {
 }
 
 body {
-  font-family: 'Inter', monospace;
+  font-family: var(--ui-font);
   background: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: none; /* crisp pixels */
   image-rendering: pixelated;
-  font-size: 13px;
+  font-size: calc(14px * var(--font-scale));
   line-height: 1.5;
   user-select: none;
 }
 
-/* Scanlines overlay */
+/* Scanlines overlay — hidden on light themes */
 body::after {
   content: '';
   position: fixed;
@@ -84,6 +87,7 @@ body::after {
   pointer-events: none;
   z-index: 9999;
 }
+body.theme-light::after { display: none; }
 
 /* ============================================
    PIXEL FONT UTILITY
@@ -99,7 +103,7 @@ body::after {
 ::-webkit-scrollbar-thumb {
   background: var(--accent-dim);
   border-radius: 0;
-  box-shadow: 0 0 6px rgba(0,255,135,0.4);
+  box-shadow: 0 0 6px rgba(var(--accent-rgb),0.4);
 }
 
 /* ============================================
@@ -126,7 +130,7 @@ body::after {
 }
 .title-bar-label {
   font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
+  font-size: calc(8px * var(--font-scale));
   color: var(--text-muted);
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -153,7 +157,7 @@ body::after {
   z-index: 10;
   transition: width 0.2s ease;
   /* Pixel left-edge glow */
-  box-shadow: inset -1px 0 0 rgba(0,255,135,0.06);
+  box-shadow: inset -1px 0 0 rgba(var(--accent-rgb),0.06);
 }
 
 .sidebar.collapsed {
@@ -186,13 +190,13 @@ body::after {
   justify-content: center;
   color: var(--accent);
   border: 2px solid var(--accent);
-  box-shadow: var(--glow-accent), inset 0 0 8px rgba(0,255,135,0.1);
-  background: rgba(0,255,135,0.05);
+  box-shadow: var(--glow-accent), inset 0 0 8px rgba(var(--accent-rgb),0.1);
+  background: rgba(var(--accent-rgb),0.05);
 }
 
 .sidebar-logo-text {
   font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
+  font-size: calc(9px * var(--font-scale));
   color: var(--accent);
   text-shadow: var(--glow-accent);
   white-space: nowrap;
@@ -232,7 +236,7 @@ body::after {
 
 .nav-section-label {
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: var(--text-muted);
@@ -257,7 +261,7 @@ body::after {
   color: var(--text-secondary);
   text-decoration: none;
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   transition: var(--transition-smooth);
   border: 1px solid transparent;
   white-space: nowrap;
@@ -266,17 +270,17 @@ body::after {
 }
 
 .nav-item:hover {
-  background: rgba(0,255,135,0.05);
+  background: rgba(var(--accent-rgb),0.05);
   color: var(--accent);
   border-color: var(--border);
 }
 
 .nav-item.active {
-  background: rgba(0,255,135,0.08);
+  background: rgba(var(--accent-rgb),0.08);
   color: var(--accent);
   border-color: var(--accent);
   box-shadow: var(--glow-accent), inset 2px 0 0 var(--accent);
-  text-shadow: 0 0 8px rgba(0,255,135,0.6);
+  text-shadow: 0 0 8px rgba(var(--accent-rgb),0.6);
 }
 
 .nav-item-icon {
@@ -311,7 +315,7 @@ body::after {
   background: var(--bg-elevated);
   color: var(--accent);
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   padding: 6px 10px;
   border: 1px solid var(--accent);
   box-shadow: var(--glow-accent);
@@ -332,7 +336,7 @@ body::after {
 
 .sidebar-version {
   font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
+  font-size: calc(6px * var(--font-scale));
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -424,7 +428,7 @@ body::after {
 
 .tool-card {
   background: var(--bg-card);
-  border: 2px solid var(--card-border, rgba(0,255,135,0.15));
+  border: 2px solid var(--card-border, rgba(var(--accent-rgb),0.15));
   padding: 20px 16px;
   cursor: pointer;
   text-decoration: none;
@@ -448,7 +452,7 @@ body::after {
 .tool-card:hover {
   border-color: var(--card-color, var(--accent));
   background: var(--bg-hover);
-  box-shadow: 0 0 20px var(--card-glow, rgba(0,255,135,0.15));
+  box-shadow: 0 0 20px var(--card-glow, rgba(var(--accent-rgb),0.15));
   transform: translate(-2px, -2px);
 }
 
@@ -465,7 +469,7 @@ body::after {
 
 .tool-card-name {
   font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
+  font-size: calc(8px * var(--font-scale));
   color: var(--text-primary);
   letter-spacing: 0.3px;
   line-height: 1.6;
@@ -482,7 +486,7 @@ body::after {
   display: inline-flex;
   align-items: center;
   font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
+  font-size: calc(6px * var(--font-scale));
   padding: 3px 6px;
   background: transparent;
   color: var(--card-color, var(--accent));
@@ -495,12 +499,12 @@ body::after {
    ============================================ */
 @keyframes drop-flash {
   0% {
-    background: rgba(0,255,135,0.12);
-    box-shadow: inset 0 0 30px rgba(0,255,135,0.3), 0 0 10px rgba(0,255,135,0.2);
+    background: rgba(var(--accent-rgb),0.12);
+    box-shadow: inset 0 0 30px rgba(var(--accent-rgb),0.3), 0 0 10px rgba(var(--accent-rgb),0.2);
     border-color: var(--accent);
   }
   100% {
-    background: rgba(0,255,135,0.02);
+    background: rgba(var(--accent-rgb),0.02);
     box-shadow: inset 0 0 0px transparent, 0 0 0px transparent;
     border-color: var(--border-hover);
   }
@@ -512,7 +516,7 @@ body::after {
   text-align: center;
   cursor: pointer;
   transition: var(--transition-smooth);
-  background: rgba(0,255,135,0.02);
+  background: rgba(var(--accent-rgb),0.02);
   position: relative;
 }
 
@@ -522,8 +526,8 @@ body::after {
 
 .dropzone:hover, .dropzone.drag-over {
   border-color: var(--accent);
-  background: rgba(0,255,135,0.05);
-  box-shadow: inset 0 0 20px rgba(0,255,135,0.05);
+  background: rgba(var(--accent-rgb),0.05);
+  box-shadow: inset 0 0 20px rgba(var(--accent-rgb),0.05);
 }
 
 .dropzone-icon {
@@ -536,7 +540,7 @@ body::after {
 
 .dropzone-title {
   font-family: 'Press Start 2P', monospace;
-  font-size: 8px;
+  font-size: calc(9px * var(--font-scale));
   color: var(--text-primary);
   margin-bottom: 8px;
   line-height: 1.8;
@@ -594,10 +598,10 @@ body::after {
 
 .file-item-status {
   font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
+  font-size: calc(6px * var(--font-scale));
   padding: 3px 7px;
 }
-.file-item-status.success { border: 1px solid var(--success); color: var(--success); box-shadow: 0 0 6px rgba(0,255,135,0.3); }
+.file-item-status.success { border: 1px solid var(--success); color: var(--success); box-shadow: 0 0 6px rgba(var(--accent-rgb),0.3); }
 .file-item-status.error { border: 1px solid var(--error); color: var(--error); }
 .file-item-status.pending { border: 1px solid var(--accent-3); color: var(--accent-3); }
 
@@ -610,7 +614,7 @@ body::after {
   padding: 2px 5px;
   transition: var(--transition-smooth);
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
 }
 .file-remove-btn:hover { color: var(--error); text-shadow: var(--glow-pink); }
 
@@ -633,7 +637,7 @@ body::after {
 
 .form-label {
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -701,7 +705,7 @@ input[type="range"]::-webkit-slider-thumb {
   border: none;
   cursor: pointer;
   font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
+  font-size: calc(8px * var(--font-scale));
   padding: 10px 16px;
   transition: var(--transition-smooth);
   outline: none;
@@ -715,11 +719,11 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--accent);
   color: #000;
   border: 2px solid var(--accent);
-  box-shadow: var(--glow-accent), 4px 4px 0 rgba(0,255,135,0.3);
+  box-shadow: var(--glow-accent), 4px 4px 0 rgba(var(--accent-rgb),0.3);
 }
 .btn-primary:hover:not(:disabled) {
-  background: #00ffaacc;
-  box-shadow: var(--glow-accent), 2px 2px 0 rgba(0,255,135,0.3);
+  background: var(--accent-dim);
+  box-shadow: var(--glow-accent), 2px 2px 0 rgba(var(--accent-rgb),0.3);
   transform: translate(2px, 2px);
 }
 .btn-primary:active { transform: translate(4px, 4px); box-shadow: none; }
@@ -733,7 +737,7 @@ input[type="range"]::-webkit-slider-thumb {
 .btn-secondary:hover:not(:disabled) {
   color: var(--accent);
   border-color: var(--accent);
-  box-shadow: var(--glow-accent), 2px 2px 0 rgba(0,255,135,0.1);
+  box-shadow: var(--glow-accent), 2px 2px 0 rgba(var(--accent-rgb),0.1);
   transform: translate(2px, 2px);
 }
 
@@ -746,8 +750,8 @@ input[type="range"]::-webkit-slider-thumb {
 
 .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-.btn-sm { padding: 6px 10px; font-size: 6px; }
-.btn-lg { padding: 12px 20px; font-size: 8px; }
+.btn-sm { padding: 6px 10px; font-size: calc(7px * var(--font-scale)); }
+.btn-lg { padding: 12px 20px; font-size: calc(9px * var(--font-scale)); }
 
 /* ============================================
    PROGRESS BAR
@@ -757,7 +761,7 @@ input[type="range"]::-webkit-slider-thumb {
   display: flex;
   justify-content: space-between;
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   color: var(--text-secondary);
   margin-bottom: 6px;
 }
@@ -773,8 +777,8 @@ input[type="range"]::-webkit-slider-thumb {
     90deg,
     var(--accent) 0px,
     var(--accent) 8px,
-    rgba(0,255,135,0.5) 8px,
-    rgba(0,255,135,0.5) 12px
+    rgba(var(--accent-rgb),0.5) 8px,
+    rgba(var(--accent-rgb),0.5) 12px
   );
   transition: width 0.3s ease;
   box-shadow: var(--glow-accent);
@@ -816,11 +820,11 @@ input[type="range"]::-webkit-slider-thumb {
   align-items: center;
   gap: 10px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   line-height: 1.8;
 }
 .result-banner.success {
-  background: rgba(0,255,135,0.06);
+  background: rgba(var(--accent-rgb),0.06);
   border: 2px solid var(--success);
   color: var(--success);
   box-shadow: var(--glow-accent);
@@ -861,7 +865,7 @@ input[type="range"]::-webkit-slider-thumb {
   text-align: left;
   padding: 8px 12px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   text-transform: uppercase;
   letter-spacing: 0.8px;
   color: var(--text-muted);
@@ -875,7 +879,7 @@ input[type="range"]::-webkit-slider-thumb {
 .hash-table tr:last-child td { border-bottom: none; }
 .hash-algo {
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   color: var(--accent);
 }
 .hash-value {
@@ -890,7 +894,7 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
   color: var(--text-muted);
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   padding: 4px 8px;
   transition: var(--transition-smooth);
 }
@@ -900,13 +904,13 @@ input[type="range"]::-webkit-slider-thumb {
    ANIMATIONS
    ============================================ */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
 }
 @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.page-anim { animation: fadeIn 0.2s ease forwards; }
+.page-anim { animation: fadeIn 0.18s ease-out forwards; transform-origin: center center; }
 .spinner { animation: spin 0.6s steps(8) infinite; display: inline-block; }
 .blink { animation: blink 1s steps(1) infinite; }
 
@@ -926,7 +930,7 @@ input[type="range"]::-webkit-slider-thumb {
   background: transparent;
   color: var(--text-muted);
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   cursor: pointer;
   transition: var(--transition-smooth);
   letter-spacing: 0.3px;
@@ -934,7 +938,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 .tab-btn:last-child { border-right: none; }
 .tab-btn.active {
-  background: rgba(0,255,135,0.1);
+  background: rgba(var(--accent-rgb),0.1);
   color: var(--accent);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
@@ -948,7 +952,7 @@ input[type="range"]::-webkit-slider-thumb {
   gap: 20px;
   color: var(--text-muted);
   font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
+  font-size: 9px;
   align-items: center;
   letter-spacing: 0.5px;
 }
@@ -969,16 +973,76 @@ input[type="range"]::-webkit-slider-thumb {
   align-items: center;
 }
 
-/* Home Page: Giant and resting slightly below center */
+/* Knife drop-in animation: enters from above, settles at resting position */
+@keyframes knife-drop-in {
+  0%   { top: 58%; opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Home Page: base scale for default/restored window (1280×800) */
 .sk-widget-container.sk-size-large {
-  top: 75%; 
+  top: 78%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(4.5);
+  transform: translate(-50%, -50%) scale(1.8);
   transform-origin: center center;
-  width: 1200px;
-  height: 800px;
-  align-items: center; /* keep centered vertically inside the box so blades go up and down */
-  pointer-events: none; /* Let container be transparent to clicks outside knife */
+  width: 700px;
+  height: 520px;
+  align-items: center;
+  pointer-events: none;
+  animation: knife-drop-in 0.7s cubic-bezier(0.34, 1.2, 0.64, 1) both;
+}
+
+/* Medium screens (1600–2000px) */
+@media (min-width: 1600px) {
+  .sk-widget-container.sk-size-large {
+    transform: translate(-50%, -50%) scale(2.4);
+  }
+}
+/* Large screens (2000–2400px) */
+@media (min-width: 2000px) {
+  .sk-widget-container.sk-size-large {
+    transform: translate(-50%, -50%) scale(3.0);
+  }
+}
+/* XL screens (2400px+, e.g. 2560×1440) */
+@media (min-width: 2400px) {
+  .sk-widget-container.sk-size-large {
+    transform: translate(-50%, -50%) scale(3.6);
+  }
+}
+
+/* Small window widths */
+@media (max-width: 1100px) {
+  .sk-widget-container.sk-size-large {
+    transform: translate(-50%, -50%) scale(1.5);
+    top: 76%;
+  }
+}
+@media (max-width: 980px) {
+  .sk-widget-container.sk-size-large {
+    transform: translate(-50%, -50%) scale(1.2);
+    top: 72%;
+  }
+}
+
+/* Short windows: height-based overrides */
+@media (max-height: 750px) {
+  .sk-widget-container.sk-size-large {
+    transform: translate(-50%, -50%) scale(1.5);
+    top: 74%;
+  }
+}
+@media (max-height: 680px) {
+  .sk-widget-container.sk-size-large {
+    transform: translate(-50%, -50%) scale(1.2);
+    top: 70%;
+  }
+}
+@media (max-height: 640px) {
+  .sk-widget-container.sk-size-large {
+    transform: translate(-50%, -50%) scale(1.0);
+    top: 66%;
+  }
 }
 
 /* Enable pointer events on the actual scaling box wrapper when hovered so the blades stay open */
@@ -988,18 +1052,30 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Inner Pages: Small and hugging the bottom */
 .sk-widget-container.sk-size-small {
-  bottom: -76px;
+  bottom: -20px;
   left: 50%;
-  transform: translateX(-50%) scale(2.5);
+  transform: translateX(-50%) scale(1.4);
   transform-origin: bottom center;
-  width: 800px;  /* hover zone width */
-  height: 400px; /* hover zone height — reduced */
-  align-items: flex-end; /* push assembly to the bottom */
-  padding-bottom: 0px; /* rest at the absolute bottom of container */
+  width: 500px;
+  height: 240px;
+  align-items: flex-end;
+  padding-bottom: 0px;
   pointer-events: none;
 }
 .sk-widget-container.sk-size-small:hover {
   pointer-events: auto;
+}
+@media (max-height: 700px) {
+  .sk-widget-container.sk-size-small {
+    transform: translateX(-50%) scale(1.2);
+    bottom: -16px;
+  }
+}
+@media (max-height: 640px) {
+  .sk-widget-container.sk-size-small {
+    transform: translateX(-50%) scale(1.0);
+    bottom: -10px;
+  }
 }
 
 /* The actual 200x76 assembly */
@@ -1040,7 +1116,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .sk-handle-btn-horizontal:hover {
   filter: drop-shadow(0 0 24px rgba(200,0,26,0.8))
-          drop-shadow(0 0 12px rgba(0,255,135,0.4))
+          drop-shadow(0 0 12px rgba(var(--accent-rgb),0.4))
           drop-shadow(0 8px 32px rgba(0,0,0,1));
   transform: scale(1.05); /* very slight lift */
 }
@@ -1100,7 +1176,7 @@ input[type="range"]::-webkit-slider-thumb {
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Press Start 2P', monospace;
-  font-size: 8px; /* Slightly larger base */
+  font-size: calc(9px * var(--font-scale)); /* Slightly larger base */
   letter-spacing: 0.5px;
   white-space: nowrap;
   opacity: 0;
@@ -1155,7 +1231,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .toggle-title {
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   color: var(--text-primary);
   margin-bottom: 4px;
   line-height: 1.8;
@@ -1206,7 +1282,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .pixel-toggle input:checked + .pixel-toggle-track {
-  background: rgba(0, 255, 135, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
   border-color: var(--accent);
   box-shadow: var(--glow-accent);
 }
@@ -1243,9 +1319,9 @@ input[type="range"]::-webkit-slider-thumb {
 
 .settings-section-title {
   font-family: 'Press Start 2P', monospace;
-  font-size: 7px;
+  font-size: calc(8px * var(--font-scale));
   color: var(--accent);
-  text-shadow: 0 0 8px rgba(0,255,135,0.4);
+  text-shadow: 0 0 8px rgba(var(--accent-rgb),0.4);
   margin-bottom: 16px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
@@ -1353,7 +1429,7 @@ input[type="range"]::-webkit-slider-thumb {
 /* Category badge */
 .inspector-badge {
   font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
+  font-size: calc(6px * var(--font-scale));
   padding: 4px 8px;
   border: 2px solid var(--badge-color, var(--accent));
   color: var(--badge-color, var(--accent));
@@ -1366,7 +1442,7 @@ input[type="range"]::-webkit-slider-thumb {
 /* Section title inside inspector cards */
 .inspector-section-title {
   font-family: 'Press Start 2P', monospace;
-  font-size: 6px;
+  font-size: calc(7px * var(--font-scale));
   letter-spacing: 0.5px;
   margin-bottom: 14px;
   opacity: 0.8;
@@ -1389,7 +1465,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .stat-label {
   font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
+  font-size: calc(6px * var(--font-scale));
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
@@ -1422,7 +1498,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .hash-algo-label {
   font-family: 'Press Start 2P', monospace;
-  font-size: 5px;
+  font-size: calc(6px * var(--font-scale));
   color: var(--accent);
   flex-shrink: 0;
   width: 52px;
@@ -1434,4 +1510,24 @@ input[type="range"]::-webkit-slider-thumb {
   color: var(--text-secondary);
   word-break: break-all;
   line-height: 1.2;
+}
+
+/* ============================================
+   SETTINGS COG BUTTON
+   ============================================ */
+.settings-cog-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s ease, transform 0.3s ease;
+  padding: 8px;
+  z-index: 1100;
+}
+.settings-cog-btn:hover {
+  opacity: 0.9;
+  transform: rotate(90deg);
 }

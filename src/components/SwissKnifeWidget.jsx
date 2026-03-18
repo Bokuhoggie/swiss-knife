@@ -178,8 +178,8 @@ function KnifeHandleHorizontal({ open }) {
       <rect x="11" y="14" width="10" height="48" fill="#B0B0C4"/>
       <rect x="20" y="12" width="3"  height="52" fill="#505060"/>
 
-      {/* ── Main body red ── */}
-      <rect x="22" y="8" width="156" height="60" fill="#CC001A"/>
+      {/* ── Main body — theme accent color ── */}
+      <rect x="22" y="8" width="156" height="60" fill="var(--accent-dim)"/>
       {/* Top highlight */}
       <rect x="22" y="8" width="156" height="7" fill="rgba(255,255,255,0.15)"/>
       {/* Bottom shadow edge */}
@@ -206,12 +206,6 @@ function KnifeHandleHorizontal({ open }) {
       <rect x="156" y="34" width="8" height="8" fill="#707080"/>
       <rect x="157" y="35" width="4" height="4" fill="#A0A0B8"/>
 
-      {/* ── OPEN state seam glows ── */}
-      {open && <>
-        {/* Top seam glow */}
-        <rect x="22" y="6" width="156" height="4" fill="rgba(0,220,255,0.4)"/>
-      </>}
-
       {/* ── Right bolster ── */}
       <rect x="175" y="12" width="3"  height="52" fill="#505060"/>
       <rect x="178" y="12" width="12" height="52" fill="#808090"/>
@@ -236,16 +230,16 @@ function KnifeHandleHorizontal({ open }) {
    TOOL CONFIG (Divided by pivot side)
 ============================================================ */
 const LEFT_TOOLS = [
-  { label: 'IMAGE', route: '/image', color: '#00D4FF', Blade: BladeSVG,       angleOpen: -60, angleClosed: 90, flip: false, flipY: true },
-  { label: 'AUDIO', route: '/audio', color: '#FF3CAC', Blade: ScissorsSVG,    angleOpen: -40, angleClosed: 90, flip: false, flipY: true },
-  { label: 'VIDEO', route: '/video', color: '#C77DFF', Blade: ScrewdriverSVG, angleOpen: -20, angleClosed: 90, flip: false, flipY: false },
+  { label: 'IMAGE',  route: '/image', color: 'var(--accent-3)', glow: 'var(--glow-cyan)',   Blade: BladeSVG,       angleOpen: -60, angleClosed: 90,  flip: false, flipY: true  },
+  { label: 'AUDIO',  route: '/audio', color: 'var(--accent-2)', glow: 'var(--glow-pink)',   Blade: ScissorsSVG,    angleOpen: -40, angleClosed: 90,  flip: false, flipY: true  },
+  { label: 'VIDEO',  route: '/video', color: 'var(--accent)',   glow: 'var(--glow-accent)', Blade: ScrewdriverSVG, angleOpen: -20, angleClosed: 90,  flip: false, flipY: false },
 ]
 
 const RIGHT_TOOLS = [
-  { label: 'DOWNLOAD', route: '/download',  color: '#00FF87', Blade: CanOpenerSVG,   angleOpen: 20, angleClosed: -90, flip: true, flipY: true },
-  { label: 'PDF',      route: '/pdf',       color: '#FFD60A', Blade: NailFileSVG,    angleOpen: 40, angleClosed: -90, flip: true, flipY: true },
-  { label: 'HASH',     route: '/hash',      color: '#39FF14', Blade: CorkscrewSVG,   angleOpen: 60, angleClosed: -90, flip: true, flipY: true },
-  { label: 'INSPECT',  route: '/inspector', color: '#FF9F1C', Blade: MagnifyGlassSVG, angleOpen: 80, angleClosed: -90, flip: true, flipY: true },
+  { label: 'DOWNLOAD', route: '/download',  color: 'var(--accent-4)', glow: 'var(--glow-accent)', Blade: CanOpenerSVG,    angleOpen: 20, angleClosed: -90, flip: true, flipY: true },
+  { label: 'PDF',      route: '/pdf',       color: 'var(--accent-2)', glow: 'var(--glow-pink)',   Blade: NailFileSVG,    angleOpen: 40, angleClosed: -90, flip: true, flipY: true },
+  { label: 'HASH',     route: '/hash',      color: 'var(--accent)',   glow: 'var(--glow-accent)', Blade: CorkscrewSVG,   angleOpen: 60, angleClosed: -90, flip: true, flipY: true },
+  { label: 'INSPECT',  route: '/inspector', color: 'var(--accent-3)', glow: 'var(--glow-cyan)',   Blade: MagnifyGlassSVG, angleOpen: 80, angleClosed: -90, flip: true, flipY: true },
 ]
 
 const ALL_TOOLS = [...LEFT_TOOLS, ...RIGHT_TOOLS]
@@ -260,27 +254,46 @@ export default function SwissKnifeWidget() {
   const [flickingTool, setFlickingTool] = useState(null)
   const [peekingTool, setPeekingTool] = useState(null)
   const [dragOverWidget, setDragOverWidget] = useState(false)
+  const [isWaving, setIsWaving] = useState(false)
+  const [waveBlades, setWaveBlades] = useState(new Set())
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Listen for blade flick events
+  // Listen for blade flick / peek / wave events
   useEffect(() => {
     const handleFlick = (e) => {
       const route = e.detail
       setFlickingTool(route)
-      // Tuck the blade back in after 1.2 seconds
       setTimeout(() => setFlickingTool(null), 1200)
     }
-    const handlePeek = (e) => {
-      setPeekingTool(e.detail)
-    }
+    const handlePeek = (e) => setPeekingTool(e.detail)
+    const handleWave = (e) => setIsWaving(e.detail)
     window.addEventListener('blade-flick', handleFlick)
     window.addEventListener('blade-peek', handlePeek)
+    window.addEventListener('blade-wave', handleWave)
     return () => {
       window.removeEventListener('blade-flick', handleFlick)
       window.removeEventListener('blade-peek', handlePeek)
+      window.removeEventListener('blade-wave', handleWave)
     }
   }, [])
+
+  // Wave: choppy slicing pattern — interleaves left/right blades, each pops open briefly
+  useEffect(() => {
+    if (!isWaving) { setWaveBlades(new Set()); return }
+    // Interleaved order: alternates left↔right for a "busy cutting" feel
+    const ORDER = [0, 3, 1, 4, 2, 5, 6]
+    const INTERVAL = 110  // ms between each blade firing
+    const HOLD     = 175  // ms each blade stays open (overlap = 2 blades at once most of the time)
+    let step = 0
+    const id = setInterval(() => {
+      const idx = ORDER[step % ORDER.length]
+      setWaveBlades(prev => new Set([...prev, idx]))
+      setTimeout(() => setWaveBlades(prev => { const n = new Set(prev); n.delete(idx); return n }), HOLD)
+      step++
+    }, INTERVAL)
+    return () => clearInterval(id)
+  }, [isWaving])
 
   // Dynamic layout based on route
   const isHome = location.pathname === '/'
@@ -380,30 +393,35 @@ export default function SwissKnifeWidget() {
 
           const isOpen = open || flickingTool === tool.route
           const isPeeking = peekingTool === tool.route && !isOpen
-          
+          const isWaveActive = isWaving && !open && waveBlades.has(i)
+
+          // Wave opens only 40% of the way — a quick chop, not a full fan
+          const waveAngle = tool.angleClosed + (tool.angleOpen - tool.angleClosed) * 0.4
+
           let currentAngle = tool.angleClosed
           if (isOpen) currentAngle = tool.angleOpen
+          else if (isWaveActive) currentAngle = waveAngle
           else if (isPeeking) {
-             // Halfway open trick
              currentAngle = tool.angleClosed + (tool.angleOpen - tool.angleClosed) * 0.4
           }
 
           return (
             <button
               key={tool.route}
-              className={`sk-blade-item ${(isOpen || isPeeking) ? 'open' : ''} ${hovered === tool.route ? 'hovered' : ''}`}
+              className={`sk-blade-item ${(isOpen || isPeeking || isWaveActive) ? 'open' : ''} ${hovered === tool.route ? 'hovered' : ''}`}
               style={{
                 left: `${leftOffset}px`,
                 top: `${topOffset}px`,
                 transform: `rotate(${currentAngle}deg)`,
-                zIndex: (hovered === tool.route || flickingTool === tool.route || isPeeking) ? 15 : 10,
-                // Sequential transition delay (both opening & closing)
-                // If flicking, pop it out instantly
-                transitionDelay: (flickingTool === tool.route || isPeeking) 
-                  ? '0ms'
-                  : (open
-                    ? `${isLeft ? i * 60 : (6 - i) * 60}ms`
-                    : `${isLeft ? (2 - i) * 50 : (i - 3) * 50}ms`)
+                zIndex: (hovered === tool.route || flickingTool === tool.route || isPeeking || isWaveActive) ? 15 : 10,
+                // Snappy choppy transition while waving; normal stagger otherwise
+                ...(isWaving ? { transition: 'transform 75ms cubic-bezier(0.2, 0, 0.6, 1)' } : {
+                  transitionDelay: (flickingTool === tool.route || isPeeking)
+                    ? '0ms'
+                    : (open
+                      ? `${isLeft ? i * 60 : (6 - i) * 60}ms`
+                      : `${isLeft ? (2 - i) * 50 : (i - 3) * 50}ms`)
+                })
               }}
               onClick={(e) => {
                 e.stopPropagation()
@@ -436,7 +454,7 @@ export default function SwissKnifeWidget() {
                 style={{
                   color: tool.color,
                   borderColor: tool.color,
-                  boxShadow: `0 0 8px ${tool.color}66`
+                  boxShadow: tool.glow
                 }}
               >
                 {tool.label}

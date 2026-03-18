@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { HashRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import SwissKnifeWidget from './components/SwissKnifeWidget.jsx'
 import Home from './pages/Home.jsx'
 import ImageConverter from './pages/ImageConverter.jsx'
@@ -19,6 +20,29 @@ import { getFirstDropPath } from './dropHelpers.js'
  * for drops that land outside any tool-specific dropzone.
  * Routes unhandled file drops to the File Inspector.
  */
+function SettingsCog() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  if (location.pathname === '/settings') return null
+  return (
+    <button className="settings-cog-btn" onClick={() => navigate('/settings')} title="Settings">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" style={{ imageRendering: 'pixelated' }}>
+        <rect x="10" y="1"  width="4" height="4" fill="#AAAACC"/>
+        <rect x="10" y="19" width="4" height="4" fill="#AAAACC"/>
+        <rect x="1"  y="10" width="4" height="4" fill="#AAAACC"/>
+        <rect x="19" y="10" width="4" height="4" fill="#AAAACC"/>
+        <rect x="3"  y="3"  width="4" height="4" fill="#AAAACC"/>
+        <rect x="17" y="3"  width="4" height="4" fill="#AAAACC"/>
+        <rect x="3"  y="17" width="4" height="4" fill="#AAAACC"/>
+        <rect x="17" y="17" width="4" height="4" fill="#AAAACC"/>
+        <rect x="6"  y="6"  width="12" height="12" fill="#AAAACC"/>
+        <rect x="8"  y="8"  width="8"  height="8"  fill="var(--bg-surface)"/>
+        <rect x="10" y="10" width="4"  height="4"  fill="#AAAACC"/>
+      </svg>
+    </button>
+  )
+}
+
 function handleGlobalDrop(e) {
   const filePath = getFirstDropPath(e)
   if (!filePath) return
@@ -47,6 +71,7 @@ export default function App() {
   }, [])
 
   return (
+    <ThemeProvider>
     <HashRouter>
       <div
         className="app-shell"
@@ -81,7 +106,9 @@ export default function App() {
           </div>
         </main>
         <SwissKnifeWidget />
+        <SettingsCog />
       </div>
     </HashRouter>
+    </ThemeProvider>
   )
 }

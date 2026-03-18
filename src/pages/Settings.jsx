@@ -1,4 +1,5 @@
 import { useSettings } from '../hooks/useSettings.js'
+import { useTheme, THEMES, SIZES } from '../contexts/ThemeContext.jsx'
 
 const api = window.swissKnife
 
@@ -38,6 +39,43 @@ function ToggleRow({ label, desc, checked, onChange }) {
   )
 }
 
+function AppCarousel({ label, keys, value, onChange, renderPreview }) {
+  const idx = keys.indexOf(value)
+  const prev = () => onChange(keys[(idx - 1 + keys.length) % keys.length])
+  const next = () => onChange(keys[(idx + 1) % keys.length])
+  const arrowStyle = {
+    background: 'var(--bg-elevated)',
+    border: '2px solid var(--border)',
+    color: 'var(--accent)',
+    cursor: 'pointer',
+    width: 36,
+    minWidth: 36,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1rem',
+    transition: 'all 0.15s ease',
+    alignSelf: 'stretch',
+  }
+  return (
+    <div className="form-group" style={{ marginBottom: 14 }}>
+      <label className="form-label" style={{ marginBottom: 8 }}>{label}</label>
+      <div style={{ display: 'flex', gap: 0, border: '2px solid var(--border)', background: 'var(--bg-elevated)' }}>
+        <button style={arrowStyle} onClick={prev} onMouseEnter={e => e.currentTarget.style.background='var(--bg-hover)'} onMouseLeave={e => e.currentTarget.style.background='var(--bg-elevated)'}>◄</button>
+        <div style={{ flex: 1, padding: '14px 20px', textAlign: 'center', minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)' }}>
+          {renderPreview(value)}
+        </div>
+        <button style={arrowStyle} onClick={next} onMouseEnter={e => e.currentTarget.style.background='var(--bg-hover)'} onMouseLeave={e => e.currentTarget.style.background='var(--bg-elevated)'}>►</button>
+      </div>
+      <div style={{ display: 'flex', gap: 4, justifyContent: 'center', marginTop: 6 }}>
+        {keys.map((k, i) => (
+          <div key={k} onClick={() => onChange(k)} style={{ width: 6, height: 6, background: i === idx ? 'var(--accent)' : 'var(--border)', cursor: 'pointer', transition: 'background 0.15s' }} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function Section({ title, children }) {
   return (
     <div className="settings-section">
@@ -49,6 +87,7 @@ function Section({ title, children }) {
 
 export default function Settings() {
   const { settings, update } = useSettings()
+  const { themeId, setThemeId, sizeId, setSizeId } = useTheme()
 
   if (!settings) {
     return (
@@ -280,6 +319,46 @@ export default function Settings() {
             desc="Burns subtitles into the output file when available"
             checked={settings.downloader.embedSubs}
             onChange={v => update('downloader.embedSubs', v)}
+          />
+        </Section>
+
+        <div className="section-divider" />
+
+        {/* ─── APPEARANCE ─── */}
+        <Section title="// APPEARANCE">
+          <AppCarousel
+            label="Color Theme"
+            keys={Object.keys(THEMES)}
+            value={themeId}
+            onChange={setThemeId}
+            renderPreview={(key) => {
+              const t = THEMES[key]
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 5 }}>
+                    {t.preview.map((c, i) => (
+                      <div key={i} style={{ width: 18, height: 18, background: c, border: '1px solid rgba(255,255,255,0.15)' }} />
+                    ))}
+                  </div>
+                  <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.55rem', color: 'var(--text-primary)' }}>{t.name}</span>
+                </div>
+              )
+            }}
+          />
+          <AppCarousel
+            label="Text Size"
+            keys={Object.keys(SIZES)}
+            value={sizeId}
+            onChange={setSizeId}
+            renderPreview={(key) => {
+              const s = SIZES[key]
+              return (
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10 }}>
+                  <span style={{ fontSize: `${s.scale * 1.1}rem`, color: 'var(--text-primary)' }}>Aa</span>
+                  <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem', color: 'var(--text-muted)' }}>{s.name}</span>
+                </div>
+              )
+            }}
           />
         </Section>
 

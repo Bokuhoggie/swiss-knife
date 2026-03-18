@@ -17,6 +17,7 @@ function MergeTab() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
 
   useEffect(() => {
     api.settings?.read().then(s => {
@@ -125,6 +126,7 @@ function SplitTab() {
   const [rangeStr, setRangeStr] = useState('1-3')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
 
   useEffect(() => {
     api.settings?.read().then(s => {
@@ -204,6 +206,7 @@ function CompressTab() {
   const [compressionLevel, setCompressionLevel] = useState('medium')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
 
   useEffect(() => {
     api.settings?.read().then(s => {

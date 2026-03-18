@@ -31,6 +31,7 @@ export default function VideoConverter() {
   const [results, setResults]           = useState([])
   const [loading, setLoading]         = useState(false)
   const [progress, setProgress]       = useState(null)
+  useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [dragOver, setDragOver]       = useState(false)
   const [currentIdx, setCurrentIdx]     = useState(-1)
   const [isFlashing, setIsFlashing]     = useState(false)

@@ -17,6 +17,7 @@ export default function ImageConverter() {
   const [results, setResults]           = useState([])
   const [loading, setLoading]           = useState(false)
   const [dragOver, setDragOver]         = useState(false)
+  useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [isFlashing, setIsFlashing]     = useState(false)
 
   // Advanced
