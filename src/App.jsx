@@ -52,7 +52,7 @@ function UpdateNotifier() {
     api.onUpdateAvailable((info) => { setVersion(info.version); setState('available'); setDismissed(false) })
     api.onProgress((p) => { setState('downloading'); setProgress(p.percent) })
     api.onDownloaded(() => setState('downloaded'))
-    api.onError(() => setState('error'))
+    api.onError((msg) => { console.warn('[updater] error:', msg); setState('error') })
 
     return () => api.offAll?.()
   }, [])

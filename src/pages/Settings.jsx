@@ -89,6 +89,10 @@ function Section({ title, children }) {
 export default function Settings() {
   const { settings, update } = useSettings()
   const { themeId, setThemeId, sizeId, setSizeId } = useTheme()
+  const [secretCode, setSecretCode] = useState('')
+  const [unlockedThemes, setUnlockedThemes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('swiss-knife-unlocks') || '[]') } catch(e) { return [] }
+  })
 
   if (!settings) {
     return (
@@ -329,7 +333,7 @@ export default function Settings() {
         <Section title="// APPEARANCE">
           <AppCarousel
             label="Color Theme"
-            keys={Object.keys(THEMES)}
+            keys={Object.keys(THEMES).filter(k => !THEMES[k].hidden || unlockedThemes.includes(k) || themeId === k)}
             value={themeId}
             onChange={setThemeId}
             renderPreview={(key) => {
@@ -379,6 +383,69 @@ export default function Settings() {
 
         {/* ─── UPDATES ─── */}
         <UpdatesSection />
+
+        <div className="section-divider" />
+
+        {/* ─── SECRETS ─── */}
+        <Section title="// SECRETS">
+          <div className="form-group" style={{ marginBottom: 16 }}>
+             <label className="form-label">Unlock Hidden Themes</label>
+             <div className="controls-row" style={{ marginTop: 6 }}>
+               <input 
+                 className="form-input" 
+                 placeholder="Enter secret passphrase..." 
+                 value={secretCode} 
+                 onChange={e => setSecretCode(e.target.value)} 
+                 onKeyDown={e => {
+                   if (e.key === 'Enter') {
+                     const code = secretCode.trim().toLowerCase()
+                     const map = {
+                       'go green go white': 'msu',
+                       'hail to the victors': 'uofm',
+                       'go cats': 'nmu',
+                       'warrior strong': 'waynestate'
+                     }
+                     const id = map[code]
+                     if (id && !unlockedThemes.includes(id)) {
+                       const newU = [...unlockedThemes, id]
+                       setUnlockedThemes(newU)
+                       localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
+                       setThemeId(id)
+                       setSecretCode('')
+                     } else if (id) {
+                       setThemeId(id)
+                       setSecretCode('')
+                     } else {
+                       setSecretCode('')
+                     }
+                   }
+                 }}
+               />
+               <button className="btn btn-secondary" onClick={() => {
+                 const code = secretCode.trim().toLowerCase()
+                 const map = {
+                   'go green go white': 'msu',
+                   'hail to the victors': 'uofm',
+                   'go cats': 'nmu',
+                   'warrior strong': 'waynestate'
+                 }
+                 const id = map[code]
+                 if (id && !unlockedThemes.includes(id)) {
+                   const newU = [...unlockedThemes, id]
+                   setUnlockedThemes(newU)
+                   localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
+                   setThemeId(id)
+                   setSecretCode('')
+                 } else if (id) {
+                   setThemeId(id)
+                   setSecretCode('')
+                 } else {
+                   setSecretCode('')
+                 }
+               }}>Unlock</button>
+             </div>
+          </div>
+        </Section>
 
       </div>
     </div>

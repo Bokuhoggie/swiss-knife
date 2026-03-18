@@ -208,6 +208,7 @@ export const THEMES = {
   uofm: {
     id: 'uofm',
     name: 'U of M',
+    hidden: true,
     preview: ['#FFCB05', '#1A6BB5', '#FFE566', '#001830'],
     vars: {
       '--bg-base':        '#001830',
@@ -240,6 +241,7 @@ export const THEMES = {
   msu: {
     id: 'msu',
     name: 'MSU',
+    hidden: true,
     preview: ['#18BB6A', '#FFFFFF', '#50E890', '#0A1F1A'],
     vars: {
       '--bg-base':        '#0A1F1A',
@@ -272,6 +274,7 @@ export const THEMES = {
   nmu: {
     id: 'nmu',
     name: 'NMU',
+    hidden: true,
     preview: ['#F2A900', '#006341', '#FFD050', '#001008'],
     vars: {
       '--bg-base':        '#001008',
@@ -304,6 +307,7 @@ export const THEMES = {
   waynestate: {
     id: 'waynestate',
     name: 'Wayne St.',
+    hidden: true,
     preview: ['#CFAA5E', '#0C5449', '#E8CC88', '#080E0D'],
     vars: {
       '--bg-base':        '#080E0D',
