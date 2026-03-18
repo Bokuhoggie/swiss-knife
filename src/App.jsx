@@ -11,6 +11,7 @@ import FileHasher from './pages/FileHasher.jsx'
 import FileInspector from './pages/FileInspector.jsx'
 import Settings from './pages/Settings.jsx'
 import { setPendingFile } from './globalDrop.js'
+import { getFirstDropPath } from './dropHelpers.js'
 
 /**
  * App-level drop handler.
@@ -19,10 +20,10 @@ import { setPendingFile } from './globalDrop.js'
  * Routes unhandled file drops to the File Inspector.
  */
 function handleGlobalDrop(e) {
-  const file = e.dataTransfer?.files?.[0]
-  if (!file?.path) return
+  const filePath = getFirstDropPath(e)
+  if (!filePath) return
 
-  setPendingFile(file.path)
+  setPendingFile(filePath)
   if (!window.location.hash.startsWith('#/inspector')) {
     window.location.hash = '#/inspector'
   }

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { getFirstDropPath } from '../dropHelpers.js'
+import { setPendingFile } from '../globalDrop.js'
 
 /* ============================================================
    PIXEL ART TOOL BLADE SHAPES  (42 × 190 viewBox)
@@ -293,9 +295,20 @@ export default function SwissKnifeWidget() {
   const BLADE_PIVOT_X = 21   // center of blade width
   const BLADE_PIVOT_Y = 190  // bottom of blade
 
+  const handleWidgetDrop = (e) => {
+    e.preventDefault(); e.stopPropagation()
+    const filePath = getFirstDropPath(e)
+    if (!filePath) return
+    setPendingFile(filePath)
+    setOpen(false)
+    navigate('/inspector')
+  }
+
   return (
     <div
       className={`sk-widget-container ${isHome ? 'sk-size-large' : 'sk-size-small'}`}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleWidgetDrop}
     >
       <div 
         className={`sk-knife-assembly ${isHome ? 'sk-float' : ''}`}

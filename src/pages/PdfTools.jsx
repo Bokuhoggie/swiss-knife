@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconPDF } from '../components/Icons.jsx'
+import { getDropPaths } from '../dropHelpers.js'
 
 const api = window.swissKnife
 
@@ -34,7 +35,7 @@ function MergeTab() {
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
-    const paths = Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean)
+    const paths = getDropPaths(e)
     if (paths.length) addFiles(paths)
   }
 

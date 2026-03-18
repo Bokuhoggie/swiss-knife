@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconInspect } from '../components/Icons.jsx'
 import { consumePendingFile } from '../globalDrop.js'
+import { getFirstDropPath } from '../dropHelpers.js'
 
 const api = window.swissKnife
 
@@ -74,8 +75,8 @@ export default function FileInspector() {
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
-    const f = e.dataTransfer.files[0]
-    if (f?.path) analyze(f.path)
+    const filePath = getFirstDropPath(e)
+    if (filePath) analyze(filePath)
   }
 
   const computeHash = async () => {

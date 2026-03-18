@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconAudio } from '../components/Icons.jsx'
+import { getDropPaths } from '../dropHelpers.js'
 
 const FORMATS      = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
 const BITRATES     = ['64k', '128k', '192k', '256k', '320k']
@@ -56,7 +57,7 @@ export default function AudioConverter() {
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
-    const paths = Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean)
+    const paths = getDropPaths(e)
     if (paths.length) addFiles(paths)
   }
 

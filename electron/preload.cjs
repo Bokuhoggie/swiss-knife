@@ -1,8 +1,11 @@
 'use strict';
 
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('swissKnife', {
+  // File path from drag events (Electron 32+ — File.path is deprecated)
+  getPathForFile: (file) => webUtils.getPathForFile(file),
+
   image: {
     convert: (opts) => ipcRenderer.invoke('image:convert', opts),
     selectFiles: () => ipcRenderer.invoke('image:selectFiles'),

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconHash } from '../components/Icons.jsx'
+import { getFirstDropPath } from '../dropHelpers.js'
 
 const ALGORITHMS = ['md5', 'sha1', 'sha256', 'sha512']
 const api = window.swissKnife
@@ -23,12 +24,12 @@ export default function FileHasher() {
   const handleDrop = async (e) => {
     e.preventDefault(); e.stopPropagation()
     setDragOver(false)
-    const f = e.dataTransfer.files[0]
-    if (f?.path) {
-      setFile(f.path)
+    const filePath = getFirstDropPath(e)
+    if (filePath) {
+      setFile(filePath)
       setResult(null)
       setCopied(null)
-      await compute(f.path)
+      await compute(filePath)
     }
   }
 

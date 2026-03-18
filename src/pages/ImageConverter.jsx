@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconImage } from '../components/Icons.jsx'
+import { getDropPaths } from '../dropHelpers.js'
 
 const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
 const api = window.swissKnife
@@ -49,7 +50,7 @@ export default function ImageConverter() {
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
-    const paths = Array.from(e.dataTransfer.files).map(f => f.path).filter(Boolean)
+    const paths = getDropPaths(e)
     if (paths.length) addFiles(paths)
   }
 

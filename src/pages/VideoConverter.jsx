@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconVideo } from '../components/Icons.jsx'
+import { getFirstDropPath } from '../dropHelpers.js'
 
 const FORMATS    = ['mp4', 'mkv', 'avi', 'mov', 'webm']
 const RESOLUTIONS = ['', '1920x1080', '1280x720', '854x480', '640x360']
@@ -60,8 +61,8 @@ export default function VideoConverter() {
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
-    const f = e.dataTransfer.files[0]
-    if (f?.path) { setFile(f.path); setResult(null) }
+    const filePath = getFirstDropPath(e)
+    if (filePath) { setFile(filePath); setResult(null) }
   }
 
   const handleBrowse = async () => {
