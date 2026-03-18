@@ -48,7 +48,7 @@ export const THEMES = {
   arcade: {
     id: 'arcade',
     name: 'Arcade',
-    preview: ['#00FF87', '#FF3CAC', '#00D4FF', '#0A0A0C'],
+    preview: ['#00FF87', '#FF3CAC', '#39FF14', '#0A0A0C'],
     vars: {
       '--bg-base':        '#0A0A0C',
       '--bg-surface':     '#0F0F14',
@@ -59,7 +59,7 @@ export const THEMES = {
       '--accent-dim':     '#00CC6A',
       '--accent-glow':    'rgba(0, 255, 135, 0.2)',
       '--accent-2':       '#FF3CAC',
-      '--accent-3':       '#00D4FF',
+      '--accent-3':       '#39FF14',
       '--accent-4':       '#FFD60A',
       '--accent-rgb':     '0, 255, 135',
       '--success':        '#00FF87',
@@ -73,7 +73,7 @@ export const THEMES = {
       '--shadow-card':    '0 0 0 1px rgba(0,255,135,0.1), 0 8px 32px rgba(0,0,0,0.6)',
       '--glow-accent':    '0 0 12px rgba(0,255,135,0.5)',
       '--glow-pink':      '0 0 12px rgba(255,60,172,0.5)',
-      '--glow-cyan':      '0 0 12px rgba(0,212,255,0.5)',
+      '--glow-cyan':      '0 0 12px rgba(57,255,20,0.5)',
     },
   },
 
