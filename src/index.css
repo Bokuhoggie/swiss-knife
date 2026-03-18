@@ -973,7 +973,8 @@ input[type="range"]::-webkit-slider-thumb {
 .sk-widget-container.sk-size-large {
   top: 75%; 
   left: 50%;
-  transform: translate(-50%, -50%) scale(4);
+  transform: translate(-50%, -50%) scale(4.5);
+  transform-origin: center center;
   width: 1200px;
   height: 800px;
   align-items: center; /* keep centered vertically inside the box so blades go up and down */
@@ -987,13 +988,14 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Inner Pages: Small and hugging the bottom */
 .sk-widget-container.sk-size-small {
-  bottom: -40px;
+  bottom: -76px;
   left: 50%;
-  transform: translate(-50%, 0) scale(2);
+  transform: translateX(-50%) scale(2.5);
+  transform-origin: bottom center;
   width: 800px;  /* hover zone width */
   height: 400px; /* hover zone height — reduced */
   align-items: flex-end; /* push assembly to the bottom */
-  padding-bottom: 30px; /* resting height */
+  padding-bottom: 0px; /* rest at the absolute bottom of container */
   pointer-events: none;
 }
 .sk-widget-container.sk-size-small:hover {
