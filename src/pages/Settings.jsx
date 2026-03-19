@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { useSettings } from '../hooks/useSettings.js'
 import { useTheme, THEMES, SIZES } from '../contexts/ThemeContext.jsx'
 
@@ -88,6 +89,10 @@ function Section({ title, children }) {
 export default function Settings() {
   const { settings, update } = useSettings()
   const { themeId, setThemeId, sizeId, setSizeId } = useTheme()
+  const [secretCode, setSecretCode] = useState('')
+  const [unlockedThemes, setUnlockedThemes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('swiss-knife-unlocks') || '[]') } catch(e) { return [] }
+  })
 
   if (!settings) {
     return (
@@ -328,7 +333,7 @@ export default function Settings() {
         <Section title="// APPEARANCE">
           <AppCarousel
             label="Color Theme"
-            keys={Object.keys(THEMES)}
+            keys={Object.keys(THEMES).filter(k => !THEMES[k].hidden || unlockedThemes.includes(k) || themeId === k)}
             value={themeId}
             onChange={setThemeId}
             renderPreview={(key) => {
@@ -374,7 +379,155 @@ export default function Settings() {
           </div>
         </Section>
 
+        <div className="section-divider" />
+
+        {/* ─── UPDATES ─── */}
+        <UpdatesSection />
+
+        <div className="section-divider" />
+
+        {/* ─── SECRETS ─── */}
+        <Section title="// SECRETS">
+          <div className="form-group" style={{ marginBottom: 16 }}>
+             <label className="form-label">Unlock Hidden Themes</label>
+             <div className="controls-row" style={{ marginTop: 6 }}>
+               <input 
+                 className="form-input" 
+                 placeholder="Enter secret passphrase..." 
+                 value={secretCode} 
+                 onChange={e => setSecretCode(e.target.value)} 
+                 onKeyDown={e => {
+                   if (e.key === 'Enter') {
+                     const code = secretCode.trim().toLowerCase()
+                     const map = {
+                       'go green go white': 'msu',
+                       'hail to the victors': 'uofm',
+                       'go cats': 'nmu',
+                       'warrior strong': 'waynestate'
+                     }
+                     const id = map[code]
+                     if (id && !unlockedThemes.includes(id)) {
+                       const newU = [...unlockedThemes, id]
+                       setUnlockedThemes(newU)
+                       localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
+                       setThemeId(id)
+                       setSecretCode('')
+                     } else if (id) {
+                       setThemeId(id)
+                       setSecretCode('')
+                     } else {
+                       setSecretCode('')
+                     }
+                   }
+                 }}
+               />
+               <button className="btn btn-secondary" onClick={() => {
+                 const code = secretCode.trim().toLowerCase()
+                 const map = {
+                   'go green go white': 'msu',
+                   'hail to the victors': 'uofm',
+                   'go cats': 'nmu',
+                   'warrior strong': 'waynestate'
+                 }
+                 const id = map[code]
+                 if (id && !unlockedThemes.includes(id)) {
+                   const newU = [...unlockedThemes, id]
+                   setUnlockedThemes(newU)
+                   localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
+                   setThemeId(id)
+                   setSecretCode('')
+                 } else if (id) {
+                   setThemeId(id)
+                   setSecretCode('')
+                 } else {
+                   setSecretCode('')
+                 }
+               }}>Unlock</button>
+             </div>
+          </div>
+        </Section>
+
       </div>
     </div>
+  )
+}
+
+function UpdatesSection() {
+  const [version, setVersion]   = useState('')
+  const [status, setStatus]     = useState('idle') // idle | checking | up-to-date | available | downloading | downloaded | error
+  const [newVersion, setNewVersion] = useState('')
+  const [progress, setProgress] = useState(0)
+  const [errMsg, setErrMsg]     = useState('')
+
+  useEffect(() => {
+    api.getVersion?.().then(v => setVersion(v)).catch(() => {})
+
+    const u = api.updater
+    if (!u) return
+    u.onUpdateAvailable((info) => { setNewVersion(info.version); setStatus('available') })
+    u.onNoUpdate(() => setStatus('up-to-date'))
+    u.onProgress((p) => { setStatus('downloading'); setProgress(p.percent) })
+    u.onDownloaded(() => setStatus('downloaded'))
+    u.onError((msg) => { setErrMsg(msg || 'Unknown error'); setStatus('error') })
+    return () => u.offAll?.()
+  }, [])
+
+  const check = async () => {
+    setStatus('checking'); setErrMsg('')
+    await api.updater?.check()
+  }
+
+  const statusColor = {
+    'up-to-date': 'var(--success)',
+    'available':  'var(--accent)',
+    'downloaded': 'var(--accent)',
+    'error':      'var(--error)',
+  }[status] || 'var(--text-muted)'
+
+  const statusText = {
+    'idle':        'Not checked yet',
+    'checking':    'Checking…',
+    'up-to-date':  'You\'re up to date',
+    'available':   `v${newVersion} available`,
+    'downloading': `Downloading… ${Math.round(progress)}%`,
+    'downloaded':  'Ready to install',
+    'error':       errMsg || 'Update check failed',
+  }[status]
+
+  return (
+    <Section title="// UPDATES">
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div className="form-label" style={{ marginBottom: 2 }}>Current Version</div>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.7rem', color: 'var(--accent)' }}>
+            v{version || '…'}
+          </div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div className="form-label" style={{ marginBottom: 2 }}>Status</div>
+          <div style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.6rem', color: statusColor }}>
+            {statusText}
+          </div>
+          {status === 'downloading' && (
+            <div style={{ marginTop: 6, height: 4, background: 'var(--bg-hover)', borderRadius: 2 }}>
+              <div style={{ height: '100%', width: `${progress}%`, background: 'var(--accent)', borderRadius: 2, transition: 'width 0.3s' }} />
+            </div>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignSelf: 'flex-end' }}>
+          {status !== 'downloading' && status !== 'downloaded' && (
+            <button className="btn btn-secondary" onClick={check} disabled={status === 'checking'}>
+              {status === 'checking' ? '⟳ Checking…' : '⟳ Check for Updates'}
+            </button>
+          )}
+          {status === 'available' && (
+            <button className="btn btn-primary" onClick={() => api.updater?.download()}>⬇ Download</button>
+          )}
+          {status === 'downloaded' && (
+            <button className="btn btn-primary" onClick={() => api.updater?.install()}>↺ Restart & Install</button>
+          )}
+        </div>
+      </div>
+    </Section>
   )
 }

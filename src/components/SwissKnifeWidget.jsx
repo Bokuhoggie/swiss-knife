@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { getFirstDropPath } from '../dropHelpers.js'
 import { setPendingFile } from '../globalDrop.js'
+import { useTheme } from '../contexts/ThemeContext.jsx'
 
 /* ============================================================
    PIXEL ART TOOL BLADE SHAPES  (42 × 190 viewBox)
@@ -165,9 +166,96 @@ function CorkscrewSVG({ color, flip }) {
 }
 
 /* ============================================================
+   COLLEGE / THEME LOGOS  (replaces the swiss cross on handle)
+   All render in the cross area: x:86-114, y:24-52
+============================================================ */
+function LogoMichiganM() {
+  const c = "white"
+  return (
+    <g>
+      {/* Blocky M - 28x28 approx within 86-114, 24-52 */}
+      <rect x="86" y="24" width="6" height="28" fill={c}/>
+      <rect x="108" y="24" width="6" height="28" fill={c}/>
+      <rect x="92" y="24" width="16" height="6" fill={c}/>
+      <rect x="96" y="30" width="8" height="6" fill={c}/>
+      <rect x="98" y="36" width="4" height="6" fill={c}/>
+    </g>
+  )
+}
+
+function LogoSpartanS() {
+  const c = "white"
+  return (
+    <g>
+      {/* Blocky S - matching example */}
+      <rect x="86" y="24" width="28" height="6" fill={c}/>
+      <rect x="86" y="30" width="6" height="8" fill={c}/>
+      <rect x="86" y="38" width="28" height="6" fill={c}/>
+      <rect x="108" y="44" width="6" height="8" fill={c}/>
+      <rect x="86" y="52" width="28" height="6" fill={c}/>
+      {/* Serif-like bits */}
+      <rect x="108" y="30" width="6" height="2" fill={c}/>
+      <rect x="86" y="50" width="6" height="2" fill={c}/>
+    </g>
+  )
+}
+
+function LogoNMU() {
+  const c = "white"
+  return (
+    <g>
+      {/* N with compass/torch */}
+      {/* Outer compass ring (simplified) */}
+      <rect x="86" y="41" width="2" height="6" fill={c}/>
+      <rect x="112" y="41" width="2" height="6" fill={c}/>
+      <rect x="97" y="56" width="6" height="2" fill={c}/>
+      <rect x="97" y="32" width="6" height="2" fill={c}/>
+      
+      {/* Compass spikes */}
+      <rect x="99" y="30" width="2" height="4" fill={c}/>
+      <rect x="99" y="54" width="2" height="4" fill={c}/>
+      <rect x="84" y="43" width="4" height="2" fill={c}/>
+      <rect x="112" y="43" width="4" height="2" fill={c}/>
+
+      {/* The N */}
+      <rect x="94" y="40" width="4" height="12" fill={c}/>
+      <rect x="102" y="40" width="4" height="12" fill={c}/>
+      <rect x="96" y="42" width="8" height="8" fill={c}/>
+
+      {/* The Torch handle */}
+      <rect x="98" y="34" width="4" height="8" fill={c}/>
+      {/* Flame */}
+      <rect x="97" y="26" width="6" height="8" fill={c} opacity="0.8"/>
+      <rect x="99" y="24" width="2" height="2" fill={c}/>
+    </g>
+  )
+}
+
+function LogoWayneW() {
+  const c = "white"
+  return (
+    <g>
+      {/* Blocky W - matching example */}
+      <rect x="86" y="24" width="6" height="28" fill={c}/>
+      <rect x="108" y="24" width="6" height="28" fill={c}/>
+      <rect x="97" y="38" width="6" height="14" fill={c}/>
+      <rect x="86" y="52" width="28" height="6" fill={c}/>
+      <rect x="92" y="46" width="16" height="6" fill={c}/>
+    </g>
+  )
+}
+
+const HANDLE_LOGOS = {
+  uofm:      LogoMichiganM,
+  msu:       LogoSpartanS,
+  nmu:       LogoNMU,
+  waynestate: LogoWayneW,
+}
+
+/* ============================================================
    HORIZONTAL SWISS ARMY KNIFE HANDLE (200x76)
 ============================================================ */
-function KnifeHandleHorizontal({ open }) {
+function KnifeHandleHorizontal({ open, themeId }) {
   return (
     <svg width="200" height="76" viewBox="0 0 200 76"
       className={`sk-handle-svg${open ? ' open' : ''}`}
@@ -190,11 +278,17 @@ function KnifeHandleHorizontal({ open }) {
         <rect key={i} x={x} y="8" width="2" height="60" fill="rgba(0,0,0,0.06)"/>
       ))}
 
-      {/* ── White cross (centered horizontally) ── */}
-      {/* vertical */}
-      <rect x="95" y="24" width="10" height="28" fill="white"/>
-      {/* horizontal */}
-      <rect x="86" y="33" width="28" height="10" fill="white"/>
+      {/* ── Center logo (college theme) or default Swiss cross ── */}
+      {(() => {
+        const Logo = HANDLE_LOGOS[themeId]
+        if (Logo) return <Logo />
+        return (
+          <>
+            <rect x="95" y="24" width="10" height="28" fill="white"/>
+            <rect x="86" y="33" width="28" height="10" fill="white"/>
+          </>
+        )
+      })()}
 
       {/* ── Rivets (Left, Center, Right) ── */}
       {/* Left rivet (Pivot for left blades) */}
@@ -248,6 +342,7 @@ const ALL_TOOLS = [...LEFT_TOOLS, ...RIGHT_TOOLS]
    WIDGET
 ============================================================ */
 export default function SwissKnifeWidget() {
+  const { themeId } = useTheme()
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(null)
   const [isShaking, setIsShaking] = useState(false)
@@ -469,7 +564,7 @@ export default function SwissKnifeWidget() {
           onClick={goHome}
           title={isHome ? "Swiss Knife" : "Back to Home"}
         >
-          <KnifeHandleHorizontal open={open} />
+          <KnifeHandleHorizontal open={open} themeId={themeId} />
         </button>
 
       </div>

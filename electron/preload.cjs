@@ -65,6 +65,7 @@ contextBridge.exposeInMainWorld('swissKnife', {
     analyze:    (filePath) => ipcRenderer.invoke('inspector:analyze', filePath),
     selectFile: ()         => ipcRenderer.invoke('inspector:selectFile'),
   },
+  getVersion: () => ipcRenderer.invoke('app:version'),
   updater: {
     check:    ()   => ipcRenderer.invoke('updater:check'),
     download: ()   => ipcRenderer.invoke('updater:download'),

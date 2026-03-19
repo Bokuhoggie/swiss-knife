@@ -137,6 +137,9 @@ app.whenReady().then(() => {
     await shell.showItemInFolder(filePath);
   });
 
+  // App version
+  ipcMain.handle('app:version', () => app.getVersion());
+
   setupAutoUpdater(win);
 
   app.on('activate', () => {

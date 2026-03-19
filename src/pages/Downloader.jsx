@@ -24,6 +24,7 @@ export default function Downloader() {
   const [embedSubs, setEmbedSubs]           = useState(false)
   const [subsLang, setSubsLang]             = useState('en')
   const [rateLimit, setRateLimit]           = useState('')
+  const [cookiesFromBrowser, setCookiesFromBrowser] = useState('')
 
   useEffect(() => {
     api.settings?.read().then(s => {
@@ -57,6 +58,7 @@ export default function Downloader() {
       subsLang,
       rateLimit: rateLimit || undefined,
       outputName: outputName.trim() || undefined,
+      cookiesFromBrowser: cookiesFromBrowser || undefined,
     })
     api.downloader.offProgress()
     setResult(res); setProgress(null); setLoading(false)
@@ -66,7 +68,7 @@ export default function Downloader() {
     <div className="page-anim" style={{ '--accent': '#00FF87' }}>
       <div className="page-header">
         <h1 className="page-title"><IconDownload size={20} /> Video Downloader</h1>
-        <p className="page-subtitle">Download videos from YouTube, Twitter, Reddit, and hundreds of other sites via yt-dlp</p>
+        <p className="page-subtitle">Download videos from YouTube, X/Twitter, Reddit, TikTok, Instagram, and 1000+ sites via yt-dlp</p>
       </div>
 
       <div className="card">
@@ -109,7 +111,7 @@ export default function Downloader() {
             </div>
 
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 20 }}>
-              Supports: YouTube · Twitter/X · Reddit · Vimeo · TikTok · Instagram · and 1000+ more
+              Supports: YouTube · X/Twitter · Reddit · TikTok · Instagram · Vimeo · and 1000+ more
             </div>
 
             <div className="section-divider" />
@@ -217,6 +219,23 @@ export default function Downloader() {
                 <input type="checkbox" checked={embedSubs} onChange={e => setEmbedSubs(e.target.checked)} />
                 <span className="pixel-toggle-track" />
               </label>
+            </div>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label">
+                Browser Cookies
+                <span style={{ opacity: 0.5, fontWeight: 400, marginLeft: 8 }}>for X/Twitter, Instagram, or other login-required sites</span>
+              </label>
+              <select className="form-select" value={cookiesFromBrowser} onChange={e => setCookiesFromBrowser(e.target.value)}>
+                <option value="">None (public content only)</option>
+                <option value="chrome">Chrome</option>
+                <option value="firefox">Firefox</option>
+                <option value="edge">Edge</option>
+                <option value="brave">Brave</option>
+                <option value="safari">Safari</option>
+              </select>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                yt-dlp will borrow your session cookies from the selected browser to download login-gated content.
+              </div>
             </div>
             <div className="adv-note">
               Advanced settings apply to the current session only.<br/>

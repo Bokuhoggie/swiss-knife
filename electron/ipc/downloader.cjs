@@ -40,7 +40,7 @@ function setupDownloaderHandlers(ipcMain, dialog) {
     return canceled ? null : filePaths[0];
   });
 
-  ipcMain.handle('downloader:download', async (event, { url, outputDir, formatType, quality, audioFormat, embedThumbnail, embedSubs, subsLang, rateLimit, outputName }) => {
+  ipcMain.handle('downloader:download', async (event, { url, outputDir, formatType, quality, audioFormat, embedThumbnail, embedSubs, subsLang, rateLimit, outputName, cookiesFromBrowser }) => {
     return new Promise(async (resolve) => {
       // Use path.join so separators are correct on Windows
       const outFolder = outputDir || path.join(os.homedir(), 'Downloads');
@@ -65,9 +65,14 @@ function setupDownloaderHandlers(ipcMain, dialog) {
         '--ffmpeg-location', ffmpegPath,
       ];
 
+      // Twitter/X serves pre-muxed streams — don't try to merge separate video+audio
+      const isTwitter = /twitter\.com|x\.com|t\.co/i.test(url);
+
       if (formatType === 'audio') {
-        // audioFormat comes from Advanced settings (defaults to mp3)
         args.push('-x', '--audio-format', audioFormat || 'mp3');
+      } else if (isTwitter) {
+        // Pick best already-muxed mp4, fall back to anything available
+        args.push('-f', 'best[ext=mp4]/best', '--merge-output-format', 'mp4');
       } else {
         const heightMap = { '1080p': 1080, '720p': 720, '480p': 480, '360p': 360 };
         const maxH = heightMap[quality] || 1080;
@@ -83,6 +88,8 @@ function setupDownloaderHandlers(ipcMain, dialog) {
       if (embedThumbnail) args.push('--embed-thumbnail');
       if (embedSubs) args.push('--embed-subs', '--sub-lang', subsLang || 'en');
       if (rateLimit && rateLimit.trim()) args.push('--limit-rate', rateLimit.trim());
+      // Cookie auth — lets yt-dlp pull session cookies for private/rate-limited content
+      if (cookiesFromBrowser) args.push('--cookies-from-browser', cookiesFromBrowser);
 
       const dlp = ytDlp.exec(args);
 
