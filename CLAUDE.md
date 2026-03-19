@@ -1,7 +1,7 @@
-# CLAUDE.md - Swiss Knife Project Guide
+# CLAUDE.md - Hoggie's Tool Kit (HTK) Project Guide
 
 ## Project Overview
-Swiss Knife is an all-in-one Electron + React (Vite) desktop utility app featuring:
+Hoggie's Tool Kit (HTK) is an all-in-one Electron + React (Vite) desktop utility app featuring:
 - Image conversion + background removal (sharp)
 - Video conversion (ffmpeg-static + fluent-ffmpeg)
 - Audio conversion (ffmpeg-static + fluent-ffmpeg)

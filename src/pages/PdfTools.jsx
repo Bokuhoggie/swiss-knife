@@ -283,7 +283,7 @@ export default function PdfTools() {
     }
   }, [state?.file])
   return (
-    <div className="page-anim" style={{ '--accent': '#FFD60A' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title"><IconPDF size={20} /> PDF Tools</h1>
         <p className="page-subtitle">Merge, split, and compress PDF documents locally</p>

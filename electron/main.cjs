@@ -1,7 +1,18 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } = require('electron');
 const path = require('path');
+
+// ─── Single instance lock (fixes "needs two tries" NSIS installer bug) ───────
+// When the NSIS installer's "Launch app" checkbox is used, it starts the app
+// with elevated privileges. If the user also double-clicks the shortcut, two
+// instances fight. The single-instance lock ensures only one runs at a time
+// and focuses the existing window if a second instance tries to start.
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
 const { setupImageHandlers } = require('./ipc/image.cjs');
 const { setupVideoHandlers } = require('./ipc/video.cjs');
 const { setupAudioHandlers } = require('./ipc/audio.cjs');
@@ -13,6 +24,17 @@ const { setupInspectorHandlers } = require('./ipc/inspector.cjs');
 const { autoUpdater } = require('electron-updater');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+const { pathToFileURL } = require('url');
+
+// Register sk-media as privileged to allow local image loading and bypass CSP
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'sk-media', privileges: {
+    secure: true,
+    supportFetchAPI: true,
+    bypassCSP: true,
+    stream: true
+  } }
+]);
 
 function createWindow() {
   const isWin = process.platform === 'win32';
@@ -119,7 +141,26 @@ function setupAutoUpdater(win) {
   }, 8000);
 }
 
+// When a second instance tries to start, focus the existing window instead
+app.on('second-instance', () => {
+  const wins = BrowserWindow.getAllWindows();
+  if (wins.length) {
+    const win = wins[0];
+    if (win.isMinimized()) win.restore();
+    win.focus();
+  }
+});
+
 app.whenReady().then(() => {
+  // Register custom protocol to load local files (bypasses "Not allowed to load local resource")
+  protocol.handle('sk-media', (request) => {
+    let rawPath = decodeURIComponent(request.url.replace('sk-media://', ''))
+    // Strip query params (e.g. ?t=timestamp for cache busting)
+    const qIdx = rawPath.indexOf('?')
+    if (qIdx !== -1) rawPath = rawPath.substring(0, qIdx)
+    return net.fetch(pathToFileURL(rawPath).href)
+  })
+
   const win = createWindow();
 
   // Register all IPC handlers

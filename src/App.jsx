@@ -201,7 +201,7 @@ export default function App() {
         onDrop={(e) => { setDragOverApp(false); handleGlobalDrop(e) }}
       >
         <div className="title-bar">
-          <span className="title-bar-label">Swiss Knife</span>
+          <span className="title-bar-label">Hoggie's Tool Kit</span>
         </div>
 
         <main className="main-content">

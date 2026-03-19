@@ -65,7 +65,7 @@ export default function Downloader() {
   }
 
   return (
-    <div className="page-anim" style={{ '--accent': '#00FF87' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title"><IconDownload size={20} /> Video Downloader</h1>
         <p className="page-subtitle">Download videos from YouTube, X/Twitter, Reddit, TikTok, Instagram, and 1000+ sites via yt-dlp</p>

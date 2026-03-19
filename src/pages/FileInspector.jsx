@@ -8,10 +8,10 @@ const api = window.swissKnife
 
 // Category → accent colour
 const CATEGORY_ACCENT = {
-  image: '#00D4FF',
-  audio: '#FF3CAC',
-  video: '#C77DFF',
-  pdf:   '#FFD60A',
+  image: 'var(--accent-3)',
+  audio: 'var(--accent-2)',
+  video: 'var(--accent)',
+  pdf:   'var(--accent-4)',
 }
 
 // Human-readable category badge
@@ -99,7 +99,7 @@ export default function FileInspector() {
     navigate(info.suggestedTool, { state: { file: info.path } })
   }
 
-  const accent = (info?.category && CATEGORY_ACCENT[info.category]) || '#FF9F1C'
+  const accent = (info?.category && CATEGORY_ACCENT[info.category]) || 'var(--accent)'
 
   return (
     <div className="page-anim" style={{ '--accent': accent }}>

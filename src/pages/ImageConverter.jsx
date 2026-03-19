@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconImage } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
+import logoGoff from '../assets/logos/logo-Goff.png'
+import { useTheme } from '../contexts/ThemeContext'
 
 const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
 const api = window.swissKnife
@@ -27,7 +29,12 @@ export default function ImageConverter() {
   const [bgStatus, setBgStatus]       = useState('idle')
   const [bgDragOver, setBgDragOver]   = useState(false)
   const [bgTolerance, setBgTolerance] = useState(30)
+  const [bgMode, setBgMode]           = useState('corner') // 'corner' | 'color' | 'custom'
+  const [bgCustomColor, setBgCustomColor] = useState('#ffffff')
   const [bgOutputName, setBgOutputName] = useState('')
+  const [bgPreviewBefore, setBgPreviewBefore] = useState(null)
+  const [bgPreviewAfter, setBgPreviewAfter]   = useState(null)
+  const [bgEyedropper, setBgEyedropper]       = useState(false)
 
   // Advanced
   const [width, setWidth]               = useState('')
@@ -58,6 +65,12 @@ export default function ImageConverter() {
     const objects = unique.map(p => ({ path: p, selected: true }))
     setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
+    // If we're adding files and the Remove BG tab has no file, pick the first one as a convenience
+    if (unique.length > 0 && !bgFile) {
+      setBgFile(unique[0])
+      setBgStatus('idle')
+      setBgResult('')
+    }
   }
 
   const handleDrop = (e) => {
@@ -84,20 +97,58 @@ export default function ImageConverter() {
   // ── Remove BG handlers ──
   const handleBgBrowse = async () => {
     const selected = await api.image.selectFiles()
-    if (selected.length) { setBgFile(selected[0]); setBgResult(''); setBgStatus('idle') }
+    if (selected.length) { setBgFile(selected[0]); setBgResult(''); setBgStatus('idle'); setBgPreviewAfter(null) }
   }
   const handleBgDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setBgDragOver(false)
     const paths = getDropPaths(e)
-    if (paths.length) { setBgFile(paths[0]); setBgResult(''); setBgStatus('idle') }
+    if (paths.length) { setBgFile(paths[0]); setBgResult(''); setBgStatus('idle'); setBgPreviewAfter(null) }
+  }
+  // Auto-load preview when file is selected
+  useEffect(() => {
+    if (!bgFile) { setBgPreviewBefore(null); return }
+    api.image.readAsDataURL(bgFile).then(url => setBgPreviewBefore(url)).catch(() => {})
+  }, [bgFile])
+
+  // Eyedropper: sample color from click on preview image
+  const handleEyedrop = (e) => {
+    if (!bgEyedropper) return
+    const img = e.target
+    const rect = img.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth; canvas.height = img.naturalHeight
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(img, 0, 0)
+    const scaleX = img.naturalWidth / rect.width
+    const scaleY = img.naturalHeight / rect.height
+    const px = ctx.getImageData(Math.round(x * scaleX), Math.round(y * scaleY), 1, 1).data
+    const hex = '#' + [px[0], px[1], px[2]].map(v => v.toString(16).padStart(2, '0')).join('')
+    setBgCustomColor(hex)
+    setBgMode('custom')
+    setBgEyedropper(false)
   }
   const removeBg = async () => {
     if (!bgFile) return
     if (!outputDir) { alert('Please select an output folder first.'); return }
-    setLoading(true); setBgStatus('Processing…'); setBgResult('')
+    setLoading(true); setBgStatus('Processing…'); setBgResult(''); setBgPreviewBefore(null); setBgPreviewAfter(null)
     try {
-      const res = await api.image.removeBg({ filePath: bgFile, outputDir, outputName: bgOutputName.trim() || undefined, tolerance: bgTolerance })
-      if (res.success) { setBgResult(res.outputPath); setBgStatus('done') }
+      const res = await api.image.removeBg({
+        filePath: bgFile, outputDir, outputName: bgOutputName.trim() || undefined,
+        tolerance: bgTolerance, mode: bgMode,
+        customColor: bgMode === 'custom' ? bgCustomColor : undefined
+      })
+      if (res.success) {
+        setBgResult(res.outputPath); setBgStatus('done')
+        // Load previews as data URLs (bypasses sk-media:// protocol issues)
+        const [before, after] = await Promise.all([
+          api.image.readAsDataURL(bgFile),
+          api.image.readAsDataURL(res.outputPath)
+        ])
+        setBgPreviewBefore(before)
+        setBgPreviewAfter(after)
+      }
       else setBgStatus('Error: ' + res.error)
     } catch (err) {
       setBgStatus('Error: ' + (err?.message || 'Failed'))
@@ -125,11 +176,29 @@ export default function ImageConverter() {
     }
   }
 
+  const { themeId } = useTheme()
+  const isLions = themeId === 'lions'
+
   return (
-    <div className="page-anim" style={{ '--accent': '#00D4FF' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title">
-          <IconImage size={24} style={{ marginRight: 16, verticalAlign: 'middle' }} />
+          {isLions ? (
+            <img 
+              src={logoGoff} 
+              alt="Goff" 
+              style={{
+                width: 28,
+                height: 28,
+                marginRight: 16,
+                verticalAlign: 'middle',
+                objectFit: 'contain',
+                clipPath: 'inset(0 11px)'
+              }} 
+            />
+          ) : (
+            <IconImage size={24} style={{ marginRight: 16, verticalAlign: 'middle' }} />
+          )}
           Image Converter
         </h1>
         <p className="page-subtitle">Convert images between JPG, PNG, WebP, AVIF, GIF, BMP, and TIFF</p>
@@ -264,7 +333,7 @@ export default function ImageConverter() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <IconImage size={20} />
                   <span style={{ color: 'var(--accent)', fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem' }}>{basename(bgFile)}</span>
-                  <button className="btn btn-ghost btn-sm" onClick={e => { e.stopPropagation(); setBgFile(''); setBgResult(''); setBgStatus('idle') }}>✕</button>
+                  <button className="btn btn-ghost btn-sm" onClick={e => { e.stopPropagation(); setBgFile(''); setBgResult(''); setBgStatus('idle'); setBgPreviewBefore(null); setBgPreviewAfter(null); setBgEyedropper(false) }}>✕</button>
                 </div>
               ) : (
                 <>
@@ -275,14 +344,46 @@ export default function ImageConverter() {
               )}
             </div>
 
-            {/* Tolerance */}
-            <div className="form-group" style={{ marginTop: 12 }}>
-              <label className="form-label">
-                Tolerance: {bgTolerance}&nbsp;
-                <span style={{ opacity: 0.45, fontWeight: 400, fontSize: '0.8em' }}>lower = precise edges · higher = aggressive removal</span>
-              </label>
-              <div className="range-wrap">
-                <input type="range" min={5} max={75} value={bgTolerance} onChange={e => setBgTolerance(+e.target.value)} />
+            {/* Detection mode + Tolerance */}
+            <div style={{ display: 'flex', gap: 16, marginTop: 12, alignItems: 'flex-end' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">Detection</label>
+                <select className="form-select" value={bgMode} onChange={e => setBgMode(e.target.value)} style={{ minWidth: 140 }}>
+                  <option value="corner">Auto (corners)</option>
+                  <option value="color">Most common color</option>
+                  <option value="custom">Pick color</option>
+                </select>
+              </div>
+              {bgMode === 'custom' && (
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Color</label>
+                  <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                    <input type="color" value={bgCustomColor} onChange={e => setBgCustomColor(e.target.value)} style={{ width: 40, height: 32, padding: 0, border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', background: 'none' }} />
+                    <span style={{ fontSize: '0.65rem', fontFamily: 'monospace', opacity: 0.6 }}>{bgCustomColor}</span>
+                  </div>
+                </div>
+              )}
+              {bgPreviewBefore && (
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">&nbsp;</label>
+                  <button
+                    className={`btn btn-sm ${bgEyedropper ? 'btn-primary' : 'btn-ghost'}`}
+                    onClick={() => setBgEyedropper(!bgEyedropper)}
+                    title="Pick color from image"
+                    style={{ fontSize: '0.6rem', padding: '6px 10px' }}
+                  >
+                    💧 Eyedropper
+                  </button>
+                </div>
+              )}
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <label className="form-label">
+                  Tolerance: {bgTolerance}&nbsp;
+                  <span style={{ opacity: 0.45, fontWeight: 400, fontSize: '0.8em' }}>lower = precise · higher = aggressive</span>
+                </label>
+                <div className="range-wrap">
+                  <input type="range" min={5} max={75} value={bgTolerance} onChange={e => setBgTolerance(+e.target.value)} />
+                </div>
               </div>
             </div>
 
@@ -305,27 +406,39 @@ export default function ImageConverter() {
               </div>
             )}
 
-            {/* Before / After preview */}
-            {bgResult && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
+            {/* Image preview */}
+            {bgPreviewBefore && (
+              <div style={{ display: 'grid', gridTemplateColumns: bgPreviewAfter ? '1fr 1fr' : '1fr', gap: 12, marginTop: 12 }}>
                 <div>
-                  <div className="form-label" style={{ marginBottom: 6 }}>Before</div>
+                  <div className="form-label" style={{ marginBottom: 6 }}>
+                    {bgPreviewAfter ? 'Before' : 'Preview'}
+                    {bgEyedropper && <span style={{ marginLeft: 8, color: 'var(--accent)', fontSize: '0.7em' }}>click image to pick color</span>}
+                  </div>
                   <img
-                    src={'file://' + bgFile.replace(/\\/g, '/')}
-                    style={{ width: '100%', maxHeight: 200, objectFit: 'contain', border: '1px solid var(--border)', background: 'var(--bg-elevated)' }}
+                    src={bgPreviewBefore}
+                    crossOrigin="anonymous"
+                    onClick={handleEyedrop}
+                    style={{
+                      width: '100%', maxHeight: 250, objectFit: 'contain',
+                      border: `1px solid ${bgEyedropper ? 'var(--accent)' : 'var(--border)'}`,
+                      background: 'var(--bg-elevated)',
+                      cursor: bgEyedropper ? 'crosshair' : 'default'
+                    }}
                     alt="original"
                   />
                 </div>
-                <div>
-                  <div className="form-label" style={{ marginBottom: 6 }}>After</div>
-                  <div style={{ background: 'repeating-conic-gradient(#666 0% 25%, #444 0% 50%) 0 0 / 14px 14px', border: '1px solid var(--border)' }}>
-                    <img
-                      src={'file://' + bgResult.replace(/\\/g, '/') + '?t=' + Date.now()}
-                      style={{ width: '100%', maxHeight: 200, objectFit: 'contain', display: 'block' }}
-                      alt="result"
-                    />
+                {bgPreviewAfter && (
+                  <div>
+                    <div className="form-label" style={{ marginBottom: 6 }}>After</div>
+                    <div style={{ background: 'repeating-conic-gradient(#666 0% 25%, #444 0% 50%) 0 0 / 14px 14px', border: '1px solid var(--border)' }}>
+                      <img
+                        src={bgPreviewAfter}
+                        style={{ width: '100%', maxHeight: 250, objectFit: 'contain', display: 'block' }}
+                        alt="result"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </>
