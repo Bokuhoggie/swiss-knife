@@ -9,6 +9,7 @@ import logoNMU from '../assets/logos/logo-nmu.png'
 import logoWSU from '../assets/logos/logo-wsu.png'
 import logoLions from '../assets/logos/logo-lions.png'
 import logoGoff from '../assets/logos/logo-Goff.png'
+import logoHTK from '/icon.png'
 
 /* ============================================================
    PIXEL ART TOOL BLADE SHAPES  (42 × 190 viewBox)
@@ -100,15 +101,15 @@ function NailFileSVG({ color, flip }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
-        <rect x="10" y="8"  width="22" height="140" fill={color} opacity="0.9"/>
-        <rect x="8"  y="6"  width="26" height="6"   fill="#9090A8"/>
-        {[16,23,30,37,44,51,58,65,72,79,86,93,100,107,114,121,128,135].map((y,i) => (
+        <rect x="10" y="20"  width="22" height="120" fill={color} opacity="0.9"/>
+        <rect x="8"  y="18"  width="26" height="6"   fill="#9090A8"/>
+        {[28,35,42,49,56,63,70,77,84,91,98,105,112,119,126,133].map((y,i) => (
           <rect key={i} x="10" y={y} width="22" height="4" fill="rgba(0,0,0,0.14)"/>
         ))}
-        <rect x="13" y="146" width="16" height="8"  fill={color} opacity="0.9"/>
-        <rect x="16" y="152" width="10" height="6"  fill={color} opacity="0.8"/>
-        <rect x="18" y="156" width="6"  height="4"  fill={color} opacity="0.6"/>
-        <rect x="11" y="8"   width="3"  height="140" fill="rgba(255,255,255,0.14)"/>
+        <rect x="13" y="138" width="16" height="8"  fill={color} opacity="0.9"/>
+        <rect x="16" y="144" width="10" height="6"  fill={color} opacity="0.8"/>
+        <rect x="18" y="148" width="6"  height="4"  fill={color} opacity="0.6"/>
+        <rect x="11" y="20"  width="3"  height="120" fill="rgba(255,255,255,0.14)"/>
       </g>
     </svg>
   )
@@ -147,30 +148,65 @@ function CorkscrewSVG({ color, flip }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
-        <rect x="16" y="8"  width="10" height="6"  fill={color} opacity="0.9"/>
-        <rect x="24" y="8"  width="6"  height="10" fill={color} opacity="0.9"/>
-        <rect x="16" y="14" width="6"  height="6"  fill={color} opacity="0.9"/>
-        <rect x="18" y="20" width="6"  height="12" fill={color} opacity="0.9"/>
-        <rect x="20" y="32" width="14" height="5" fill={color} opacity="0.9"/>
-        <rect x="30" y="37" width="5"  height="5" fill={color} opacity="0.9"/>
-        <rect x="30" y="42" width="5"  height="5" fill={color} opacity="0.9"/>
-        <rect x="20" y="47" width="14" height="5" fill={color} opacity="0.9"/>
-        <rect x="8"  y="52" width="5"  height="5" fill={color} opacity="0.9"/>
-        <rect x="8"  y="57" width="5"  height="5" fill={color} opacity="0.9"/>
-        <rect x="8"  y="62" width="16" height="5" fill={color} opacity="0.9"/>
-        <rect x="20" y="67" width="14" height="5" fill={color} opacity="0.9"/>
-        <rect x="30" y="72" width="5"  height="5" fill={color} opacity="0.9"/>
-        <rect x="30" y="77" width="5"  height="5" fill={color} opacity="0.9"/>
-        <rect x="16" y="82" width="14" height="5" fill={color} opacity="0.9"/>
-        <rect x="8"  y="87" width="5"  height="5" fill={color} opacity="0.9"/>
-        <rect x="8"  y="92" width="5"  height="5" fill={color} opacity="0.9"/>
-        <rect x="8"  y="97" width="16" height="5" fill={color} opacity="0.9"/>
-        <rect x="20" y="102" width="12" height="5" fill={color} opacity="0.9"/>
-        <rect x="18" y="106" width="8" height="5"  fill={color} opacity="0.85"/>
-        <rect x="19" y="111" width="6" height="5"  fill={color} opacity="0.7"/>
-        <rect x="20" y="116" width="4" height="4"  fill={color} opacity="0.5"/>
-        <rect x="21" y="120" width="2" height="3"  fill={color} opacity="0.35"/>
-        <rect x="13" y="4" width="18" height="6" fill="#9090A8"/>
+        {/* Handle cap — polished metal */}
+        <rect x="12" y="2" width="20" height="8" rx="1" fill="#A0A0B8"/>
+        <rect x="14" y="3" width="16" height="6" fill="#C0C0D0"/>
+        <rect x="14" y="3" width="16" height="3" fill="rgba(255,255,255,0.2)"/>
+
+        {/* T-handle crossbar */}
+        <rect x="8"  y="10" width="10" height="5" fill={color} opacity="0.95"/>
+        <rect x="26" y="10" width="10" height="5" fill={color} opacity="0.95"/>
+        <rect x="8"  y="10" width="10" height="2" fill="rgba(255,255,255,0.15)"/>
+        <rect x="26" y="10" width="10" height="2" fill="rgba(255,255,255,0.15)"/>
+        {/* T-handle knobs */}
+        <rect x="6"  y="8"  width="5" height="9" fill={color} opacity="0.85"/>
+        <rect x="6"  y="8"  width="2" height="9" fill="rgba(255,255,255,0.12)"/>
+        <rect x="33" y="8"  width="5" height="9" fill={color} opacity="0.85"/>
+        <rect x="33" y="8"  width="2" height="9" fill="rgba(255,255,255,0.12)"/>
+
+        {/* Central shaft */}
+        <rect x="18" y="15" width="6" height="10" fill={color} opacity="0.95"/>
+        <rect x="19" y="15" width="2" height="10" fill="rgba(255,255,255,0.18)"/>
+
+        {/* Spiral — right curve 1 */}
+        <rect x="24" y="25" width="10" height="4" fill={color} opacity="0.92"/>
+        <rect x="30" y="29" width="4"  height="8" fill={color} opacity="0.88"/>
+        <rect x="30" y="29" width="2"  height="8" fill="rgba(255,255,255,0.1)"/>
+
+        {/* Spiral — left curve 1 */}
+        <rect x="18" y="37" width="16" height="4" fill={color} opacity="0.9"/>
+        <rect x="8"  y="41" width="14" height="4" fill={color} opacity="0.88"/>
+        <rect x="8"  y="45" width="4"  height="8" fill={color} opacity="0.85"/>
+        <rect x="8"  y="45" width="2"  height="8" fill="rgba(255,255,255,0.1)"/>
+
+        {/* Spiral — right curve 2 */}
+        <rect x="8"  y="53" width="14" height="4" fill={color} opacity="0.85"/>
+        <rect x="22" y="53" width="12" height="4" fill={color} opacity="0.82"/>
+        <rect x="30" y="57" width="4"  height="8" fill={color} opacity="0.8"/>
+        <rect x="30" y="57" width="2"  height="8" fill="rgba(255,255,255,0.1)"/>
+
+        {/* Spiral — left curve 2 */}
+        <rect x="18" y="65" width="16" height="4" fill={color} opacity="0.78"/>
+        <rect x="8"  y="69" width="14" height="4" fill={color} opacity="0.75"/>
+        <rect x="8"  y="73" width="4"  height="8" fill={color} opacity="0.7"/>
+        <rect x="8"  y="73" width="2"  height="8" fill="rgba(255,255,255,0.1)"/>
+
+        {/* Spiral — right curve 3 */}
+        <rect x="8"  y="81" width="14" height="4" fill={color} opacity="0.68"/>
+        <rect x="22" y="81" width="10" height="4" fill={color} opacity="0.65"/>
+        <rect x="28" y="85" width="4"  height="6" fill={color} opacity="0.6"/>
+
+        {/* Spiral — left curve 3 (taper) */}
+        <rect x="18" y="91" width="14" height="4" fill={color} opacity="0.55"/>
+        <rect x="12" y="95" width="10" height="4" fill={color} opacity="0.48"/>
+        <rect x="12" y="99" width="4"  height="6" fill={color} opacity="0.4"/>
+
+        {/* Tip — connects from last left curve downward */}
+        <rect x="12" y="105" width="8" height="3" fill={color} opacity="0.35"/>
+        <rect x="16" y="108" width="6" height="3" fill={color} opacity="0.3"/>
+        <rect x="18" y="111" width="4" height="3" fill={color} opacity="0.22"/>
+        <rect x="19" y="114" width="3" height="3" fill={color} opacity="0.15"/>
+        <rect x="20" y="117" width="2" height="2" fill={color} opacity="0.1"/>
       </g>
     </svg>
   )
@@ -182,11 +218,11 @@ function CorkscrewSVG({ color, flip }) {
 ============================================================ */
 function LogoMichiganM() {
   return (
-    <foreignObject x="76" y="14" width="48" height="48">
+    <foreignObject x="66" y="4" width="68" height="68">
       <div style={{
         width: '100%',
         height: '100%',
-        backgroundColor: 'white',
+        backgroundColor: '#FFCB05',
         WebkitMaskImage: `url(${logoUoM})`,
         WebkitMaskSize: 'contain',
         WebkitMaskRepeat: 'no-repeat',
@@ -198,11 +234,11 @@ function LogoMichiganM() {
 
 function LogoSpartanS() {
   return (
-    <foreignObject x="76" y="14" width="48" height="48">
+    <foreignObject x="70" y="8" width="60" height="60">
       <div style={{
         width: '100%',
         height: '100%',
-        backgroundColor: 'white',
+        backgroundColor: '#FFFFFF',
         WebkitMaskImage: `url(${logoMSU})`,
         WebkitMaskSize: 'contain',
         WebkitMaskRepeat: 'no-repeat',
@@ -214,11 +250,11 @@ function LogoSpartanS() {
 
 function LogoNMU() {
   return (
-    <foreignObject x="72" y="10" width="56" height="56">
+    <foreignObject x="64" y="2" width="72" height="72">
       <div style={{
         width: '100%',
         height: '100%',
-        backgroundColor: 'white',
+        backgroundColor: '#F2A900',
         WebkitMaskImage: `url(${logoNMU})`,
         WebkitMaskSize: 'contain',
         WebkitMaskRepeat: 'no-repeat',
@@ -230,11 +266,11 @@ function LogoNMU() {
 
 function LogoWayneW() {
   return (
-    <foreignObject x="80" y="18" width="40" height="40">
+    <foreignObject x="68" y="6" width="64" height="64">
       <div style={{
         width: '100%',
         height: '100%',
-        backgroundColor: 'white',
+        backgroundColor: '#CFAA5E',
         WebkitMaskImage: `url(${logoWSU})`,
         WebkitMaskSize: 'contain',
         WebkitMaskRepeat: 'no-repeat',
@@ -246,7 +282,7 @@ function LogoWayneW() {
 
 function LogoLions() {
   return (
-    <foreignObject x="72" y="10" width="56" height="56">
+    <foreignObject x="62" y="0" width="76" height="76">
       <div style={{
         width: '100%',
         height: '100%',
@@ -326,12 +362,42 @@ function KnifeHandleHorizontal({ open, themeId }) {
         const Logo = HANDLE_LOGOS[themeId]
         if (Logo) return <Logo />
         return (
-          <>
-            {/* H logo */}
-            <rect x="86" y="22" width="8" height="32" fill="#B0B0C4"/>
-            <rect x="106" y="22" width="8" height="32" fill="#B0B0C4"/>
-            <rect x="86" y="34" width="28" height="8" fill="#B0B0C4"/>
-          </>
+          <foreignObject x="72" y="10" width="56" height="56">
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              height: '100%',
+              filter: 'drop-shadow(0 0 3px var(--accent))',
+            }}>
+              {/* Actual icon with wave detail */}
+              <img
+                src={logoHTK}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+              {/* Color overlay — recolors waves to theme accent, masked to icon shape */}
+              <div style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'var(--accent)',
+                mixBlendMode: 'color',
+                WebkitMaskImage: `url(${logoHTK})`,
+                WebkitMaskSize: 'contain',
+                WebkitMaskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskImage: `url(${logoHTK})`,
+                maskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                maskPosition: 'center',
+                pointerEvents: 'none',
+              }} />
+            </div>
+          </foreignObject>
         )
       })()}
 
@@ -409,6 +475,16 @@ export default function SwissKnifeWidget() {
     }
   }, [])
 
+  // Theme change: trigger a brief wave animation
+  const prevThemeRef = useState({ id: themeId })[0]
+  useEffect(() => {
+    if (prevThemeRef.id !== themeId) {
+      prevThemeRef.id = themeId
+      setIsWaving(true)
+      setTimeout(() => setIsWaving(false), 500)
+    }
+  }, [themeId])
+
   // Wave: choppy slicing pattern — interleaves left/right blades, each pops open briefly
   useEffect(() => {
     if (!isWaving) { setWaveBlades(new Set()); return }
@@ -428,6 +504,7 @@ export default function SwissKnifeWidget() {
 
   // Dynamic layout based on route
   const isHome = location.pathname === '/'
+  const isSettings = location.pathname === '/settings'
 
   // Close the knife when navigating to an inner page
   const prevIsHome = useState(isHome)[0]
@@ -479,7 +556,7 @@ export default function SwissKnifeWidget() {
 
   return (
     <div
-      className={`sk-widget-container ${isHome ? 'sk-size-large' : 'sk-size-small'}`}
+      className={`sk-widget-container ${isHome ? 'sk-size-large' : isSettings ? 'sk-size-medium' : 'sk-size-small'}`}
       onDragOver={(e) => { e.preventDefault(); setDragOverWidget(true) }}
       onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOverWidget(false) }}
       onDrop={handleWidgetDrop}
@@ -577,22 +654,23 @@ export default function SwissKnifeWidget() {
                     : `drop-shadow(0 0 4px rgba(0,0,0,0.8))`
                 }}
               >
-                <ToolBlade 
-                  color={tool.color} 
-                  flip={tool.flip} 
-                  isCollege={!!LOGO_IMAGES[themeId]} 
+                <ToolBlade
+                  color={((themeId === 'msu' || themeId === 'uofm') && tool.route === '/image') ? '#A0A0A8' : (themeId === 'msu' && tool.route === '/audio') ? '#18BB6A' : tool.color}
+                  flip={tool.flip}
+                  isCollege={!!LOGO_IMAGES[themeId]}
                 />
                 {LOGO_IMAGES[themeId] && tool.Blade === BladeSVG && (
                   <div style={{
                     position: 'absolute',
-                    top: (themeId === 'nmu' || themeId === 'msu' || themeId === 'uofm') ? '140px' : 
-                         (themeId === 'waynestate' || themeId === 'lions') ? ((themeId === 'lions' && tool.route === '/image') ? '155px' : '85px') : '110px',
+                    top: (themeId === 'nmu' || themeId === 'msu' || themeId === 'uofm') ? '140px' :
+                         themeId === 'waynestate' ? '150px' :
+                         themeId === 'lions' ? ((tool.route === '/image') ? '155px' : '85px') : '110px',
                     left: '50%',
                     transform: `translateX(-50%) ${tool.flipY ? 'scaleY(-1)' : ''}`,
                     width: (themeId === 'nmu' || themeId === 'lions') ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
                     height: (themeId === 'nmu' || themeId === 'lions') ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
                     pointerEvents: 'none',
-                    backgroundColor: (themeId === 'lions' && tool.route === '/image') ? 'transparent' : (themeId === 'lions' ? 'var(--accent-2)' : tool.color),
+                    backgroundColor: (themeId === 'lions' && tool.route === '/image') ? 'transparent' : (themeId === 'lions' ? 'var(--accent-2)' : (themeId === 'uofm' && tool.route === '/image') ? '#D4B205' : (themeId === 'msu' && tool.route === '/image') ? '#128A50' : tool.color),
                     WebkitMaskImage: (themeId === 'lions' && tool.route === '/image') ? 'none' : `url(${LOGO_IMAGES[themeId]})`,
                     WebkitMaskSize: 'contain',
                     WebkitMaskRepeat: 'no-repeat',

@@ -108,7 +108,7 @@ export default function AudioConverter() {
   }
 
   return (
-    <div className="page-anim" style={{ '--accent': '#FF3CAC' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title"><IconAudio size={20} /> Audio Converter</h1>
         <p className="page-subtitle">Convert audio between MP3, WAV, FLAC, AAC, OGG, M4A, and Opus</p>

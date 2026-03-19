@@ -128,7 +128,7 @@ export default function VideoConverter() {
   }
 
   return (
-    <div className="page-anim" style={{ '--accent': '#C77DFF' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title"><IconVideo size={20} /> Video Converter</h1>
         <p className="page-subtitle">Convert videos between MP4, MKV, AVI, MOV, and WebM</p>

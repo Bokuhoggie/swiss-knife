@@ -2,6 +2,17 @@
 
 const { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } = require('electron');
 const path = require('path');
+
+// ─── Single instance lock (fixes "needs two tries" NSIS installer bug) ───────
+// When the NSIS installer's "Launch app" checkbox is used, it starts the app
+// with elevated privileges. If the user also double-clicks the shortcut, two
+// instances fight. The single-instance lock ensures only one runs at a time
+// and focuses the existing window if a second instance tries to start.
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
 const { setupImageHandlers } = require('./ipc/image.cjs');
 const { setupVideoHandlers } = require('./ipc/video.cjs');
 const { setupAudioHandlers } = require('./ipc/audio.cjs');
@@ -129,6 +140,16 @@ function setupAutoUpdater(win) {
     autoUpdater.checkForUpdates().catch(() => {});
   }, 8000);
 }
+
+// When a second instance tries to start, focus the existing window instead
+app.on('second-instance', () => {
+  const wins = BrowserWindow.getAllWindows();
+  if (wins.length) {
+    const win = wins[0];
+    if (win.isMinimized()) win.restore();
+    win.focus();
+  }
+});
 
 app.whenReady().then(() => {
   // Register custom protocol to load local files (bypasses "Not allowed to load local resource")

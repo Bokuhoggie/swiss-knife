@@ -180,7 +180,7 @@ export default function ImageConverter() {
   const isLions = themeId === 'lions'
 
   return (
-    <div className="page-anim" style={{ '--accent': isLions ? '#0076B6' : '#00D4FF' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title">
           {isLions ? (
