@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { getFirstDropPath } from '../dropHelpers.js'
 import { setPendingFile } from '../globalDrop.js'
+import { useTheme } from '../contexts/ThemeContext.jsx'
 
 /* ============================================================
    PIXEL ART TOOL BLADE SHAPES  (42 × 190 viewBox)
@@ -165,9 +166,123 @@ function CorkscrewSVG({ color, flip }) {
 }
 
 /* ============================================================
+   COLLEGE / THEME LOGOS  (replaces the swiss cross on handle)
+   All render in the cross area: x:86-114, y:24-52
+============================================================ */
+function LogoMichiganM() {
+  const c = "white"
+  return (
+    <g>
+      {/* Left outer leg – full height */}
+      <rect x="86" y="24" width="5" height="28" fill={c}/>
+      {/* Right outer leg – full height */}
+      <rect x="109" y="24" width="5" height="28" fill={c}/>
+      {/* Top cap */}
+      <rect x="86" y="24" width="28" height="3" fill={c}/>
+      {/* Left inner V – 3 stepped rects going down-right */}
+      <rect x="91" y="27" width="4" height="4" fill={c}/>
+      <rect x="93" y="31" width="4" height="5" fill={c}/>
+      <rect x="95" y="36" width="4" height="4" fill={c}/>
+      {/* V center */}
+      <rect x="97" y="40" width="6" height="4" fill={c}/>
+      {/* Right inner V – mirror */}
+      <rect x="105" y="27" width="4" height="4" fill={c}/>
+      <rect x="103" y="31" width="4" height="5" fill={c}/>
+      <rect x="101" y="36" width="4" height="4" fill={c}/>
+    </g>
+  )
+}
+
+function LogoSpartanHelmet() {
+  // Spartan helmet facing right: plume sweeps upper-left, dome, cheek/visor, chin
+  const c = "white"
+  return (
+    <g>
+      {/* Plume – angled strips going from upper-right down to dome */}
+      <rect x="93" y="24" width="21" height="3" fill={c}/>
+      <rect x="90" y="27" width="19" height="3" fill={c}/>
+      <rect x="87" y="30" width="16" height="3" fill={c}/>
+      {/* Helmet dome */}
+      <rect x="86" y="33" width="24" height="5" fill={c}/>
+      {/* Brow ridge across full face */}
+      <rect x="86" y="38" width="24" height="3" fill={c}/>
+      {/* Left cheek plate (solid – the face plate side) */}
+      <rect x="86" y="41" width="7" height="9" fill={c}/>
+      {/* Visor right brow – partial top of visor */}
+      <rect x="99" y="41" width="11" height="3" fill={c}/>
+      {/* Chin guard */}
+      <rect x="86" y="47" width="22" height="5" fill={c}/>
+      {/* Nose guard (narrow strip in visor) */}
+      <rect x="93" y="41" width="3" height="9" fill={c}/>
+    </g>
+  )
+}
+
+function LogoNMU() {
+  // Bold block N
+  const c = "white"
+  return (
+    <g>
+      {/* Left leg */}
+      <rect x="86" y="24" width="6" height="28" fill={c}/>
+      {/* Right leg */}
+      <rect x="108" y="24" width="6" height="28" fill={c}/>
+      {/* Top cap connecting to diagonal */}
+      <rect x="92" y="24" width="5" height="5" fill={c}/>
+      {/* Diagonal steps (left-to-right, top-to-bottom) */}
+      <rect x="94" y="29" width="5" height="5" fill={c}/>
+      <rect x="97" y="34" width="5" height="5" fill={c}/>
+      <rect x="100" y="39" width="5" height="5" fill={c}/>
+      <rect x="103" y="44" width="5" height="5" fill={c}/>
+    </g>
+  )
+}
+
+function LogoWayneW() {
+  // Block W – two outer pillars + two inner pillars + V notch center
+  const c = "white"
+  return (
+    <g>
+      {/* Top bar */}
+      <rect x="86" y="24" width="28" height="3" fill={c}/>
+      {/* Far-left outer leg */}
+      <rect x="86" y="24" width="5" height="22" fill={c}/>
+      {/* Far-right outer leg */}
+      <rect x="109" y="24" width="5" height="22" fill={c}/>
+      {/* Left-center inner leg */}
+      <rect x="95" y="24" width="4" height="18" fill={c}/>
+      {/* Right-center inner leg */}
+      <rect x="101" y="24" width="4" height="18" fill={c}/>
+      {/* Bottom outer-left connection */}
+      <rect x="86" y="46" width="9" height="4" fill={c}/>
+      <rect x="88" y="50" width="5" height="2" fill={c}/>
+      {/* Bottom outer-right connection */}
+      <rect x="105" y="46" width="9" height="4" fill={c}/>
+      <rect x="107" y="50" width="5" height="2" fill={c}/>
+      {/* Left inner angled to center */}
+      <rect x="93" y="42" width="4" height="4" fill={c}/>
+      <rect x="91" y="46" width="4" height="4" fill={c}/>
+      {/* Right inner angled to center */}
+      <rect x="103" y="42" width="4" height="4" fill={c}/>
+      <rect x="105" y="46" width="4" height="4" fill={c}/>
+      {/* Center V bottom peak */}
+      <rect x="97" y="46" width="6" height="4" fill={c}/>
+      <rect x="99" y="50" width="2" height="2" fill={c}/>
+    </g>
+  )
+}
+
+const HANDLE_LOGOS = {
+  uofm:      LogoMichiganM,
+  msu:       LogoSpartanHelmet,
+  nmu:       LogoNMU,
+  waynestate: LogoWayneW,
+}
+
+/* ============================================================
    HORIZONTAL SWISS ARMY KNIFE HANDLE (200x76)
 ============================================================ */
-function KnifeHandleHorizontal({ open }) {
+function KnifeHandleHorizontal({ open, themeId }) {
   return (
     <svg width="200" height="76" viewBox="0 0 200 76"
       className={`sk-handle-svg${open ? ' open' : ''}`}
@@ -190,11 +305,17 @@ function KnifeHandleHorizontal({ open }) {
         <rect key={i} x={x} y="8" width="2" height="60" fill="rgba(0,0,0,0.06)"/>
       ))}
 
-      {/* ── White cross (centered horizontally) ── */}
-      {/* vertical */}
-      <rect x="95" y="24" width="10" height="28" fill="white"/>
-      {/* horizontal */}
-      <rect x="86" y="33" width="28" height="10" fill="white"/>
+      {/* ── Center logo (college theme) or default Swiss cross ── */}
+      {(() => {
+        const Logo = HANDLE_LOGOS[themeId]
+        if (Logo) return <Logo />
+        return (
+          <>
+            <rect x="95" y="24" width="10" height="28" fill="white"/>
+            <rect x="86" y="33" width="28" height="10" fill="white"/>
+          </>
+        )
+      })()}
 
       {/* ── Rivets (Left, Center, Right) ── */}
       {/* Left rivet (Pivot for left blades) */}
@@ -248,6 +369,7 @@ const ALL_TOOLS = [...LEFT_TOOLS, ...RIGHT_TOOLS]
    WIDGET
 ============================================================ */
 export default function SwissKnifeWidget() {
+  const { themeId } = useTheme()
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(null)
   const [isShaking, setIsShaking] = useState(false)
@@ -469,7 +591,7 @@ export default function SwissKnifeWidget() {
           onClick={goHome}
           title={isHome ? "Swiss Knife" : "Back to Home"}
         >
-          <KnifeHandleHorizontal open={open} />
+          <KnifeHandleHorizontal open={open} themeId={themeId} />
         </button>
 
       </div>

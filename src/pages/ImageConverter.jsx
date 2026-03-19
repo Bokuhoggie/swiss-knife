@@ -21,6 +21,14 @@ export default function ImageConverter() {
   useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [isFlashing, setIsFlashing]     = useState(false)
 
+  // ── Remove BG tab state ──
+  const [bgFile, setBgFile]           = useState('')
+  const [bgResult, setBgResult]       = useState('')
+  const [bgStatus, setBgStatus]       = useState('idle')
+  const [bgDragOver, setBgDragOver]   = useState(false)
+  const [bgTolerance, setBgTolerance] = useState(30)
+  const [bgOutputName, setBgOutputName] = useState('')
+
   // Advanced
   const [width, setWidth]               = useState('')
   const [height, setHeight]             = useState('')
@@ -73,6 +81,29 @@ export default function ImageConverter() {
     if (dir) setOutputDir(dir)
   }
 
+  // ── Remove BG handlers ──
+  const handleBgBrowse = async () => {
+    const selected = await api.image.selectFiles()
+    if (selected.length) { setBgFile(selected[0]); setBgResult(''); setBgStatus('idle') }
+  }
+  const handleBgDrop = (e) => {
+    e.preventDefault(); e.stopPropagation(); setBgDragOver(false)
+    const paths = getDropPaths(e)
+    if (paths.length) { setBgFile(paths[0]); setBgResult(''); setBgStatus('idle') }
+  }
+  const removeBg = async () => {
+    if (!bgFile) return
+    if (!outputDir) { alert('Please select an output folder first.'); return }
+    setLoading(true); setBgStatus('Processing…'); setBgResult('')
+    try {
+      const res = await api.image.removeBg({ filePath: bgFile, outputDir, outputName: bgOutputName.trim() || undefined, tolerance: bgTolerance })
+      if (res.success) { setBgResult(res.outputPath); setBgStatus('done') }
+      else setBgStatus('Error: ' + res.error)
+    } catch (err) {
+      setBgStatus('Error: ' + (err?.message || 'Failed'))
+    } finally { setLoading(false) }
+  }
+
   const convert = async () => {
     const selectedFiles = files.filter(f => f.selected).map(f => f.path)
     if (!selectedFiles.length) return
@@ -106,8 +137,9 @@ export default function ImageConverter() {
 
       <div className="card">
         <div className="tabs">
-          <button className={`tab-btn${tab === 'convert'  ? ' active' : ''}`} onClick={() => setTab('convert')}>Convert</button>
-          <button className={`tab-btn${tab === 'advanced' ? ' active' : ''}`} onClick={() => setTab('advanced')}>⚙ Advanced</button>
+          <button className={`tab-btn${tab === 'convert'   ? ' active' : ''}`} onClick={() => setTab('convert')}>Convert</button>
+          <button className={`tab-btn${tab === 'removebg'  ? ' active' : ''}`} onClick={() => setTab('removebg')}>✂ Remove BG</button>
+          <button className={`tab-btn${tab === 'advanced'  ? ' active' : ''}`} onClick={() => setTab('advanced')}>⚙ Advanced</button>
         </div>
 
         {tab === 'convert' && (
@@ -214,6 +246,97 @@ export default function ImageConverter() {
                 }
               </button>
             </div>
+          </>
+        )}
+
+        {tab === 'removebg' && (
+          <>
+            {/* Drop zone */}
+            <div
+              className={`dropzone${bgDragOver ? ' drag-over' : ''}`}
+              onClick={() => !bgFile && handleBgBrowse()}
+              onDragOver={e => { e.preventDefault(); setBgDragOver(true) }}
+              onDragLeave={e => { if (e.currentTarget === e.target) setBgDragOver(false) }}
+              onDrop={handleBgDrop}
+              style={{ cursor: bgFile ? 'default' : 'pointer' }}
+            >
+              {bgFile ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <IconImage size={20} />
+                  <span style={{ color: 'var(--accent)', fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem' }}>{basename(bgFile)}</span>
+                  <button className="btn btn-ghost btn-sm" onClick={e => { e.stopPropagation(); setBgFile(''); setBgResult(''); setBgStatus('idle') }}>✕</button>
+                </div>
+              ) : (
+                <>
+                  <div className="dropzone-icon">✂</div>
+                  <div className="dropzone-title">Drop an image here or click to browse</div>
+                  <div className="dropzone-sub">Detects & removes the background — saves as transparent PNG</div>
+                </>
+              )}
+            </div>
+
+            {/* Tolerance */}
+            <div className="form-group" style={{ marginTop: 12 }}>
+              <label className="form-label">
+                Tolerance: {bgTolerance}&nbsp;
+                <span style={{ opacity: 0.45, fontWeight: 400, fontSize: '0.8em' }}>lower = precise edges · higher = aggressive removal</span>
+              </label>
+              <div className="range-wrap">
+                <input type="range" min={5} max={75} value={bgTolerance} onChange={e => setBgTolerance(+e.target.value)} />
+              </div>
+            </div>
+
+            {/* Controls row */}
+            <div className="controls-row">
+              <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
+              <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                <input className="form-input" placeholder="Output filename (optional, default: original_nobg.png)" value={bgOutputName} onChange={e => setBgOutputName(e.target.value)} disabled={loading} />
+              </div>
+              <button className="btn btn-primary" onClick={removeBg} disabled={!bgFile || loading}>
+                {loading ? <span className="spinner">⟳</span> : '✂'}
+                {loading ? ' Removing…' : ' Remove Background'}
+              </button>
+            </div>
+
+            {/* Status banner */}
+            {bgStatus !== 'idle' && (
+              <div className={`result-banner ${bgStatus === 'done' ? 'success' : bgStatus.startsWith('Error') ? 'error' : ''}`}>
+                {bgStatus === 'done' ? '✓ Background removed — transparent PNG saved' : bgStatus}
+              </div>
+            )}
+
+            {/* Before / After preview */}
+            {bgResult && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
+                <div>
+                  <div className="form-label" style={{ marginBottom: 6 }}>Before</div>
+                  <img
+                    src={'file:///' + bgFile.replace(/\\/g, '/')}
+                    style={{ width: '100%', maxHeight: 200, objectFit: 'contain', border: '1px solid var(--border)', background: 'var(--bg-elevated)' }}
+                    alt="original"
+                  />
+                </div>
+                <div>
+                  <div className="form-label" style={{ marginBottom: 6 }}>After</div>
+                  <div style={{ background: 'repeating-conic-gradient(#666 0% 25%, #444 0% 50%) 0 0 / 14px 14px', border: '1px solid var(--border)' }}>
+                    <img
+                      src={'file:///' + bgResult.replace(/\\/g, '/') + '?t=' + Date.now()}
+                      style={{ width: '100%', maxHeight: 200, objectFit: 'contain', display: 'block' }}
+                      alt="result"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Output folder row */}
+            {outputDir && (
+              <div className="output-path-row">
+                <span className="output-folder-icon">📂</span>
+                <span className="output-path-text">{outputDir}</span>
+                <button className="btn btn-ghost btn-sm" onClick={() => api.shell.openPath(outputDir)}>Open ↗</button>
+              </div>
+            )}
           </>
         )}
 
