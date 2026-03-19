@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
-import { ThemeProvider } from './contexts/ThemeContext.jsx'
+import { ThemeProvider, useTheme } from './contexts/ThemeContext.jsx'
 import SwissKnifeWidget from './components/SwissKnifeWidget.jsx'
 import Home from './pages/Home.jsx'
 import ImageConverter from './pages/ImageConverter.jsx'
@@ -133,6 +133,59 @@ function handleGlobalDrop(e) {
   }
 }
 
+// ─── TRON Light Cycles — bright racing trails on gridlines ───────────────────
+function TronCycles() {
+  const { themeId } = useTheme()
+  const location = useLocation()
+  const isTron = themeId === 'tron' || themeId === 'clu'
+  const isHome = location.pathname === '/'
+
+  const cycles = useMemo(() => {
+    if (!isTron) return []
+    const isClu = themeId === 'clu'
+    // TRON = all blue, CLU = all orange
+    const color = isClu ? 'orange' : ''
+    const arr = []
+    // Horizontal cycles
+    for (let i = 0; i < 5; i++) {
+      const row = 60 + (i * 120) + Math.floor(Math.random() * 60)
+      arr.push({
+        type: i % 2 === 0 ? 'cycle-h' : 'cycle-h2',
+        color,
+        style: {
+          top: `${row}px`,
+          animationDuration: `${6 + Math.random() * 8}s`,
+          animationDelay: `${-Math.random() * 12}s`,
+        },
+      })
+    }
+    // Vertical cycles
+    for (let i = 0; i < 4; i++) {
+      const col = 100 + (i * 250) + Math.floor(Math.random() * 100)
+      arr.push({
+        type: i % 2 === 0 ? 'cycle-v' : 'cycle-v2',
+        color,
+        style: {
+          left: `${col}px`,
+          animationDuration: `${8 + Math.random() * 10}s`,
+          animationDelay: `${-Math.random() * 15}s`,
+        },
+      })
+    }
+    return arr
+  }, [isTron, themeId])
+
+  if (!isTron) return null
+
+  return (
+    <div className={`tron-cycles ${isHome ? '' : 'tron-cycles-dim'}`}>
+      {cycles.map((c, i) => (
+        <div key={i} className={`cycle ${c.type} ${c.color}`} style={c.style} />
+      ))}
+    </div>
+  )
+}
+
 export default function App() {
   const [dragOverApp, setDragOverApp] = useState(false)
 
@@ -169,6 +222,7 @@ export default function App() {
         <SwissKnifeWidget />
         <SettingsCog />
         <UpdateNotifier />
+        <TronCycles />
       </div>
     </HashRouter>
     </ThemeProvider>

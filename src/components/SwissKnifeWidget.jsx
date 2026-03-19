@@ -246,9 +246,9 @@ function LogoWayneW() {
 }
 
 const HANDLE_LOGOS = {
-  uofm:      LogoMichiganM,
-  msu:       LogoSpartanS,
-  nmu:       LogoNMU,
+  uofm:       LogoMichiganM,
+  msu:        LogoSpartanS,
+  nmu:        LogoNMU,
   waynestate: LogoWayneW,
 }
 
@@ -256,30 +256,49 @@ const HANDLE_LOGOS = {
    HORIZONTAL SWISS ARMY KNIFE HANDLE (200x76)
 ============================================================ */
 function KnifeHandleHorizontal({ open, themeId }) {
+  const isTron = themeId === 'tron' || themeId === 'clu'
   return (
     <svg width="200" height="76" viewBox="0 0 200 76"
       className={`sk-handle-svg${open ? ' open' : ''}`}
       style={{ display: 'block' }}
     >
       {/* ── Left bolster ── */}
-      <rect x="10" y="12" width="12" height="52" fill="#808090"/>
-      <rect x="11" y="14" width="10" height="48" fill="#B0B0C4"/>
-      <rect x="20" y="12" width="3"  height="52" fill="#505060"/>
+      <rect x="10" y="12" width="12" height="52" fill={isTron ? '#181818' : '#808090'}/>
+      <rect x="11" y="14" width="10" height="48" fill={isTron ? '#222222' : '#B0B0C4'}/>
+      <rect x="20" y="12" width="3"  height="52" fill={isTron ? '#0A0A0A' : '#505060'}/>
 
-      {/* ── Main body — theme accent color ── */}
-      <rect x="22" y="8" width="156" height="60" fill="var(--accent-dim)"/>
+      {/* ── Main body ── */}
+      <rect x="22" y="8" width="156" height="60" fill={isTron ? '#0C0C0C' : 'var(--accent-dim)'}/>
       {/* Top highlight */}
-      <rect x="22" y="8" width="156" height="7" fill="rgba(255,255,255,0.15)"/>
+      <rect x="22" y="8" width="156" height="7" fill={isTron ? 'rgba(77,232,255,0.06)' : 'rgba(255,255,255,0.15)'}/>
       {/* Bottom shadow edge */}
-      <rect x="22" y="61" width="156" height="7" fill="rgba(0,0,0,0.18)"/>
+      <rect x="22" y="61" width="156" height="7" fill={isTron ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.18)'}/>
 
-      {/* ── Side scale texture (pixel bumps) vertically ── */}
-      {[40,60,80,100,120,140,160].map((x, i) => (
-        <rect key={i} x={x} y="8" width="2" height="60" fill="rgba(0,0,0,0.06)"/>
-      ))}
+      {isTron ? (
+        <>
+          {/* TRON: very faint circuit traces — dark handle with subtle hints */}
+          <rect x="22" y="8" width="156" height="1" fill="var(--accent)" opacity="0.15"/>
+          <rect x="22" y="67" width="156" height="1" fill="var(--accent)" opacity="0.1"/>
+          <rect x="30" y="28" width="40" height="1" fill="var(--accent)" opacity="0.05"/>
+          <rect x="130" y="28" width="40" height="1" fill="var(--accent)" opacity="0.05"/>
+          <rect x="30" y="48" width="40" height="1" fill="var(--accent)" opacity="0.05"/>
+          <rect x="130" y="48" width="40" height="1" fill="var(--accent)" opacity="0.05"/>
+          {[50, 75, 125, 150].map((x, i) => (
+            <rect key={i} x={x} y="14" width="1" height="48" fill="var(--accent)" opacity="0.03"/>
+          ))}
+        </>
+      ) : (
+        <>
+          {/* ── Side scale texture (pixel bumps) vertically ── */}
+          {[40,60,80,100,120,140,160].map((x, i) => (
+            <rect key={i} x={x} y="8" width="2" height="60" fill="rgba(0,0,0,0.06)"/>
+          ))}
+        </>
+      )}
 
       {/* ── Center logo (college theme) or default Swiss cross ── */}
       {(() => {
+        if (isTron) return null // TRON: no center logo, lean on accents
         const Logo = HANDLE_LOGOS[themeId]
         if (Logo) return <Logo />
         return (
@@ -290,25 +309,22 @@ function KnifeHandleHorizontal({ open, themeId }) {
         )
       })()}
 
-      {/* ── Rivets (Left, Center, Right) ── */}
-      {/* Left rivet (Pivot for left blades) */}
-      <rect x="36" y="34" width="8" height="8" fill="#707080"/>
-      <rect x="37" y="35" width="4" height="4" fill="#A0A0B8"/>
+      {/* ── Rivets ── */}
+      <rect x="36" y="34" width="8" height="8" fill={isTron ? '#181818' : '#707080'}/>
+      <rect x="37" y="35" width="4" height="4" fill={isTron ? '#222222' : '#A0A0B8'}/>
 
-
-      {/* Right rivet (Pivot for right blades) */}
-      <rect x="156" y="34" width="8" height="8" fill="#707080"/>
-      <rect x="157" y="35" width="4" height="4" fill="#A0A0B8"/>
+      <rect x="156" y="34" width="8" height="8" fill={isTron ? '#181818' : '#707080'}/>
+      <rect x="157" y="35" width="4" height="4" fill={isTron ? '#222222' : '#A0A0B8'}/>
 
       {/* ── Right bolster ── */}
-      <rect x="175" y="12" width="3"  height="52" fill="#505060"/>
-      <rect x="178" y="12" width="12" height="52" fill="#808090"/>
-      <rect x="179" y="14" width="10" height="48" fill="#B0B0C4"/>
+      <rect x="175" y="12" width="3"  height="52" fill={isTron ? '#0A0A0A' : '#505060'}/>
+      <rect x="178" y="12" width="12" height="52" fill={isTron ? '#181818' : '#808090'}/>
+      <rect x="179" y="14" width="10" height="48" fill={isTron ? '#222222' : '#B0B0C4'}/>
 
       {/* ── Lanyard loop (far right) ── */}
-      <rect x="188" y="28" width="10" height="20" fill="#808090"/>
-      <rect x="190" y="30" width="8"  height="16" fill="#606070"/>
-      <rect x="192" y="32" width="6"  height="12" fill="#2A2A32"/>
+      <rect x="188" y="28" width="10" height="20" fill={isTron ? '#181818' : '#808090'}/>
+      <rect x="190" y="30" width="8"  height="16" fill={isTron ? '#101010' : '#606070'}/>
+      <rect x="192" y="32" width="6"  height="12" fill={isTron ? '#050505' : '#2A2A32'}/>
 
       {/* ── "SK" micro-text ── */}
       <text x="130" y="44"

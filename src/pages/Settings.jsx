@@ -112,6 +112,34 @@ export default function Settings() {
     if (dir) update('general.defaultOutputDir', dir)
   }
 
+  const unlockSecret = () => {
+    const code = secretCode.trim().toLowerCase()
+    const nospace = code.replace(/\s+/g, '')
+    const map = {
+      'go green go white': ['msu'],
+      'hail to the victors': ['uofm'],
+      'go cats': ['nmu'],
+      'warrior strong': ['waynestate'],
+      'bio digital jazz, man': ['tron', 'clu'],
+    }
+    // Try exact match first, then spaceless match
+    let ids = map[code]
+    if (!ids) {
+      for (const [phrase, val] of Object.entries(map)) {
+        if (phrase.replace(/\s+/g, '') === nospace) { ids = val; break }
+      }
+    }
+    if (!ids) { setSecretCode(''); return }
+    const newIds = ids.filter(id => !unlockedThemes.includes(id))
+    if (newIds.length) {
+      const newU = [...unlockedThemes, ...newIds]
+      setUnlockedThemes(newU)
+      localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
+    }
+    setThemeId(ids[0])
+    setSecretCode('')
+  }
+
   return (
     <div className="page-anim" style={{ '--accent': '#AAAACC' }}>
       <div className="page-header">
@@ -396,55 +424,9 @@ export default function Settings() {
                  placeholder="Enter secret passphrase..." 
                  value={secretCode} 
                  onChange={e => setSecretCode(e.target.value)} 
-                 onKeyDown={e => {
-                   if (e.key === 'Enter') {
-                     const code = secretCode.trim().toLowerCase()
-                     const map = {
-                       'go green go white': 'msu',
-                       'hail to the victors': 'uofm',
-                       'go cats': 'nmu',
-                       'warrior strong': 'waynestate',
-                       'bio digital jazz, man': 'tron'
-                     }
-                     const id = map[code]
-                     if (id && !unlockedThemes.includes(id)) {
-                       const newU = [...unlockedThemes, id]
-                       setUnlockedThemes(newU)
-                       localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
-                       setThemeId(id)
-                       setSecretCode('')
-                     } else if (id) {
-                       setThemeId(id)
-                       setSecretCode('')
-                     } else {
-                       setSecretCode('')
-                     }
-                   }
-                 }}
+                 onKeyDown={e => { if (e.key === 'Enter') unlockSecret() }}
                />
-               <button className="btn btn-secondary" onClick={() => {
-                 const code = secretCode.trim().toLowerCase()
-                 const map = {
-                   'go green go white': 'msu',
-                   'hail to the victors': 'uofm',
-                   'go cats': 'nmu',
-                   'warrior strong': 'waynestate',
-                   'bio digital jazz, man': 'tron'
-                 }
-                 const id = map[code]
-                 if (id && !unlockedThemes.includes(id)) {
-                   const newU = [...unlockedThemes, id]
-                   setUnlockedThemes(newU)
-                   localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
-                   setThemeId(id)
-                   setSecretCode('')
-                 } else if (id) {
-                   setThemeId(id)
-                   setSecretCode('')
-                 } else {
-                   setSecretCode('')
-                 }
-               }}>Unlock</button>
+               <button className="btn btn-secondary" onClick={unlockSecret}>Unlock</button>
              </div>
           </div>
         </Section>
