@@ -352,12 +352,6 @@ function KnifeHandleHorizontal({ open, themeId }) {
       <rect x="189" y="30" width="8"  height="16" fill={isTron ? '#101010' : '#606070'}/>
       <rect x="191" y="32" width="6"  height="12" fill={isTron ? '#050505' : '#2A2A32'}/>
 
-      {/* ── "SK" micro-text ── */}
-      <text x="130" y="44"
-        textAnchor="middle" fontSize="6"
-        fontFamily="'Press Start 2P', monospace"
-        fill="rgba(255,255,255,0.4)"
-      >HTK</text>
     </svg>
   )
 }

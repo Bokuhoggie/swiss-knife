@@ -20,9 +20,10 @@ contextBridge.exposeInMainWorld('swissKnife', {
   },
 
   image: {
-    convert:   (opts) => ipcRenderer.invoke('image:convert', opts),
-    selectFiles: ()   => ipcRenderer.invoke('image:selectFiles'),
-    removeBg:  (opts) => ipcRenderer.invoke('image:removeBg', opts),
+    convert:       (opts) => ipcRenderer.invoke('image:convert', opts),
+    selectFiles:   ()     => ipcRenderer.invoke('image:selectFiles'),
+    removeBg:      (opts) => ipcRenderer.invoke('image:removeBg', opts),
+    readAsDataURL: (path) => ipcRenderer.invoke('image:readAsDataURL', path),
   },
   video: {
     convert: (opts) => ipcRenderer.invoke('video:convert', opts),

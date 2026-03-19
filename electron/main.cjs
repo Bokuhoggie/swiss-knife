@@ -17,10 +17,9 @@ const { pathToFileURL } = require('url');
 
 // Register sk-media as privileged to allow local image loading and bypass CSP
 protocol.registerSchemesAsPrivileged([
-  { scheme: 'sk-media', privileges: { 
-    secure: true, 
-    standard: true, 
-    supportFetchAPI: true, 
+  { scheme: 'sk-media', privileges: {
+    secure: true,
+    supportFetchAPI: true,
     bypassCSP: true,
     stream: true
   } }
@@ -134,13 +133,11 @@ function setupAutoUpdater(win) {
 app.whenReady().then(() => {
   // Register custom protocol to load local files (bypasses "Not allowed to load local resource")
   protocol.handle('sk-media', (request) => {
-    const u = new URL(request.url)
-    // On Windows, standard URL parsing treats the drive letter as hostname
-    // e.g. sk-media://C:/path → hostname='c', pathname='/path'
-    const filePath = u.hostname
-      ? u.hostname.toUpperCase() + ':' + decodeURIComponent(u.pathname)
-      : decodeURIComponent(u.pathname)
-    return net.fetch('file:///' + filePath)
+    let rawPath = decodeURIComponent(request.url.replace('sk-media://', ''))
+    // Strip query params (e.g. ?t=timestamp for cache busting)
+    const qIdx = rawPath.indexOf('?')
+    if (qIdx !== -1) rawPath = rawPath.substring(0, qIdx)
+    return net.fetch(pathToFileURL(rawPath).href)
   })
 
   const win = createWindow();

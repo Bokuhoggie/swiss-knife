@@ -9,9 +9,9 @@ export default function Home() {
           margin: 0,
           textShadow: '0 0 20px var(--accent)'
         }}>
-          SWISS
+          HOGGIE'S
           <br/>
-          KNIFE
+          TOOLKIT
         </h1>
       </div>
 
