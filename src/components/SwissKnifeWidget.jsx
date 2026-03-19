@@ -11,12 +11,23 @@ import logoLions from '../assets/logos/logo-lions.png'
 import logoGoff from '../assets/logos/logo-Goff.png'
 import logoHTK from '/icon.png'
 
+/* ---- colour helpers for base tinting ---- */
+function hexToRgb(hex) {
+  const h = hex.replace('#','')
+  return [parseInt(h.substring(0,2),16), parseInt(h.substring(2,4),16), parseInt(h.substring(4,6),16)]
+}
+function rgbToHex([r,g,b]) {
+  return '#' + [r,g,b].map(v => Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('')
+}
+function lighten(hex, amt) { return rgbToHex(hexToRgb(hex).map(c => c + (255 - c) * amt)) }
+function darken(hex, amt)  { return rgbToHex(hexToRgb(hex).map(c => c * (1 - amt))) }
+
 /* ============================================================
    PIXEL ART TOOL BLADE SHAPES  (42 × 190 viewBox)
    Pivot is at bottom-center (x: 21, y: 190).
 ============================================================ */
 
-function BladeSVG({ color, flip }) {
+function BladeSVG({ color, flip, baseColor }) {
   const tipY = 10
   const bladeH = 130
   return (
@@ -24,9 +35,9 @@ function BladeSVG({ color, flip }) {
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
         <rect x="16" y={tipY} width="10" height={bladeH} fill={color} opacity="0.95"/>
         <polygon points="16,140 26,140 21,175" fill={color} opacity="0.95"/>
-        
-        <rect x="13" y={tipY - 4}  width="16" height="8"  fill="#9090A8"/>
-        <rect x="14" y={tipY - 3}  width="14" height="6"  fill="#C0C0D0"/>
+
+        <rect x="13" y={tipY - 4}  width="16" height="8"  fill={baseColor || '#9090A8'}/>
+        <rect x="14" y={tipY - 3}  width="14" height="6"  fill={baseColor ? lighten(baseColor, 0.2) : '#C0C0D0'}/>
 
         {/* Accents */}
         {[20,34,48,62,76,90,104].map((y,i) => (
@@ -38,7 +49,7 @@ function BladeSVG({ color, flip }) {
   )
 }
 
-function ScissorsSVG({ color, flip }) {
+function ScissorsSVG({ color, flip, baseColor }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
@@ -58,7 +69,12 @@ function ScissorsSVG({ color, flip }) {
   )
 }
 
-function ScrewdriverSVG({ color, flip }) {
+function ScrewdriverSVG({ color, flip, baseColor }) {
+  const b1 = baseColor || '#9090A8'
+  const b2 = baseColor ? lighten(baseColor, 0.2) : '#B8B8CC'
+  const b3 = baseColor ? lighten(baseColor, 0.1) : '#A0A0B4'
+  const b4 = baseColor ? lighten(baseColor, 0.25) : '#C8C8DC'
+  const b5 = baseColor ? darken(baseColor, 0.1) : '#808090'
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
@@ -67,23 +83,23 @@ function ScrewdriverSVG({ color, flip }) {
           <rect key={i} x="11" y={y} width="20" height="4" fill="rgba(0,0,0,0.18)"/>
         ))}
         <rect x="12" y="8"  width="18" height="30" fill="none" stroke={color} strokeWidth="1" opacity="0.5"/>
-        <rect x="12" y="38" width="18" height="8" fill="#9090A8"/>
-        <rect x="13" y="39" width="16" height="6" fill="#B8B8CC"/>
-        <rect x="18" y="46" width="6"  height="112" fill="#A0A0B4"/>
-        <rect x="19" y="46" width="4"  height="112" fill="#C8C8DC"/>
-        <rect x="10" y="155" width="22" height="6"  fill="#808090"/>
-        <rect x="9"  y="158" width="24" height="4"  fill="#A0A0B4"/>
+        <rect x="12" y="38" width="18" height="8" fill={b1}/>
+        <rect x="13" y="39" width="16" height="6" fill={b2}/>
+        <rect x="18" y="46" width="6"  height="112" fill={b3}/>
+        <rect x="19" y="46" width="4"  height="112" fill={b4}/>
+        <rect x="10" y="155" width="22" height="6"  fill={b5}/>
+        <rect x="9"  y="158" width="24" height="4"  fill={b3}/>
       </g>
     </svg>
   )
 }
 
-function CanOpenerSVG({ color, flip }) {
+function CanOpenerSVG({ color, flip, baseColor }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
         <rect x="16" y="8"  width="10" height="100" fill={color} opacity="0.92"/>
-        <rect x="14" y="6"  width="14" height="6"  fill="#9090A8"/>
+        <rect x="14" y="6"  width="14" height="6"  fill={baseColor || '#9090A8'}/>
         <rect x="10" y="100" width="22" height="8"  fill={color} opacity="0.92"/>
         <rect x="10" y="108" width="10" height="16" fill={color} opacity="0.92"/>
         <polygon points="10,124 20,124 14,148" fill={color} opacity="0.9"/>
@@ -97,12 +113,12 @@ function CanOpenerSVG({ color, flip }) {
   )
 }
 
-function NailFileSVG({ color, flip }) {
+function NailFileSVG({ color, flip, baseColor }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
         <rect x="10" y="20"  width="22" height="120" fill={color} opacity="0.9"/>
-        <rect x="8"  y="18"  width="26" height="6"   fill="#9090A8"/>
+        <rect x="8"  y="18"  width="26" height="6"   fill={baseColor || '#9090A8'}/>
         {[28,35,42,49,56,63,70,77,84,91,98,105,112,119,126,133].map((y,i) => (
           <rect key={i} x="10" y={y} width="22" height="4" fill="rgba(0,0,0,0.14)"/>
         ))}
@@ -115,13 +131,13 @@ function NailFileSVG({ color, flip }) {
   )
 }
 
-function MagnifyGlassSVG({ color, flip }) {
+function MagnifyGlassSVG({ color, flip, baseColor }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
         {/* Mounting collar */}
-        <rect x="13" y="4" width="16" height="6" fill="#9090A8"/>
-        <rect x="14" y="5" width="14" height="4" fill="#C0C0D0"/>
+        <rect x="13" y="4" width="16" height="6" fill={baseColor || '#9090A8'}/>
+        <rect x="14" y="5" width="14" height="4" fill={baseColor ? lighten(baseColor, 0.2) : '#C0C0D0'}/>
         {/* Handle stick */}
         <rect x="18" y="10" width="6" height="110" fill={color} opacity="0.92"/>
         <rect x="20" y="10" width="3"  height="110" fill="rgba(255,255,255,0.18)"/>
@@ -144,13 +160,13 @@ function MagnifyGlassSVG({ color, flip }) {
   )
 }
 
-function CorkscrewSVG({ color, flip }) {
+function CorkscrewSVG({ color, flip, baseColor }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
         {/* Handle cap — polished metal */}
-        <rect x="12" y="2" width="20" height="8" rx="1" fill="#A0A0B8"/>
-        <rect x="14" y="3" width="16" height="6" fill="#C0C0D0"/>
+        <rect x="12" y="2" width="20" height="8" rx="1" fill={baseColor || '#A0A0B8'}/>
+        <rect x="14" y="3" width="16" height="6" fill={baseColor ? lighten(baseColor, 0.2) : '#C0C0D0'}/>
         <rect x="14" y="3" width="16" height="3" fill="rgba(255,255,255,0.2)"/>
 
         {/* T-handle crossbar */}
@@ -216,17 +232,25 @@ function CorkscrewSVG({ color, flip }) {
    COLLEGE / THEME LOGOS  (replaces the swiss cross on handle)
    All render in the cross area: x:86-114, y:24-52
 ============================================================ */
+/* ── College handle logos — centred in the 200×76 handle body ── */
+const logoStyle = (src, color) => ({
+  width: '100%', height: '100%',
+  backgroundColor: color,
+  WebkitMaskImage: `url(${src})`, WebkitMaskSize: 'contain',
+  WebkitMaskRepeat: 'no-repeat', WebkitMaskPosition: 'center',
+  maskImage: `url(${src})`, maskSize: 'contain',
+  maskRepeat: 'no-repeat', maskPosition: 'center',
+  imageRendering: 'auto',
+  filter: 'drop-shadow(0 0 0.5px rgba(0,0,0,0.15))',
+})
+
 function LogoMichiganM() {
   return (
-    <foreignObject x="66" y="4" width="68" height="68">
+    <foreignObject x="64" y="2" width="72" height="72">
       <div style={{
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#FFCB05',
-        WebkitMaskImage: `url(${logoUoM})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center'
+        ...logoStyle(logoUoM, '#FFCB05'),
+        clipPath: 'inset(0 0 3% 0)',
+        filter: 'drop-shadow(0 0 1px #00274C) drop-shadow(0 0 0.5px #00274C)',
       }} />
     </foreignObject>
   )
@@ -235,15 +259,7 @@ function LogoMichiganM() {
 function LogoSpartanS() {
   return (
     <foreignObject x="70" y="8" width="60" height="60">
-      <div style={{
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#FFFFFF',
-        WebkitMaskImage: `url(${logoMSU})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center'
-      }} />
+      <div style={logoStyle(logoMSU, '#FFFFFF')} />
     </foreignObject>
   )
 }
@@ -251,15 +267,7 @@ function LogoSpartanS() {
 function LogoNMU() {
   return (
     <foreignObject x="64" y="2" width="72" height="72">
-      <div style={{
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#F2A900',
-        WebkitMaskImage: `url(${logoNMU})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center'
-      }} />
+      <div style={logoStyle(logoNMU, '#F2A900')} />
     </foreignObject>
   )
 }
@@ -267,15 +275,7 @@ function LogoNMU() {
 function LogoWayneW() {
   return (
     <foreignObject x="68" y="6" width="64" height="64">
-      <div style={{
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#CFAA5E',
-        WebkitMaskImage: `url(${logoWSU})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center'
-      }} />
+      <div style={logoStyle(logoWSU, '#CFAA5E')} />
     </foreignObject>
   )
 }
@@ -283,15 +283,7 @@ function LogoWayneW() {
 function LogoLions() {
   return (
     <foreignObject x="62" y="0" width="76" height="76">
-      <div style={{
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'var(--accent-2)',
-        WebkitMaskImage: `url(${logoLions})`,
-        WebkitMaskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center'
-      }} />
+      <div style={logoStyle(logoLions, 'var(--accent-2)')} />
     </foreignObject>
   )
 }
@@ -317,15 +309,28 @@ const HANDLE_LOGOS = {
 ============================================================ */
 function KnifeHandleHorizontal({ open, themeId }) {
   const isTron = themeId === 'tron' || themeId === 'clu'
+  const isNmu = themeId === 'nmu'
+  const isWsu = themeId === 'waynestate'
+  const isUofm = themeId === 'uofm'
+  // Gold/yellow themed edges for NMU, WSU, UofM
+  const goldEdge = isNmu || isWsu || isUofm
+  const bolster    = isTron ? '#181818' : goldEdge ? (isUofm ? '#B09518' : isWsu ? '#A08848' : '#8A7028') : '#808090'
+  const bolsterLt  = isTron ? '#222222' : goldEdge ? (isUofm ? '#D0B020' : isWsu ? '#B89850' : '#A08830') : '#B0B0C4'
+  const bolsterDk  = isTron ? '#0A0A0A' : goldEdge ? (isUofm ? '#8A7510' : isWsu ? '#806830' : '#6A5520') : '#505060'
+  const rivetOuter = isTron ? '#181818' : goldEdge ? (isUofm ? '#A08818' : isWsu ? '#907840' : '#7A6425') : '#707080'
+  const rivetInner = isTron ? '#222222' : goldEdge ? (isUofm ? '#D0B020' : isWsu ? '#B89850' : '#A08830') : '#A0A0B8'
+  const lanyardOut = isTron ? '#181818' : goldEdge ? (isUofm ? '#B09518' : isWsu ? '#A08848' : '#8A7028') : '#808090'
+  const lanyardMid = isTron ? '#101010' : goldEdge ? (isUofm ? '#8A7510' : isWsu ? '#806830' : '#6A5520') : '#606070'
+  const lanyardIn  = isTron ? '#050505' : goldEdge ? (isUofm ? '#6A5808' : isWsu ? '#605020' : '#504018') : '#2A2A32'
   return (
     <svg width="200" height="76" viewBox="0 0 200 76"
       className={`sk-handle-svg${open ? ' open' : ''}`}
       style={{ display: 'block' }}
     >
       {/* ── Left bolster ── */}
-      <rect x="10" y="8" width="12" height="60" fill={isTron ? '#181818' : '#808090'}/>
-      <rect x="11" y="10" width="10" height="56" fill={isTron ? '#222222' : '#B0B0C4'}/>
-      <rect x="20" y="8" width="4"  height="60" fill={isTron ? '#0A0A0A' : '#505060'}/>
+      <rect x="10" y="8" width="12" height="60" fill={bolster}/>
+      <rect x="11" y="10" width="10" height="56" fill={bolsterLt}/>
+      <rect x="20" y="8" width="4"  height="60" fill={bolsterDk}/>
 
       {/* ── Main body ── */}
       <rect x="22" y="8" width="156" height="60" fill={isTron ? '#0C0C0C' : 'var(--accent-dim)'}/>
@@ -402,21 +407,21 @@ function KnifeHandleHorizontal({ open, themeId }) {
       })()}
 
       {/* ── Rivets ── */}
-      <rect x="36" y="34" width="8" height="8" fill={isTron ? '#181818' : '#707080'}/>
-      <rect x="37" y="35" width="4" height="4" fill={isTron ? '#222222' : '#A0A0B8'}/>
+      <rect x="36" y="34" width="8" height="8" fill={rivetOuter}/>
+      <rect x="37" y="35" width="4" height="4" fill={rivetInner}/>
 
-      <rect x="156" y="34" width="8" height="8" fill={isTron ? '#181818' : '#707080'}/>
-      <rect x="157" y="35" width="4" height="4" fill={isTron ? '#222222' : '#A0A0B8'}/>
+      <rect x="156" y="34" width="8" height="8" fill={rivetOuter}/>
+      <rect x="157" y="35" width="4" height="4" fill={rivetInner}/>
 
       {/* ── Right bolster ── */}
-      <rect x="174" y="8" width="4"  height="60" fill={isTron ? '#0A0A0A' : '#505060'}/>
-      <rect x="178" y="8" width="12" height="60" fill={isTron ? '#181818' : '#808090'}/>
-      <rect x="179" y="10" width="10" height="56" fill={isTron ? '#222222' : '#B0B0C4'}/>
+      <rect x="174" y="8" width="4"  height="60" fill={bolsterDk}/>
+      <rect x="178" y="8" width="12" height="60" fill={bolster}/>
+      <rect x="179" y="10" width="10" height="56" fill={bolsterLt}/>
 
       {/* ── Lanyard loop (far right) ── */}
-      <rect x="187" y="28" width="11" height="20" fill={isTron ? '#181818' : '#808090'}/>
-      <rect x="189" y="30" width="8"  height="16" fill={isTron ? '#101010' : '#606070'}/>
-      <rect x="191" y="32" width="6"  height="12" fill={isTron ? '#050505' : '#2A2A32'}/>
+      <rect x="187" y="28" width="11" height="20" fill={lanyardOut}/>
+      <rect x="189" y="30" width="8"  height="16" fill={lanyardMid}/>
+      <rect x="191" y="32" width="6"  height="12" fill={lanyardIn}/>
 
     </svg>
   )
@@ -655,22 +660,46 @@ export default function SwissKnifeWidget() {
                 }}
               >
                 <ToolBlade
-                  color={(themeId === 'msu') ? '#E0E0E8' : (themeId === 'uofm' && tool.route === '/image') ? '#A0A0A8' : tool.color}
+                  color={(() => {
+                    const r = tool.route
+                    if (themeId === 'msu') {
+                      // MSU: green tools, white image blade
+                      if (r === '/hash' || r === '/audio' || r === '/download' || r === '/pdf') return '#128A50'
+                      return '#E0E0E8'
+                    }
+                    // UofM: image blade yellow
+                    if (themeId === 'uofm' && r === '/image') return '#FFCB05'
+                    return tool.color
+                  })()}
                   flip={tool.flip}
                   isCollege={!!LOGO_IMAGES[themeId]}
+                  baseColor={(() => {
+                    const r = tool.route
+                    // Tron/CLU: dark screwdriver base
+                    if ((themeId === 'tron' || themeId === 'clu') && r === '/video') return '#1A1A22'
+                    // MSU: lighter green bases
+                    if (themeId === 'msu' && (r === '/audio' || r === '/video' || r === '/download' || r === '/pdf' || r === '/inspector')) return '#128A50'
+                    // UofM: blue screwdriver base
+                    if (themeId === 'uofm' && r === '/video') return '#0E3D6B'
+                    // WSU: green screwdriver base
+                    if (themeId === 'waynestate' && r === '/video') return '#0C5449'
+                    // NMU: green screwdriver base
+                    if (themeId === 'nmu' && r === '/video') return '#004D32'
+                    return null
+                  })()}
                 />
                 {LOGO_IMAGES[themeId] && tool.Blade === BladeSVG && (
                   <div style={{
                     position: 'absolute',
                     top: (themeId === 'nmu' || themeId === 'msu' || themeId === 'uofm') ? '140px' :
-                         themeId === 'waynestate' ? '150px' :
+                         themeId === 'waynestate' ? '147px' :
                          themeId === 'lions' ? ((tool.route === '/image') ? '155px' : '85px') : '110px',
-                    left: '50%',
+                    left: 'calc(50% + 0.35px)',
                     transform: `translateX(-50%) ${tool.flipY ? 'scaleY(-1)' : ''}`,
                     width: (themeId === 'nmu' || themeId === 'lions') ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
                     height: (themeId === 'nmu' || themeId === 'lions') ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
                     pointerEvents: 'none',
-                    backgroundColor: (themeId === 'lions' && tool.route === '/image') ? 'transparent' : (themeId === 'lions' ? 'var(--accent-2)' : (themeId === 'uofm' && tool.route === '/image') ? '#D4B205' : (themeId === 'msu' && tool.route === '/image') ? '#128A50' : tool.color),
+                    backgroundColor: (themeId === 'lions' && tool.route === '/image') ? 'transparent' : (themeId === 'lions' ? 'var(--accent-2)' : (themeId === 'uofm' && tool.route === '/image') ? '#FFCB05' : (themeId === 'msu' && tool.route === '/image') ? '#128A50' : (themeId === 'waynestate') ? '#B89540' : tool.color),
                     WebkitMaskImage: (themeId === 'lions' && tool.route === '/image') ? 'none' : `url(${LOGO_IMAGES[themeId]})`,
                     WebkitMaskSize: 'contain',
                     WebkitMaskRepeat: 'no-repeat',
@@ -682,7 +711,8 @@ export default function SwissKnifeWidget() {
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',
                     clipPath: (themeId === 'lions' && tool.route === '/image') ? 'inset(0 11px)' : 'none',
-                    filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.3))'
+                    imageRendering: 'auto',
+                    filter: 'drop-shadow(0 0 1.5px rgba(0,0,0,0.4))'
                   }} />
                 )}
               </div>
