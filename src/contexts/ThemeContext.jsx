@@ -4,13 +4,24 @@ const STORAGE_KEY = 'swiss-knife-theme'
 const FONT_KEY = 'swiss-knife-font'
 
 export const SIZES = {
-  s:  { id: 's',  name: 'Small',  scale: 0.82 },
-  m:  { id: 'm',  name: 'Medium', scale: 1.0  },
-  l:  { id: 'l',  name: 'Large',  scale: 1.22 },
-  xl: { id: 'xl', name: 'X-Large', scale: 1.48 },
+  s:   { id: 's',   name: 'Small',   scale: 0.82 },
+  m:   { id: 'm',   name: 'Medium',  scale: 1.0  },
+  l:   { id: 'l',   name: 'Large',   scale: 1.22 },
+  xl:  { id: 'xl',  name: 'X-Large', scale: 1.48 },
+  xxl: { id: 'xxl', name: '4K',      scale: 2.10 },
 }
 
 const SIZE_KEY = 'swiss-knife-size'
+
+// Auto-detect best default size for high-DPI/4K displays
+function detectDefaultSize() {
+  const saved = localStorage.getItem(SIZE_KEY)
+  if (saved) return saved
+  const dpr = window.devicePixelRatio || 1
+  if (dpr >= 2.5) return 'xl'    // 4K+ display
+  if (dpr >= 1.75) return 'l'    // QHD / high-DPI
+  return 'm'
+}
 
 export const FONTS = {
   pixel: {
@@ -205,9 +216,10 @@ export const THEMES = {
     },
   },
 
-  k4: {
-    id: 'k4',
-    name: '4K',
+  tron: {
+    id: 'tron',
+    name: 'TRON',
+    hidden: true,
     preview: ['#00D4FF', '#FFFFFF', '#0055FF', '#000000'],
     vars: {
       '--bg-base':        '#000000',
@@ -379,9 +391,7 @@ export function ThemeProvider({ children }) {
   const [fontId, setFontId] = useState(
     () => localStorage.getItem(FONT_KEY) || 'inter'
   )
-  const [sizeId, setSizeId] = useState(
-    () => localStorage.getItem(SIZE_KEY) || 'm'
-  )
+  const [sizeId, setSizeId] = useState(detectDefaultSize)
 
   useEffect(() => {
     const theme = THEMES[themeId] || THEMES.arcade

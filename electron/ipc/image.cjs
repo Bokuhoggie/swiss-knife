@@ -106,14 +106,19 @@ function setupImageHandlers(ipcMain, dialog) {
         stack.push(x, y)
       }
 
-      // Seed from all 4 edges
-      for (let x = 0; x < width;  x++) { tryAdd(x, 0); tryAdd(x, height - 1) }
-      for (let y = 0; y < height; y++) { tryAdd(0, y); tryAdd(width - 1, y)  }
+      // Seed from all 4 edges with multiple points
+      const step = Math.max(1, Math.floor(Math.min(width, height) / 20))
+      for (let x = 0; x < width;  x += step) { tryAdd(x, 0); tryAdd(x, height - 1) }
+      for (let y = 0; y < height; y += step) { tryAdd(0, y); tryAdd(width - 1, y)  }
+      // Ensure corners are always added
+      tryAdd(0, 0); tryAdd(width - 1, 0); tryAdd(0, height - 1); tryAdd(width - 1, height - 1)
 
       // Iterative flood fill
       while (stack.length > 0) {
         const y = stack.pop(), x = stack.pop()
-        data[(y * width + x) * 4 + 3] = 0   // transparent
+        const idx = (y * width + x) * 4
+        data[idx + 3] = 0   // transparent alpha channel
+        
         tryAdd(x + 1, y); tryAdd(x - 1, y)
         tryAdd(x, y + 1); tryAdd(x, y - 1)
       }

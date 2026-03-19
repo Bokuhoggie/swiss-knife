@@ -173,108 +173,81 @@ function LogoMichiganM() {
   const c = "white"
   return (
     <g>
-      {/* Left outer leg – full height */}
-      <rect x="86" y="24" width="5" height="28" fill={c}/>
-      {/* Right outer leg – full height */}
-      <rect x="109" y="24" width="5" height="28" fill={c}/>
-      {/* Top cap */}
-      <rect x="86" y="24" width="28" height="3" fill={c}/>
-      {/* Left inner V – 3 stepped rects going down-right */}
-      <rect x="91" y="27" width="4" height="4" fill={c}/>
-      <rect x="93" y="31" width="4" height="5" fill={c}/>
-      <rect x="95" y="36" width="4" height="4" fill={c}/>
-      {/* V center */}
-      <rect x="97" y="40" width="6" height="4" fill={c}/>
-      {/* Right inner V – mirror */}
-      <rect x="105" y="27" width="4" height="4" fill={c}/>
-      <rect x="103" y="31" width="4" height="5" fill={c}/>
-      <rect x="101" y="36" width="4" height="4" fill={c}/>
+      {/* Blocky M - 28x28 approx within 86-114, 24-52 */}
+      <rect x="86" y="24" width="6" height="28" fill={c}/>
+      <rect x="108" y="24" width="6" height="28" fill={c}/>
+      <rect x="92" y="24" width="16" height="6" fill={c}/>
+      <rect x="96" y="30" width="8" height="6" fill={c}/>
+      <rect x="98" y="36" width="4" height="6" fill={c}/>
     </g>
   )
 }
 
-function LogoSpartanHelmet() {
-  // Spartan helmet facing right: plume sweeps upper-left, dome, cheek/visor, chin
+function LogoSpartanS() {
   const c = "white"
   return (
     <g>
-      {/* Plume – angled strips going from upper-right down to dome */}
-      <rect x="93" y="24" width="21" height="3" fill={c}/>
-      <rect x="90" y="27" width="19" height="3" fill={c}/>
-      <rect x="87" y="30" width="16" height="3" fill={c}/>
-      {/* Helmet dome */}
-      <rect x="86" y="33" width="24" height="5" fill={c}/>
-      {/* Brow ridge across full face */}
-      <rect x="86" y="38" width="24" height="3" fill={c}/>
-      {/* Left cheek plate (solid – the face plate side) */}
-      <rect x="86" y="41" width="7" height="9" fill={c}/>
-      {/* Visor right brow – partial top of visor */}
-      <rect x="99" y="41" width="11" height="3" fill={c}/>
-      {/* Chin guard */}
-      <rect x="86" y="47" width="22" height="5" fill={c}/>
-      {/* Nose guard (narrow strip in visor) */}
-      <rect x="93" y="41" width="3" height="9" fill={c}/>
+      {/* Blocky S - matching example */}
+      <rect x="86" y="24" width="28" height="6" fill={c}/>
+      <rect x="86" y="30" width="6" height="8" fill={c}/>
+      <rect x="86" y="38" width="28" height="6" fill={c}/>
+      <rect x="108" y="44" width="6" height="8" fill={c}/>
+      <rect x="86" y="52" width="28" height="6" fill={c}/>
+      {/* Serif-like bits */}
+      <rect x="108" y="30" width="6" height="2" fill={c}/>
+      <rect x="86" y="50" width="6" height="2" fill={c}/>
     </g>
   )
 }
 
 function LogoNMU() {
-  // Bold block N
   const c = "white"
   return (
     <g>
-      {/* Left leg */}
-      <rect x="86" y="24" width="6" height="28" fill={c}/>
-      {/* Right leg */}
-      <rect x="108" y="24" width="6" height="28" fill={c}/>
-      {/* Top cap connecting to diagonal */}
-      <rect x="92" y="24" width="5" height="5" fill={c}/>
-      {/* Diagonal steps (left-to-right, top-to-bottom) */}
-      <rect x="94" y="29" width="5" height="5" fill={c}/>
-      <rect x="97" y="34" width="5" height="5" fill={c}/>
-      <rect x="100" y="39" width="5" height="5" fill={c}/>
-      <rect x="103" y="44" width="5" height="5" fill={c}/>
+      {/* N with compass/torch */}
+      {/* Outer compass ring (simplified) */}
+      <rect x="86" y="41" width="2" height="6" fill={c}/>
+      <rect x="112" y="41" width="2" height="6" fill={c}/>
+      <rect x="97" y="56" width="6" height="2" fill={c}/>
+      <rect x="97" y="32" width="6" height="2" fill={c}/>
+      
+      {/* Compass spikes */}
+      <rect x="99" y="30" width="2" height="4" fill={c}/>
+      <rect x="99" y="54" width="2" height="4" fill={c}/>
+      <rect x="84" y="43" width="4" height="2" fill={c}/>
+      <rect x="112" y="43" width="4" height="2" fill={c}/>
+
+      {/* The N */}
+      <rect x="94" y="40" width="4" height="12" fill={c}/>
+      <rect x="102" y="40" width="4" height="12" fill={c}/>
+      <rect x="96" y="42" width="8" height="8" fill={c}/>
+
+      {/* The Torch handle */}
+      <rect x="98" y="34" width="4" height="8" fill={c}/>
+      {/* Flame */}
+      <rect x="97" y="26" width="6" height="8" fill={c} opacity="0.8"/>
+      <rect x="99" y="24" width="2" height="2" fill={c}/>
     </g>
   )
 }
 
 function LogoWayneW() {
-  // Block W – two outer pillars + two inner pillars + V notch center
   const c = "white"
   return (
     <g>
-      {/* Top bar */}
-      <rect x="86" y="24" width="28" height="3" fill={c}/>
-      {/* Far-left outer leg */}
-      <rect x="86" y="24" width="5" height="22" fill={c}/>
-      {/* Far-right outer leg */}
-      <rect x="109" y="24" width="5" height="22" fill={c}/>
-      {/* Left-center inner leg */}
-      <rect x="95" y="24" width="4" height="18" fill={c}/>
-      {/* Right-center inner leg */}
-      <rect x="101" y="24" width="4" height="18" fill={c}/>
-      {/* Bottom outer-left connection */}
-      <rect x="86" y="46" width="9" height="4" fill={c}/>
-      <rect x="88" y="50" width="5" height="2" fill={c}/>
-      {/* Bottom outer-right connection */}
-      <rect x="105" y="46" width="9" height="4" fill={c}/>
-      <rect x="107" y="50" width="5" height="2" fill={c}/>
-      {/* Left inner angled to center */}
-      <rect x="93" y="42" width="4" height="4" fill={c}/>
-      <rect x="91" y="46" width="4" height="4" fill={c}/>
-      {/* Right inner angled to center */}
-      <rect x="103" y="42" width="4" height="4" fill={c}/>
-      <rect x="105" y="46" width="4" height="4" fill={c}/>
-      {/* Center V bottom peak */}
-      <rect x="97" y="46" width="6" height="4" fill={c}/>
-      <rect x="99" y="50" width="2" height="2" fill={c}/>
+      {/* Blocky W - matching example */}
+      <rect x="86" y="24" width="6" height="28" fill={c}/>
+      <rect x="108" y="24" width="6" height="28" fill={c}/>
+      <rect x="97" y="38" width="6" height="14" fill={c}/>
+      <rect x="86" y="52" width="28" height="6" fill={c}/>
+      <rect x="92" y="46" width="16" height="6" fill={c}/>
     </g>
   )
 }
 
 const HANDLE_LOGOS = {
   uofm:      LogoMichiganM,
-  msu:       LogoSpartanHelmet,
+  msu:       LogoSpartanS,
   nmu:       LogoNMU,
   waynestate: LogoWayneW,
 }

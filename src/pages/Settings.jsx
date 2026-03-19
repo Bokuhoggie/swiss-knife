@@ -403,7 +403,8 @@ export default function Settings() {
                        'go green go white': 'msu',
                        'hail to the victors': 'uofm',
                        'go cats': 'nmu',
-                       'warrior strong': 'waynestate'
+                       'warrior strong': 'waynestate',
+                       'bio digital jazz, man': 'tron'
                      }
                      const id = map[code]
                      if (id && !unlockedThemes.includes(id)) {
@@ -427,7 +428,8 @@ export default function Settings() {
                    'go green go white': 'msu',
                    'hail to the victors': 'uofm',
                    'go cats': 'nmu',
-                   'warrior strong': 'waynestate'
+                   'warrior strong': 'waynestate',
+                   'bio digital jazz, man': 'tron'
                  }
                  const id = map[code]
                  if (id && !unlockedThemes.includes(id)) {

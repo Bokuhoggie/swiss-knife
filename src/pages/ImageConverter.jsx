@@ -328,15 +328,6 @@ export default function ImageConverter() {
                 </div>
               </div>
             )}
-
-            {/* Output folder row */}
-            {outputDir && (
-              <div className="output-path-row">
-                <span className="output-folder-icon">📂</span>
-                <span className="output-path-text">{outputDir}</span>
-                <button className="btn btn-ghost btn-sm" onClick={() => api.shell.openPath(outputDir)}>Open ↗</button>
-              </div>
-            )}
           </>
         )}
 
@@ -377,7 +368,7 @@ export default function ImageConverter() {
           </div>
         )}
 
-        {outputDir && (
+        {tab === 'convert' && outputDir && (
           <div className="output-path-row">
             <span className="output-folder-icon">📂</span>
             <span className="output-path-text">{outputDir}</span>
@@ -385,7 +376,7 @@ export default function ImageConverter() {
           </div>
         )}
 
-        {results.length > 0 && (
+        {tab === 'convert' && results.length > 0 && (
           <div className={`result-banner ${results.every(r => r.success) ? 'success' : 'error'}`}>
             {results.every(r => r.success)
               ? `✓ All ${results.length} images converted`
