@@ -26,7 +26,7 @@ export default function Sidebar({ collapsed, onToggle }) {
           <div className="sidebar-logo-icon">
             <IconKnife size={18} />
           </div>
-          {!collapsed && <span className="sidebar-logo-text">SWISS KNIFE</span>}
+          {!collapsed && <span className="sidebar-logo-text">HTK</span>}
         </div>
         <button className="sidebar-collapse-btn" onClick={onToggle} title={collapsed ? 'Expand' : 'Collapse'}>
           {collapsed ? <IconChevronRight size={14} /> : <IconChevronLeft size={14} />}
@@ -60,7 +60,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-version">{collapsed ? 'v0.1' : 'SWISS KNIFE v0.1.0'}</div>
+        <div className="sidebar-version">{collapsed ? 'v0.1' : 'HTK v0.1.0'}</div>
       </div>
     </aside>
   )

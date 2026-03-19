@@ -134,10 +134,13 @@ function setupAutoUpdater(win) {
 app.whenReady().then(() => {
   // Register custom protocol to load local files (bypasses "Not allowed to load local resource")
   protocol.handle('sk-media', (request) => {
-    const url = request.url.replace('sk-media://', '')
-    // On Windows, the path might start with C:/ or similar. 
-    // Electron's net.fetch handles file:// URLs well.
-    return net.fetch('file:///' + decodeURIComponent(url))
+    const u = new URL(request.url)
+    // On Windows, standard URL parsing treats the drive letter as hostname
+    // e.g. sk-media://C:/path → hostname='c', pathname='/path'
+    const filePath = u.hostname
+      ? u.hostname.toUpperCase() + ':' + decodeURIComponent(u.pathname)
+      : decodeURIComponent(u.pathname)
+    return net.fetch('file:///' + filePath)
   })
 
   const win = createWindow();

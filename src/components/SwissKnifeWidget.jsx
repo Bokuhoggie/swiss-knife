@@ -327,8 +327,10 @@ function KnifeHandleHorizontal({ open, themeId }) {
         if (Logo) return <Logo />
         return (
           <>
-            <rect x="95" y="24" width="10" height="28" fill="white"/>
-            <rect x="86" y="33" width="28" height="10" fill="white"/>
+            {/* H logo */}
+            <rect x="86" y="22" width="8" height="32" fill="#B0B0C4"/>
+            <rect x="106" y="22" width="8" height="32" fill="#B0B0C4"/>
+            <rect x="86" y="34" width="28" height="8" fill="#B0B0C4"/>
           </>
         )
       })()}
@@ -355,7 +357,7 @@ function KnifeHandleHorizontal({ open, themeId }) {
         textAnchor="middle" fontSize="6"
         fontFamily="'Press Start 2P', monospace"
         fill="rgba(255,255,255,0.4)"
-      >SK</text>
+      >HTK</text>
     </svg>
   )
 }
@@ -632,7 +634,7 @@ export default function SwissKnifeWidget() {
         <button
           className={`sk-handle-btn-horizontal ${isShaking ? 'sk-shake' : ''}`}
           onClick={goHome}
-          title={isHome ? "Swiss Knife" : "Back to Home"}
+          title={isHome ? "Hoggie's Tool Kit" : "Back to Home"}
         >
           <KnifeHandleHorizontal open={open} themeId={themeId} />
         </button>

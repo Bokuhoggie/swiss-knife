@@ -1,9 +1,9 @@
 {
-  "name": "swiss-knife",
+  "name": "hoggies-tool-kit",
   "private": true,
   "version": "0.2.4",
   "description": "Your all-in-one file conversion and utility toolkit",
-  "author": "Swiss Knife",
+  "author": "Hoggie's Tool Kit",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -47,16 +47,16 @@
     "wait-on": "^8.0.5"
   },
   "build": {
-    "appId": "com.swissknife.app",
-    "productName": "Swiss Knife",
-    "copyright": "Copyright © 2026 SK",
+    "appId": "com.hoggiestoolkit.app",
+    "productName": "Hoggie's Tool Kit",
+    "copyright": "Copyright © 2026 HTK",
     "directories": {
       "output": "release"
     },
     "publish": {
       "provider": "github",
       "owner": "Bokuhoggie",
-      "repo": "swiss-knife"
+      "repo": "hoggies-tool-kit"
     },
     "files": [
       "dist/**/*",
@@ -96,7 +96,7 @@
       "createStartMenuShortcut": true
     },
     "portable": {
-      "artifactName": "SwissKnife-Portable.exe"
+      "artifactName": "HTK-Portable.exe"
     }
   }
 }
