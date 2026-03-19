@@ -120,7 +120,7 @@ export default function Settings() {
       'hail to the victors': ['uofm'],
       'go cats': ['nmu'],
       'warrior strong': ['waynestate'],
-      'bio digital jazz, man': ['tron', 'clu'],
+      'digital jazz': ['tron', 'clu'],
     }
     // Try exact match first, then spaceless match
     let ids = map[code]

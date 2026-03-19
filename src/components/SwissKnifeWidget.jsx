@@ -3,6 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { getFirstDropPath } from '../dropHelpers.js'
 import { setPendingFile } from '../globalDrop.js'
 import { useTheme } from '../contexts/ThemeContext.jsx'
+import logoUoM from '../assets/logos/logo-uofm.png'
+import logoMSU from '../assets/logos/logo-msu.png'
+import logoNMU from '../assets/logos/logo-nmu.png'
+import logoWSU from '../assets/logos/logo-wsu.png'
 
 /* ============================================================
    PIXEL ART TOOL BLADE SHAPES  (42 × 190 viewBox)
@@ -10,17 +14,22 @@ import { useTheme } from '../contexts/ThemeContext.jsx'
 ============================================================ */
 
 function BladeSVG({ color, flip }) {
+  const tipY = 10
+  const bladeH = 130
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
-        <rect x="16" y="10" width="10" height="130" fill={color} opacity="0.95"/>
+        <rect x="16" y={tipY} width="10" height={bladeH} fill={color} opacity="0.95"/>
         <polygon points="16,140 26,140 21,175" fill={color} opacity="0.95"/>
-        <rect x="13" y="6"  width="16" height="8"  fill="#9090A8"/>
-        <rect x="14" y="7"  width="14" height="6"  fill="#C0C0D0"/>
+        
+        <rect x="13" y={tipY - 4}  width="16" height="8"  fill="#9090A8"/>
+        <rect x="14" y={tipY - 3}  width="14" height="6"  fill="#C0C0D0"/>
+
+        {/* Accents */}
         {[20,34,48,62,76,90,104].map((y,i) => (
           <rect key={i} x="18" y={y} width="3" height="8" fill="rgba(255,255,255,0.18)"/>
         ))}
-        <rect x="22" y="10" width="3" height="130" fill="rgba(255,255,255,0.14)"/>
+        <rect x="22" y={tipY} width="3" height={bladeH} fill="rgba(255,255,255,0.14)"/>
       </g>
     </svg>
   )
@@ -170,79 +179,74 @@ function CorkscrewSVG({ color, flip }) {
    All render in the cross area: x:86-114, y:24-52
 ============================================================ */
 function LogoMichiganM() {
-  const c = "white"
   return (
-    <g>
-      {/* Blocky M - 28x28 approx within 86-114, 24-52 */}
-      <rect x="86" y="24" width="6" height="28" fill={c}/>
-      <rect x="108" y="24" width="6" height="28" fill={c}/>
-      <rect x="92" y="24" width="16" height="6" fill={c}/>
-      <rect x="96" y="30" width="8" height="6" fill={c}/>
-      <rect x="98" y="36" width="4" height="6" fill={c}/>
-    </g>
+    <foreignObject x="76" y="14" width="48" height="48">
+      <div style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'white',
+        WebkitMaskImage: `url(${logoUoM})`,
+        WebkitMaskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center'
+      }} />
+    </foreignObject>
   )
 }
 
 function LogoSpartanS() {
-  const c = "white"
   return (
-    <g>
-      {/* Blocky S - matching example */}
-      <rect x="86" y="24" width="28" height="6" fill={c}/>
-      <rect x="86" y="30" width="6" height="8" fill={c}/>
-      <rect x="86" y="38" width="28" height="6" fill={c}/>
-      <rect x="108" y="44" width="6" height="8" fill={c}/>
-      <rect x="86" y="52" width="28" height="6" fill={c}/>
-      {/* Serif-like bits */}
-      <rect x="108" y="30" width="6" height="2" fill={c}/>
-      <rect x="86" y="50" width="6" height="2" fill={c}/>
-    </g>
+    <foreignObject x="76" y="14" width="48" height="48">
+      <div style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'white',
+        WebkitMaskImage: `url(${logoMSU})`,
+        WebkitMaskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center'
+      }} />
+    </foreignObject>
   )
 }
 
 function LogoNMU() {
-  const c = "white"
   return (
-    <g>
-      {/* N with compass/torch */}
-      {/* Outer compass ring (simplified) */}
-      <rect x="86" y="41" width="2" height="6" fill={c}/>
-      <rect x="112" y="41" width="2" height="6" fill={c}/>
-      <rect x="97" y="56" width="6" height="2" fill={c}/>
-      <rect x="97" y="32" width="6" height="2" fill={c}/>
-      
-      {/* Compass spikes */}
-      <rect x="99" y="30" width="2" height="4" fill={c}/>
-      <rect x="99" y="54" width="2" height="4" fill={c}/>
-      <rect x="84" y="43" width="4" height="2" fill={c}/>
-      <rect x="112" y="43" width="4" height="2" fill={c}/>
-
-      {/* The N */}
-      <rect x="94" y="40" width="4" height="12" fill={c}/>
-      <rect x="102" y="40" width="4" height="12" fill={c}/>
-      <rect x="96" y="42" width="8" height="8" fill={c}/>
-
-      {/* The Torch handle */}
-      <rect x="98" y="34" width="4" height="8" fill={c}/>
-      {/* Flame */}
-      <rect x="97" y="26" width="6" height="8" fill={c} opacity="0.8"/>
-      <rect x="99" y="24" width="2" height="2" fill={c}/>
-    </g>
+    <foreignObject x="72" y="10" width="56" height="56">
+      <div style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'white',
+        WebkitMaskImage: `url(${logoNMU})`,
+        WebkitMaskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center'
+      }} />
+    </foreignObject>
   )
 }
 
 function LogoWayneW() {
-  const c = "white"
   return (
-    <g>
-      {/* Blocky W - matching example */}
-      <rect x="86" y="24" width="6" height="28" fill={c}/>
-      <rect x="108" y="24" width="6" height="28" fill={c}/>
-      <rect x="97" y="38" width="6" height="14" fill={c}/>
-      <rect x="86" y="52" width="28" height="6" fill={c}/>
-      <rect x="92" y="46" width="16" height="6" fill={c}/>
-    </g>
+    <foreignObject x="80" y="18" width="40" height="40">
+      <div style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'white',
+        WebkitMaskImage: `url(${logoWSU})`,
+        WebkitMaskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center'
+      }} />
+    </foreignObject>
   )
+}
+
+const LOGO_IMAGES = {
+  uofm:       logoUoM,
+  msu:        logoMSU,
+  nmu:        logoNMU,
+  waynestate: logoWSU,
 }
 
 const HANDLE_LOGOS = {
@@ -547,6 +551,7 @@ export default function SwissKnifeWidget() {
               <div 
                 className="sk-blade-visual"
                 style={{
+                  position: 'relative',
                   transform: [
                     tool.flipY ? 'scaleY(-1)' : '',
                     tool.flip ? 'scaleX(-1)' : ''
@@ -556,7 +561,31 @@ export default function SwissKnifeWidget() {
                     : `drop-shadow(0 0 4px rgba(0,0,0,0.8))`
                 }}
               >
-                <ToolBlade color={tool.color} />
+                <ToolBlade 
+                  color={tool.color} 
+                  flip={tool.flip} 
+                  isCollege={!!LOGO_IMAGES[themeId]} 
+                />
+                {LOGO_IMAGES[themeId] && tool.Blade === BladeSVG && (
+                  <div style={{
+                    position: 'absolute',
+                    top: (themeId === 'nmu' || themeId === 'msu' || themeId === 'uofm') ? '140px' : 
+                         themeId === 'waynestate' ? '85px' : '110px',
+                    left: '50%',
+                    transform: `translateX(-50%) ${tool.flipY ? 'scaleY(-1)' : ''}`,
+                    width: themeId === 'nmu' ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
+                    height: themeId === 'nmu' ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
+                    pointerEvents: 'none',
+                    backgroundColor: tool.color,
+                    WebkitMaskImage: `url(${LOGO_IMAGES[themeId]})`,
+                    WebkitMaskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskImage: `url(${LOGO_IMAGES[themeId]})`,
+                    maskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.3))'
+                  }} />
+                )}
               </div>
               
               {/* Tool tip label */}

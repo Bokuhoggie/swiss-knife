@@ -1,7 +1,7 @@
 {
   "name": "swiss-knife",
   "private": true,
-  "version": "0.1.5",
+  "version": "0.2.3",
   "description": "Your all-in-one file conversion and utility toolkit",
   "author": "Swiss Knife",
   "scripts": {
@@ -49,6 +49,15 @@
   "build": {
     "appId": "com.swissknife.app",
     "productName": "Swiss Knife",
+    "copyright": "Copyright © 2026 Swiss Knife",
+    "directories": {
+      "output": "release"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Bokuhoggie",
+      "repo": "swiss-knife"
+    },
     "files": [
       "dist/**/*",
       "electron/**/*",
@@ -59,9 +68,6 @@
       "node_modules/sharp/**/*",
       "node_modules/@img/**/*"
     ],
-    "directories": {
-      "output": "release"
-    },
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "public/icon.png"
@@ -91,11 +97,6 @@
     },
     "portable": {
       "artifactName": "SwissKnife-Portable.exe"
-    },
-    "publish": {
-      "provider": "github",
-      "owner": "Bokuhoggie",
-      "repo": "swiss-knife"
     }
   }
 }
