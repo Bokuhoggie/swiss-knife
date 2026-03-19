@@ -655,7 +655,7 @@ export default function SwissKnifeWidget() {
                 }}
               >
                 <ToolBlade
-                  color={((themeId === 'msu' || themeId === 'uofm') && tool.route === '/image') ? '#A0A0A8' : (themeId === 'msu' && tool.route === '/audio') ? '#18BB6A' : tool.color}
+                  color={(themeId === 'msu') ? '#E0E0E8' : (themeId === 'uofm' && tool.route === '/image') ? '#A0A0A8' : tool.color}
                   flip={tool.flip}
                   isCollege={!!LOGO_IMAGES[themeId]}
                 />
