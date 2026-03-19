@@ -1,7 +1,7 @@
 {
   "name": "swiss-knife",
   "private": true,
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Your all-in-one file conversion and utility toolkit",
   "author": "Swiss Knife",
   "scripts": {
@@ -49,7 +49,7 @@
   "build": {
     "appId": "com.swissknife.app",
     "productName": "Swiss Knife",
-    "copyright": "Copyright © 2026 Swiss Knife",
+    "copyright": "Copyright © 2026 SK",
     "directories": {
       "output": "release"
     },

@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } = require('electron');
 const path = require('path');
 const { setupImageHandlers } = require('./ipc/image.cjs');
 const { setupVideoHandlers } = require('./ipc/video.cjs');
@@ -13,6 +13,18 @@ const { setupInspectorHandlers } = require('./ipc/inspector.cjs');
 const { autoUpdater } = require('electron-updater');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+const { pathToFileURL } = require('url');
+
+// Register sk-media as privileged to allow local image loading and bypass CSP
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'sk-media', privileges: { 
+    secure: true, 
+    standard: true, 
+    supportFetchAPI: true, 
+    bypassCSP: true,
+    stream: true
+  } }
+]);
 
 function createWindow() {
   const isWin = process.platform === 'win32';
@@ -120,6 +132,14 @@ function setupAutoUpdater(win) {
 }
 
 app.whenReady().then(() => {
+  // Register custom protocol to load local files (bypasses "Not allowed to load local resource")
+  protocol.handle('sk-media', (request) => {
+    const url = request.url.replace('sk-media://', '')
+    // On Windows, the path might start with C:/ or similar. 
+    // Electron's net.fetch handles file:// URLs well.
+    return net.fetch('file:///' + decodeURIComponent(url))
+  })
+
   const win = createWindow();
 
   // Register all IPC handlers

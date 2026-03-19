@@ -121,6 +121,7 @@ export default function Settings() {
       'go cats': ['nmu'],
       'warrior strong': ['waynestate'],
       'digital jazz': ['tron', 'clu'],
+      'jared goff': ['lions'],
     }
     // Try exact match first, then spaceless match
     let ids = map[code]

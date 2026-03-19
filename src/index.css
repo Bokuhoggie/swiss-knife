@@ -1110,14 +1110,14 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 0;
   cursor: pointer;
   z-index: 20;
-  filter: drop-shadow(0 0 16px rgba(200,0,26,0.5))
+  filter: drop-shadow(0 0 16px var(--accent-glow))
           drop-shadow(0 8px 32px rgba(0,0,0,0.9));
   transition: filter 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1);
   outline: none;
 }
 
 .sk-handle-btn-horizontal:hover {
-  filter: drop-shadow(0 0 24px rgba(200,0,26,0.8))
+  filter: drop-shadow(0 0 24px var(--accent-glow))
           drop-shadow(0 0 12px rgba(var(--accent-rgb),0.4))
           drop-shadow(0 8px 32px rgba(0,0,0,1));
   transform: scale(1.05); /* very slight lift */

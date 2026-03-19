@@ -184,35 +184,36 @@ export const THEMES = {
     },
   },
 
-  papyrus: {
-    id: 'papyrus',
-    name: 'Papyrus',
-    preview: ['#16a34a', '#8b4513', '#b45309', '#f0e6d2'],
+  lions: {
+    id: 'lions',
+    name: 'Detroit Lions',
+    hidden: true,
+    preview: ['#0076B6', '#B0B7BC', '#FFFFFF', '#00111A'],
     vars: {
-      '--bg-base':        '#f0e6d2',
-      '--bg-surface':     '#ead5ba',
-      '--bg-elevated':    '#e8d0b0',
-      '--bg-card':        '#edd8bc',
-      '--bg-hover':       '#d9c4a2',
-      '--accent':         '#16a34a',
-      '--accent-dim':     '#15803d',
-      '--accent-glow':    'rgba(22, 163, 74, 0.2)',
-      '--accent-2':       '#8b4513',
-      '--accent-3':       '#b45309',
-      '--accent-4':       '#22c55e',
-      '--accent-rgb':     '22, 163, 74',
-      '--success':        '#16a34a',
-      '--warning':        '#b45309',
-      '--error':          '#dc2626',
-      '--text-primary':   '#1a0a00',
-      '--text-secondary': '#4a3728',
-      '--text-muted':     '#8b7355',
-      '--border':         'rgba(22, 163, 74, 0.2)',
-      '--border-hover':   'rgba(22, 163, 74, 0.4)',
-      '--shadow-card':    '0 0 0 1px rgba(22,163,74,0.15), 0 4px 16px rgba(0,0,0,0.15)',
-      '--glow-accent':    '0 0 12px rgba(22,163,74,0.4)',
-      '--glow-pink':      '0 0 12px rgba(139,69,19,0.4)',
-      '--glow-cyan':      '0 0 12px rgba(180,83,9,0.4)',
+      '--bg-base':        '#000B11',
+      '--bg-surface':     '#001420',
+      '--bg-elevated':    '#001D2D',
+      '--bg-card':        '#001825',
+      '--bg-hover':       '#002133',
+      '--accent':         '#0076B6',
+      '--accent-dim':     '#005B8C',
+      '--accent-glow':    'rgba(0, 118, 182, 0.25)',
+      '--accent-2':       '#B0B7BC',
+      '--accent-3':       '#0076B6',
+      '--accent-4':       '#0076B6',
+      '--accent-rgb':     '0, 118, 182',
+      '--success':        '#0076B6',
+      '--warning':        '#A5ACAF',
+      '--error':          '#E31837',
+      '--text-primary':   '#FFFFFF',
+      '--text-secondary': '#A5ACAF',
+      '--text-muted':     '#00334E',
+      '--border':         'rgba(0, 118, 182, 0.2)',
+      '--border-hover':   'rgba(0, 118, 182, 0.45)',
+      '--shadow-card':    '0 0 0 1px rgba(0,118,182,0.15), 0 8px 32px rgba(0,0,0,0.8)',
+      '--glow-accent':    '0 0 16px rgba(0,118,182,0.6)',
+      '--glow-pink':      '0 0 16px rgba(165,172,175,0.5)',
+      '--glow-cyan':      '0 0 16px rgba(0,118,182,0.6)',
     },
   },
 
@@ -432,7 +433,6 @@ export function ThemeProvider({ children }) {
     for (const [prop, value] of Object.entries(theme.vars)) {
       root.style.setProperty(prop, value)
     }
-    document.body.classList.toggle('theme-light', themeId === 'papyrus')
     document.body.classList.toggle('theme-tron', themeId === 'tron' || themeId === 'clu')
     localStorage.setItem(STORAGE_KEY, themeId)
   }, [themeId])

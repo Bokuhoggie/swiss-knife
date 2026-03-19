@@ -7,6 +7,8 @@ import logoUoM from '../assets/logos/logo-uofm.png'
 import logoMSU from '../assets/logos/logo-msu.png'
 import logoNMU from '../assets/logos/logo-nmu.png'
 import logoWSU from '../assets/logos/logo-wsu.png'
+import logoLions from '../assets/logos/logo-lions.png'
+import logoGoff from '../assets/logos/logo-Goff.png'
 
 /* ============================================================
    PIXEL ART TOOL BLADE SHAPES  (42 × 190 viewBox)
@@ -242,11 +244,28 @@ function LogoWayneW() {
   )
 }
 
+function LogoLions() {
+  return (
+    <foreignObject x="72" y="10" width="56" height="56">
+      <div style={{
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'var(--accent-2)',
+        WebkitMaskImage: `url(${logoLions})`,
+        WebkitMaskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center'
+      }} />
+    </foreignObject>
+  )
+}
+
 const LOGO_IMAGES = {
   uofm:       logoUoM,
   msu:        logoMSU,
   nmu:        logoNMU,
   waynestate: logoWSU,
+  lions:      logoLions,
 }
 
 const HANDLE_LOGOS = {
@@ -254,6 +273,7 @@ const HANDLE_LOGOS = {
   msu:        LogoSpartanS,
   nmu:        LogoNMU,
   waynestate: LogoWayneW,
+  lions:      LogoLions,
 }
 
 /* ============================================================
@@ -267,9 +287,9 @@ function KnifeHandleHorizontal({ open, themeId }) {
       style={{ display: 'block' }}
     >
       {/* ── Left bolster ── */}
-      <rect x="10" y="12" width="12" height="52" fill={isTron ? '#181818' : '#808090'}/>
-      <rect x="11" y="14" width="10" height="48" fill={isTron ? '#222222' : '#B0B0C4'}/>
-      <rect x="20" y="12" width="3"  height="52" fill={isTron ? '#0A0A0A' : '#505060'}/>
+      <rect x="10" y="8" width="12" height="60" fill={isTron ? '#181818' : '#808090'}/>
+      <rect x="11" y="10" width="10" height="56" fill={isTron ? '#222222' : '#B0B0C4'}/>
+      <rect x="20" y="8" width="4"  height="60" fill={isTron ? '#0A0A0A' : '#505060'}/>
 
       {/* ── Main body ── */}
       <rect x="22" y="8" width="156" height="60" fill={isTron ? '#0C0C0C' : 'var(--accent-dim)'}/>
@@ -321,14 +341,14 @@ function KnifeHandleHorizontal({ open, themeId }) {
       <rect x="157" y="35" width="4" height="4" fill={isTron ? '#222222' : '#A0A0B8'}/>
 
       {/* ── Right bolster ── */}
-      <rect x="175" y="12" width="3"  height="52" fill={isTron ? '#0A0A0A' : '#505060'}/>
-      <rect x="178" y="12" width="12" height="52" fill={isTron ? '#181818' : '#808090'}/>
-      <rect x="179" y="14" width="10" height="48" fill={isTron ? '#222222' : '#B0B0C4'}/>
+      <rect x="174" y="8" width="4"  height="60" fill={isTron ? '#0A0A0A' : '#505060'}/>
+      <rect x="178" y="8" width="12" height="60" fill={isTron ? '#181818' : '#808090'}/>
+      <rect x="179" y="10" width="10" height="56" fill={isTron ? '#222222' : '#B0B0C4'}/>
 
       {/* ── Lanyard loop (far right) ── */}
-      <rect x="188" y="28" width="10" height="20" fill={isTron ? '#181818' : '#808090'}/>
-      <rect x="190" y="30" width="8"  height="16" fill={isTron ? '#101010' : '#606070'}/>
-      <rect x="192" y="32" width="6"  height="12" fill={isTron ? '#050505' : '#2A2A32'}/>
+      <rect x="187" y="28" width="11" height="20" fill={isTron ? '#181818' : '#808090'}/>
+      <rect x="189" y="30" width="8"  height="16" fill={isTron ? '#101010' : '#606070'}/>
+      <rect x="191" y="32" width="6"  height="12" fill={isTron ? '#050505' : '#2A2A32'}/>
 
       {/* ── "SK" micro-text ── */}
       <text x="130" y="44"
@@ -557,7 +577,7 @@ export default function SwissKnifeWidget() {
                     tool.flip ? 'scaleX(-1)' : ''
                   ].filter(Boolean).join(' ') || 'none',
                   filter: (hovered === tool.route || flickingTool === tool.route || isPeeking)
-                    ? `drop-shadow(0 0 12px ${tool.color}) brightness(1.3)`
+                    ? `drop-shadow(0 0 12px ${themeId === 'lions' ? '#0076B6' : tool.color}) brightness(1.3)`
                     : `drop-shadow(0 0 4px rgba(0,0,0,0.8))`
                 }}
               >
@@ -570,19 +590,24 @@ export default function SwissKnifeWidget() {
                   <div style={{
                     position: 'absolute',
                     top: (themeId === 'nmu' || themeId === 'msu' || themeId === 'uofm') ? '140px' : 
-                         themeId === 'waynestate' ? '85px' : '110px',
+                         (themeId === 'waynestate' || themeId === 'lions') ? ((themeId === 'lions' && tool.route === '/image') ? '155px' : '85px') : '110px',
                     left: '50%',
                     transform: `translateX(-50%) ${tool.flipY ? 'scaleY(-1)' : ''}`,
-                    width: themeId === 'nmu' ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
-                    height: themeId === 'nmu' ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
+                    width: (themeId === 'nmu' || themeId === 'lions') ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
+                    height: (themeId === 'nmu' || themeId === 'lions') ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
                     pointerEvents: 'none',
-                    backgroundColor: tool.color,
-                    WebkitMaskImage: `url(${LOGO_IMAGES[themeId]})`,
+                    backgroundColor: (themeId === 'lions' && tool.route === '/image') ? 'transparent' : (themeId === 'lions' ? 'var(--accent-2)' : tool.color),
+                    WebkitMaskImage: (themeId === 'lions' && tool.route === '/image') ? 'none' : `url(${LOGO_IMAGES[themeId]})`,
                     WebkitMaskSize: 'contain',
                     WebkitMaskRepeat: 'no-repeat',
-                    maskImage: `url(${LOGO_IMAGES[themeId]})`,
+                    maskImage: (themeId === 'lions' && tool.route === '/image') ? 'none' : `url(${LOGO_IMAGES[themeId]})`,
                     maskSize: 'contain',
                     maskRepeat: 'no-repeat',
+                    backgroundImage: (themeId === 'lions' && tool.route === '/image') ? `url(${logoGoff})` : 'none',
+                    backgroundSize: 'contain',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'center',
+                    clipPath: (themeId === 'lions' && tool.route === '/image') ? 'inset(0 11px)' : 'none',
                     filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.3))'
                   }} />
                 )}

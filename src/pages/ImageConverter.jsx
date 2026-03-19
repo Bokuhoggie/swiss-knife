@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconImage } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
+import logoGoff from '../assets/logos/logo-Goff.png'
+import { useTheme } from '../contexts/ThemeContext'
 
 const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
 const api = window.swissKnife
@@ -58,6 +60,12 @@ export default function ImageConverter() {
     const objects = unique.map(p => ({ path: p, selected: true }))
     setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
+    // If we're adding files and the Remove BG tab has no file, pick the first one as a convenience
+    if (unique.length > 0 && !bgFile) {
+      setBgFile(unique[0])
+      setBgStatus('idle')
+      setBgResult('')
+    }
   }
 
   const handleDrop = (e) => {
@@ -125,11 +133,29 @@ export default function ImageConverter() {
     }
   }
 
+  const { themeId } = useTheme()
+  const isLions = themeId === 'lions'
+
   return (
-    <div className="page-anim" style={{ '--accent': '#00D4FF' }}>
+    <div className="page-anim" style={{ '--accent': isLions ? '#0076B6' : '#00D4FF' }}>
       <div className="page-header">
         <h1 className="page-title">
-          <IconImage size={24} style={{ marginRight: 16, verticalAlign: 'middle' }} />
+          {isLions ? (
+            <img 
+              src={logoGoff} 
+              alt="Goff" 
+              style={{
+                width: 28,
+                height: 28,
+                marginRight: 16,
+                verticalAlign: 'middle',
+                objectFit: 'contain',
+                clipPath: 'inset(0 11px)'
+              }} 
+            />
+          ) : (
+            <IconImage size={24} style={{ marginRight: 16, verticalAlign: 'middle' }} />
+          )}
           Image Converter
         </h1>
         <p className="page-subtitle">Convert images between JPG, PNG, WebP, AVIF, GIF, BMP, and TIFF</p>
@@ -311,7 +337,7 @@ export default function ImageConverter() {
                 <div>
                   <div className="form-label" style={{ marginBottom: 6 }}>Before</div>
                   <img
-                    src={'file:///' + bgFile.replace(/\\/g, '/')}
+                    src={'sk-media://' + bgFile.replace(/\\/g, '/')}
                     style={{ width: '100%', maxHeight: 200, objectFit: 'contain', border: '1px solid var(--border)', background: 'var(--bg-elevated)' }}
                     alt="original"
                   />
@@ -320,7 +346,7 @@ export default function ImageConverter() {
                   <div className="form-label" style={{ marginBottom: 6 }}>After</div>
                   <div style={{ background: 'repeating-conic-gradient(#666 0% 25%, #444 0% 50%) 0 0 / 14px 14px', border: '1px solid var(--border)' }}>
                     <img
-                      src={'file:///' + bgResult.replace(/\\/g, '/') + '?t=' + Date.now()}
+                      src={'sk-media://' + bgResult.replace(/\\/g, '/') + '?t=' + Date.now()}
                       style={{ width: '100%', maxHeight: 200, objectFit: 'contain', display: 'block' }}
                       alt="result"
                     />
