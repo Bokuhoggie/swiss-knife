@@ -114,6 +114,8 @@ body.theme-light::after { display: none; }
   flex-direction: column;
   height: 100vh;
   background: var(--bg-base);
+  position: relative;
+  z-index: 2;
 }
 
 /* ── Title bar (window drag region) ── */
@@ -1530,4 +1532,232 @@ input[type="range"]::-webkit-slider-thumb {
 .settings-cog-btn:hover {
   opacity: 0.9;
   transform: rotate(90deg);
+}
+
+/* ============================================
+   TRON THEME — Circuit grid & glow overrides
+   Uses var(--accent-rgb) so it works for both
+   blue (tron) and orange (tron_orange) variants
+   ============================================ */
+
+/* Light cycle animations — head + fading trail */
+@keyframes tron-cycle-h {
+  0%   { left: -60px; }
+  100% { left: 100%; }
+}
+@keyframes tron-cycle-h2 {
+  0%   { right: -60px; }
+  100% { right: 100%; }
+}
+@keyframes tron-cycle-v {
+  0%   { top: -60px; }
+  100% { top: 100%; }
+}
+@keyframes tron-cycle-v2 {
+  0%   { bottom: -60px; }
+  100% { bottom: 100%; }
+}
+
+/* Grid background overlay — the iconic TRON grid floor
+   Uses ::before on body so it sits behind everything.
+   body gets isolation:isolate to create a stacking context so
+   z-index:-1 stays above the body background but below all children. */
+body.theme-tron {
+  isolation: isolate;
+}
+body.theme-tron::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(var(--accent-rgb),0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb),0.03) 1px, transparent 1px),
+    linear-gradient(rgba(var(--accent-rgb),0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb),0.06) 1px, transparent 1px);
+  background-size:
+    20px 20px,
+    20px 20px,
+    100px 100px,
+    100px 100px;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.4;
+}
+
+/* Light cycle container — above grid (z:-1), below app-shell (z:2) */
+body.theme-tron .tron-cycles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.7;
+  transition: opacity 0.6s ease, filter 0.6s ease;
+}
+/* Dimmed + blurred when not on home page */
+body.theme-tron .tron-cycles.tron-cycles-dim {
+  opacity: 0.15;
+  filter: blur(6px);
+}
+body.theme-tron .tron-cycles .cycle {
+  position: absolute;
+  border-radius: 0;
+}
+/* Horizontal blue cycles — long bright trail + vivid head */
+body.theme-tron .tron-cycles .cycle-h {
+  width: 160px;
+  height: 2px;
+  background: linear-gradient(to right, transparent 0%, rgba(77,232,255,0.05) 10%, rgba(77,232,255,0.3) 50%, #4DE8FF 85%, #FFFFFF);
+  box-shadow: 0 0 12px 3px rgba(77,232,255,0.9), 0 0 30px 8px rgba(77,232,255,0.4), 0 0 60px 16px rgba(77,232,255,0.15);
+  animation: tron-cycle-h linear infinite;
+}
+body.theme-tron .tron-cycles .cycle-h2 {
+  width: 160px;
+  height: 2px;
+  background: linear-gradient(to left, transparent 0%, rgba(77,232,255,0.05) 10%, rgba(77,232,255,0.3) 50%, #4DE8FF 85%, #FFFFFF);
+  box-shadow: 0 0 12px 3px rgba(77,232,255,0.7), 0 0 30px 8px rgba(77,232,255,0.3), 0 0 60px 16px rgba(77,232,255,0.1);
+  animation: tron-cycle-h2 linear infinite;
+}
+/* Vertical blue cycles */
+body.theme-tron .tron-cycles .cycle-v {
+  width: 2px;
+  height: 160px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(77,232,255,0.05) 10%, rgba(77,232,255,0.3) 50%, #4DE8FF 85%, #FFFFFF);
+  box-shadow: 0 0 12px 3px rgba(77,232,255,0.8), 0 0 30px 8px rgba(77,232,255,0.35), 0 0 60px 16px rgba(77,232,255,0.12);
+  animation: tron-cycle-v linear infinite;
+}
+body.theme-tron .tron-cycles .cycle-v2 {
+  width: 2px;
+  height: 160px;
+  background: linear-gradient(to top, transparent 0%, rgba(77,232,255,0.05) 10%, rgba(77,232,255,0.3) 50%, #4DE8FF 85%, #FFFFFF);
+  box-shadow: 0 0 12px 3px rgba(77,232,255,0.6), 0 0 30px 8px rgba(77,232,255,0.25), 0 0 60px 16px rgba(77,232,255,0.08);
+  animation: tron-cycle-v2 linear infinite;
+}
+/* Orange cycle variants */
+body.theme-tron .tron-cycles .cycle-h.orange {
+  background: linear-gradient(to right, transparent 0%, rgba(255,106,0,0.05) 10%, rgba(255,106,0,0.3) 50%, #FF6A00 85%, #FFCC66);
+  box-shadow: 0 0 12px 3px rgba(255,106,0,0.9), 0 0 30px 8px rgba(255,106,0,0.4), 0 0 60px 16px rgba(255,106,0,0.15);
+}
+body.theme-tron .tron-cycles .cycle-h2.orange {
+  background: linear-gradient(to left, transparent 0%, rgba(255,106,0,0.05) 10%, rgba(255,106,0,0.3) 50%, #FF6A00 85%, #FFCC66);
+  box-shadow: 0 0 12px 3px rgba(255,106,0,0.7), 0 0 30px 8px rgba(255,106,0,0.3), 0 0 60px 16px rgba(255,106,0,0.1);
+}
+body.theme-tron .tron-cycles .cycle-v.orange {
+  background: linear-gradient(to bottom, transparent 0%, rgba(255,106,0,0.05) 10%, rgba(255,106,0,0.3) 50%, #FF6A00 85%, #FFCC66);
+  box-shadow: 0 0 12px 3px rgba(255,106,0,0.8), 0 0 30px 8px rgba(255,106,0,0.35), 0 0 60px 16px rgba(255,106,0,0.12);
+}
+body.theme-tron .tron-cycles .cycle-v2.orange {
+  background: linear-gradient(to top, transparent 0%, rgba(255,106,0,0.05) 10%, rgba(255,106,0,0.3) 50%, #FF6A00 85%, #FFCC66);
+  box-shadow: 0 0 12px 3px rgba(255,106,0,0.6), 0 0 30px 8px rgba(255,106,0,0.25), 0 0 60px 16px rgba(255,106,0,0.08);
+}
+
+/* Cards get a circuit-board inner glow */
+body.theme-tron .card {
+  border: 1px solid rgba(var(--accent-rgb),0.1);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 0 40px rgba(var(--accent-rgb),0.01);
+}
+
+/* Corner accents glow brighter */
+body.theme-tron .card::before,
+body.theme-tron .card::after {
+  opacity: 0.7;
+  box-shadow: 0 0 6px rgba(var(--accent-rgb),0.4);
+}
+
+/* Sidebar border glows like a light wall */
+body.theme-tron .sidebar {
+  border-right: 1px solid rgba(var(--accent-rgb),0.12);
+  box-shadow: 1px 0 20px rgba(var(--accent-rgb),0.04);
+}
+
+/* Sidebar nav links get circuit-line left edge on hover */
+body.theme-tron .sidebar-link:hover,
+body.theme-tron .sidebar-link.active {
+  box-shadow: inset 3px 0 0 var(--accent), 0 0 15px rgba(var(--accent-rgb),0.06);
+}
+
+/* Title bar subtle bottom glow */
+body.theme-tron .title-bar {
+  border-bottom: 1px solid rgba(var(--accent-rgb),0.08);
+  box-shadow: 0 1px 15px rgba(var(--accent-rgb),0.03);
+}
+
+/* Buttons get the TRON glow treatment */
+body.theme-tron .btn-primary {
+  box-shadow: 0 0 12px rgba(var(--accent-rgb),0.25), inset 0 0 12px rgba(var(--accent-rgb),0.04);
+  text-shadow: 0 0 8px rgba(var(--accent-rgb),0.4);
+}
+body.theme-tron .btn-primary:hover {
+  box-shadow: 0 0 24px rgba(var(--accent-rgb),0.4), inset 0 0 20px rgba(var(--accent-rgb),0.06);
+}
+
+/* Secondary buttons glow on hover */
+body.theme-tron .btn-secondary:hover {
+  border-color: rgba(var(--accent-rgb),0.3);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb),0.1);
+}
+
+/* Inputs glow on focus — data entry terminal feel */
+body.theme-tron .form-input:focus,
+body.theme-tron .form-select:focus {
+  border-color: rgba(var(--accent-rgb),0.3);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb),0.1), inset 0 0 8px rgba(var(--accent-rgb),0.02);
+}
+
+/* Range slider thumb glows */
+body.theme-tron input[type="range"]::-webkit-slider-thumb {
+  box-shadow: 0 0 8px rgba(var(--accent-rgb),0.5);
+}
+
+/* Page titles get text glow */
+body.theme-tron .page-title {
+  text-shadow: 0 0 20px rgba(var(--accent-rgb),0.25), 0 0 60px rgba(var(--accent-rgb),0.08);
+}
+
+/* Dropzone border */
+body.theme-tron .dropzone {
+  border-color: rgba(var(--accent-rgb),0.1);
+  box-shadow: inset 0 0 30px rgba(var(--accent-rgb),0.015);
+}
+body.theme-tron .dropzone:hover,
+body.theme-tron .dropzone.drag-over {
+  border-color: rgba(var(--accent-rgb),0.25);
+  box-shadow: inset 0 0 40px rgba(var(--accent-rgb),0.03), 0 0 20px rgba(var(--accent-rgb),0.06);
+}
+
+/* Section dividers glow like circuit traces */
+body.theme-tron .section-divider {
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.15) 20%, rgba(var(--accent-rgb),0.15) 80%, transparent);
+  height: 1px;
+  box-shadow: 0 0 8px rgba(var(--accent-rgb),0.1);
+}
+
+/* Scrollbar */
+body.theme-tron ::-webkit-scrollbar-thumb {
+  box-shadow: 0 0 10px rgba(var(--accent-rgb),0.4);
+}
+
+/* Result banners glow */
+body.theme-tron .result-banner.success {
+  box-shadow: 0 0 15px rgba(var(--accent-rgb),0.1);
+}
+
+/* Toggle track */
+body.theme-tron .pixel-toggle-track {
+  box-shadow: 0 0 6px rgba(var(--accent-rgb),0.15);
+}
+
+/* Tab buttons — circuit-board segments */
+body.theme-tron .tab-btn.active {
+  box-shadow: 0 -2px 0 var(--accent), 0 0 12px rgba(var(--accent-rgb),0.08);
+}
+
+/* SK Widget handle gets extra glow on TRON */
+body.theme-tron .sk-handle-btn-horizontal {
+  filter: drop-shadow(0 0 8px rgba(var(--accent-rgb),0.15));
+}
+body.theme-tron .sk-handle-btn-horizontal:hover {
+  filter: drop-shadow(0 0 16px rgba(var(--accent-rgb),0.3));
 }

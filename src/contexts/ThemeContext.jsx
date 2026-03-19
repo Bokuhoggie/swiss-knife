@@ -4,13 +4,24 @@ const STORAGE_KEY = 'swiss-knife-theme'
 const FONT_KEY = 'swiss-knife-font'
 
 export const SIZES = {
-  s:  { id: 's',  name: 'Small',  scale: 0.82 },
-  m:  { id: 'm',  name: 'Medium', scale: 1.0  },
-  l:  { id: 'l',  name: 'Large',  scale: 1.22 },
-  xl: { id: 'xl', name: 'X-Large', scale: 1.48 },
+  s:   { id: 's',   name: 'Small',   scale: 0.82 },
+  m:   { id: 'm',   name: 'Medium',  scale: 1.0  },
+  l:   { id: 'l',   name: 'Large',   scale: 1.22 },
+  xl:  { id: 'xl',  name: 'X-Large', scale: 1.48 },
+  xxl: { id: 'xxl', name: '4K',      scale: 2.10 },
 }
 
 const SIZE_KEY = 'swiss-knife-size'
+
+// Auto-detect best default size for high-DPI/4K displays
+function detectDefaultSize() {
+  const saved = localStorage.getItem(SIZE_KEY)
+  if (saved) return saved
+  const dpr = window.devicePixelRatio || 1
+  if (dpr >= 2.5) return 'xl'    // 4K+ display
+  if (dpr >= 1.75) return 'l'    // QHD / high-DPI
+  return 'm'
+}
 
 export const FONTS = {
   pixel: {
@@ -205,6 +216,72 @@ export const THEMES = {
     },
   },
 
+  tron: {
+    id: 'tron',
+    name: 'TRON',
+    hidden: true,
+    preview: ['#4DE8FF', '#0088CC', '#18C8FF', '#000000'],
+    vars: {
+      '--bg-base':        '#000000',
+      '--bg-surface':     '#000004',
+      '--bg-elevated':    '#000008',
+      '--bg-card':        '#000006',
+      '--bg-hover':       '#00050E',
+      '--accent':         '#4DE8FF',
+      '--accent-dim':     '#0A4860',
+      '--accent-glow':    'rgba(77, 232, 255, 0.15)',
+      '--accent-2':       '#0088CC',
+      '--accent-3':       '#18C8FF',
+      '--accent-4':       '#6AF0FF',
+      '--accent-rgb':     '77, 232, 255',
+      '--success':        '#4DE8FF',
+      '--warning':        '#18C8FF',
+      '--error':          '#FF2040',
+      '--text-primary':   '#A0D8E8',
+      '--text-secondary': '#305868',
+      '--text-muted':     '#0A1820',
+      '--border':         'rgba(77, 232, 255, 0.08)',
+      '--border-hover':   'rgba(77, 232, 255, 0.22)',
+      '--shadow-card':    '0 0 0 1px rgba(77,232,255,0.05), 0 0 40px rgba(0,0,0,0.98), inset 0 0 20px rgba(77,232,255,0.01)',
+      '--glow-accent':    '0 0 16px rgba(77,232,255,0.5), 0 0 50px rgba(77,232,255,0.12)',
+      '--glow-pink':      '0 0 16px rgba(0,136,204,0.5), 0 0 50px rgba(0,136,204,0.12)',
+      '--glow-cyan':      '0 0 16px rgba(24,200,255,0.5), 0 0 50px rgba(24,200,255,0.12)',
+    },
+  },
+
+  clu: {
+    id: 'clu',
+    name: 'CLU',
+    hidden: true,
+    preview: ['#FF6A00', '#FF8800', '#FFBB44', '#000000'],
+    vars: {
+      '--bg-base':        '#000000',
+      '--bg-surface':     '#040200',
+      '--bg-elevated':    '#080400',
+      '--bg-card':        '#060300',
+      '--bg-hover':       '#0E0800',
+      '--accent':         '#FF6A00',
+      '--accent-dim':     '#4A2000',
+      '--accent-glow':    'rgba(255, 106, 0, 0.15)',
+      '--accent-2':       '#FF8800',
+      '--accent-3':       '#CC4400',
+      '--accent-4':       '#FFBB44',
+      '--accent-rgb':     '255, 106, 0',
+      '--success':        '#FF8800',
+      '--warning':        '#FFBB44',
+      '--error':          '#FF2020',
+      '--text-primary':   '#E8C8A0',
+      '--text-secondary': '#685030',
+      '--text-muted':     '#201008',
+      '--border':         'rgba(255, 106, 0, 0.08)',
+      '--border-hover':   'rgba(255, 106, 0, 0.22)',
+      '--shadow-card':    '0 0 0 1px rgba(255,106,0,0.05), 0 0 40px rgba(0,0,0,0.98), inset 0 0 20px rgba(255,106,0,0.01)',
+      '--glow-accent':    '0 0 16px rgba(255,106,0,0.5), 0 0 50px rgba(255,106,0,0.12)',
+      '--glow-pink':      '0 0 16px rgba(255,136,0,0.5), 0 0 50px rgba(255,136,0,0.12)',
+      '--glow-cyan':      '0 0 16px rgba(204,68,0,0.5), 0 0 50px rgba(204,68,0,0.12)',
+    },
+  },
+
   uofm: {
     id: 'uofm',
     name: 'U of M',
@@ -347,9 +424,7 @@ export function ThemeProvider({ children }) {
   const [fontId, setFontId] = useState(
     () => localStorage.getItem(FONT_KEY) || 'inter'
   )
-  const [sizeId, setSizeId] = useState(
-    () => localStorage.getItem(SIZE_KEY) || 'm'
-  )
+  const [sizeId, setSizeId] = useState(detectDefaultSize)
 
   useEffect(() => {
     const theme = THEMES[themeId] || THEMES.arcade
@@ -358,6 +433,7 @@ export function ThemeProvider({ children }) {
       root.style.setProperty(prop, value)
     }
     document.body.classList.toggle('theme-light', themeId === 'papyrus')
+    document.body.classList.toggle('theme-tron', themeId === 'tron' || themeId === 'clu')
     localStorage.setItem(STORAGE_KEY, themeId)
   }, [themeId])
 
