@@ -311,7 +311,7 @@ export default function ImageConverter() {
                 <div>
                   <div className="form-label" style={{ marginBottom: 6 }}>Before</div>
                   <img
-                    src={'file:///' + bgFile.replace(/\\/g, '/')}
+                    src={'file://' + bgFile.replace(/\\/g, '/')}
                     style={{ width: '100%', maxHeight: 200, objectFit: 'contain', border: '1px solid var(--border)', background: 'var(--bg-elevated)' }}
                     alt="original"
                   />
@@ -320,7 +320,7 @@ export default function ImageConverter() {
                   <div className="form-label" style={{ marginBottom: 6 }}>After</div>
                   <div style={{ background: 'repeating-conic-gradient(#666 0% 25%, #444 0% 50%) 0 0 / 14px 14px', border: '1px solid var(--border)' }}>
                     <img
-                      src={'file:///' + bgResult.replace(/\\/g, '/') + '?t=' + Date.now()}
+                      src={'file://' + bgResult.replace(/\\/g, '/') + '?t=' + Date.now()}
                       style={{ width: '100%', maxHeight: 200, objectFit: 'contain', display: 'block' }}
                       alt="result"
                     />

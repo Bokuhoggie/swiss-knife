@@ -27,6 +27,12 @@ async function getYtDlpInstance() {
     console.log('[downloader] yt-dlp binary not found, downloading from GitHub...');
     await YTDlpWrap.downloadFromGithub(binaryPath);
     console.log('[downloader] yt-dlp downloaded to:', binaryPath);
+    // Ensure the downloaded binary is executable on macOS/Linux
+    if (process.platform !== 'win32') {
+      try { fs.chmodSync(binaryPath, 0o755); } catch (e) {
+        console.warn('[downloader] Failed to chmod yt-dlp:', e.message);
+      }
+    }
   }
 
   return new YTDlpWrap(binaryPath);

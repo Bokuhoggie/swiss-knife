@@ -13,6 +13,7 @@
     "electron:build:win": "vite build && electron-builder --win",
     "electron:build:win:portable": "vite build && electron-builder --win portable",
     "electron:publish:win": "vite build && electron-builder --win --publish always",
+    "electron:publish:mac": "vite build && electron-builder --mac --publish always",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -66,13 +67,19 @@
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "public/icon.png",
-      "target": {
-        "target": "default",
-        "arch": [
-          "arm64",
-          "x64"
-        ]
-      }
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["arm64", "x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["arm64", "x64"]
+        }
+      ]
+    },
+    "dmg": {
+      "artifactName": "SwissKnife-${version}-${arch}.dmg"
     },
     "win": {
       "target": [
