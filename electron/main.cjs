@@ -26,9 +26,9 @@ const { autoUpdater } = require('electron-updater');
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 const { pathToFileURL } = require('url');
 
-// Register sk-media as privileged to allow local image loading and bypass CSP
+// Register htk-media as privileged to allow local image loading and bypass CSP
 protocol.registerSchemesAsPrivileged([
-  { scheme: 'sk-media', privileges: {
+  { scheme: 'htk-media', privileges: {
     secure: true,
     supportFetchAPI: true,
     bypassCSP: true,
@@ -153,8 +153,8 @@ app.on('second-instance', () => {
 
 app.whenReady().then(() => {
   // Register custom protocol to load local files (bypasses "Not allowed to load local resource")
-  protocol.handle('sk-media', (request) => {
-    let rawPath = decodeURIComponent(request.url.replace('sk-media://', ''))
+  protocol.handle('htk-media', (request) => {
+    let rawPath = decodeURIComponent(request.url.replace('htk-media://', ''))
     // Strip query params (e.g. ?t=timestamp for cache busting)
     const qIdx = rawPath.indexOf('?')
     if (qIdx !== -1) rawPath = rawPath.substring(0, qIdx)

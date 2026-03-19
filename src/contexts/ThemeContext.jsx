@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 
-const STORAGE_KEY = 'swiss-knife-theme'
-const FONT_KEY = 'swiss-knife-font'
+const STORAGE_KEY = 'htk-theme'
+const FONT_KEY = 'htk-font'
 
 export const SIZES = {
   s:   { id: 's',   name: 'Small',   scale: 0.82 },
@@ -11,7 +11,7 @@ export const SIZES = {
   xxl: { id: 'xxl', name: '4K',      scale: 2.10 },
 }
 
-const SIZE_KEY = 'swiss-knife-size'
+const SIZE_KEY = 'htk-size'
 
 // Auto-detect best default size for high-DPI/4K displays
 function detectDefaultSize() {

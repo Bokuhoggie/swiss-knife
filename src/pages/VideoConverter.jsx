@@ -16,7 +16,7 @@ const HW_OPTS    = [
   { value: 'qsv',     label: 'QuickSync (Intel)' },
   { value: 'd3d11va', label: 'D3D11VA (Windows)' },
 ]
-const api = window.swissKnife
+const api = window.htk
 
 export default function VideoConverter() {
   const { state } = useLocation()

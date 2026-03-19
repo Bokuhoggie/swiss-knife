@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { IconPDF } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
 
-const api = window.swissKnife
+const api = window.htk
 
 const COMPRESS_LEVELS = [
   { value: 'low',    label: 'Low — Faster, larger file' },

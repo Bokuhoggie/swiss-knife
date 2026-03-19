@@ -4,7 +4,7 @@ import { IconInspect } from '../components/Icons.jsx'
 import { consumePendingFile } from '../globalDrop.js'
 import { getFirstDropPath } from '../dropHelpers.js'
 
-const api = window.swissKnife
+const api = window.htk
 
 // Category → accent colour
 const CATEGORY_ACCENT = {

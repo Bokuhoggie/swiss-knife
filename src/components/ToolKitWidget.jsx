@@ -324,7 +324,7 @@ function KnifeHandleHorizontal({ open, themeId }) {
   const lanyardIn  = isTron ? '#050505' : goldEdge ? (isUofm ? '#6A5808' : isWsu ? '#605020' : '#504018') : '#2A2A32'
   return (
     <svg width="200" height="76" viewBox="0 0 200 76"
-      className={`sk-handle-svg${open ? ' open' : ''}`}
+      className={`htk-handle-svg${open ? ' open' : ''}`}
       style={{ display: 'block' }}
     >
       {/* ── Left bolster ── */}
@@ -448,7 +448,7 @@ const ALL_TOOLS = [...LEFT_TOOLS, ...RIGHT_TOOLS]
 /* ============================================================
    WIDGET
 ============================================================ */
-export default function SwissKnifeWidget() {
+export default function ToolKitWidget() {
   const { themeId } = useTheme()
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(null)
@@ -561,13 +561,13 @@ export default function SwissKnifeWidget() {
 
   return (
     <div
-      className={`sk-widget-container ${isHome ? 'sk-size-large' : isSettings ? 'sk-size-medium' : 'sk-size-small'}`}
+      className={`htk-widget-container ${isHome ? 'htk-size-large' : isSettings ? 'htk-size-medium' : 'htk-size-small'}`}
       onDragOver={(e) => { e.preventDefault(); setDragOverWidget(true) }}
       onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOverWidget(false) }}
       onDrop={handleWidgetDrop}
     >
       <div 
-        className={`sk-knife-assembly ${isHome ? 'sk-float' : ''}`}
+        className={`htk-knife-assembly ${isHome ? 'htk-float' : ''}`}
         style={{
           filter: dragOverWidget ? 'drop-shadow(0 0 16px rgba(255, 159, 28, 0.8))' : 'none',
           transform: dragOverWidget ? 'scale(1.05)' : 'none',
@@ -578,7 +578,7 @@ export default function SwissKnifeWidget() {
       >
         {/* Invisible bridge to catch hovers across the fanned blades */}
         <div 
-          className="sk-hover-bridge" 
+          className="htk-hover-bridge" 
           style={{
             position: 'absolute',
             bottom: 0,
@@ -621,7 +621,7 @@ export default function SwissKnifeWidget() {
           return (
             <button
               key={tool.route}
-              className={`sk-blade-item ${(isOpen || isPeeking || isWaveActive) ? 'open' : ''} ${hovered === tool.route ? 'hovered' : ''}`}
+              className={`htk-blade-item ${(isOpen || isPeeking || isWaveActive) ? 'open' : ''} ${hovered === tool.route ? 'hovered' : ''}`}
               style={{
                 left: `${leftOffset}px`,
                 top: `${topOffset}px`,
@@ -647,7 +647,7 @@ export default function SwissKnifeWidget() {
               title={tool.label}
             >
               <div 
-                className="sk-blade-visual"
+                className="htk-blade-visual"
                 style={{
                   position: 'relative',
                   transform: [
@@ -719,7 +719,7 @@ export default function SwissKnifeWidget() {
               
               {/* Tool tip label */}
               <div 
-                className={`sk-blade-tooltip ${hovered === tool.route ? 'visible' : ''}`}
+                className={`htk-blade-tooltip ${hovered === tool.route ? 'visible' : ''}`}
                 style={{
                   color: tool.color,
                   borderColor: tool.color,
@@ -734,7 +734,7 @@ export default function SwissKnifeWidget() {
 
         {/* ─── HANDLE ─── Rendered in front */}
         <button
-          className={`sk-handle-btn-horizontal ${isShaking ? 'sk-shake' : ''}`}
+          className={`htk-handle-btn-horizontal ${isShaking ? 'htk-shake' : ''}`}
           onClick={goHome}
           title={isHome ? "Hoggie's Tool Kit" : "Back to Home"}
         >

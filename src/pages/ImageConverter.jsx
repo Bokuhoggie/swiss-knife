@@ -6,7 +6,7 @@ import logoGoff from '../assets/logos/logo-Goff.png'
 import { useTheme } from '../contexts/ThemeContext'
 
 const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
-const api = window.swissKnife
+const api = window.htk
 
 export default function ImageConverter() {
   const { state } = useLocation()
@@ -141,7 +141,7 @@ export default function ImageConverter() {
       })
       if (res.success) {
         setBgResult(res.outputPath); setBgStatus('done')
-        // Load previews as data URLs (bypasses sk-media:// protocol issues)
+        // Load previews as data URLs (bypasses htk-media:// protocol issues)
         const [before, after] = await Promise.all([
           api.image.readAsDataURL(bgFile),
           api.image.readAsDataURL(res.outputPath)

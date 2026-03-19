@@ -52,7 +52,7 @@ const DEFAULTS = {
 };
 
 function getSettingsPath() {
-  return path.join(app.getPath('userData'), 'swiss-knife-settings.json');
+  return path.join(app.getPath('userData'), 'htk-settings.json');
 }
 
 function deepMerge(target, source) {

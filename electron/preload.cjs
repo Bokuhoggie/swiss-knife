@@ -8,7 +8,7 @@ window.addEventListener('dragover', (e) => {
   if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
 }, true);
 
-contextBridge.exposeInMainWorld('swissKnife', {
+contextBridge.exposeInMainWorld('htk', {
   // File path from drag events (Electron 32+ — File.path is deprecated)
   getPathForFile: (file) => {
     try {

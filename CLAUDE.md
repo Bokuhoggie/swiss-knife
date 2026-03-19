@@ -41,7 +41,7 @@ npm run lint                   # ESLint
 ```
 electron/
   main.cjs              # Electron main process, BrowserWindow setup
-  preload.cjs           # Context bridge — exposes window.swissKnife to renderer
+  preload.cjs           # Context bridge — exposes window.htk to renderer
   ipc/
     audio.cjs           # Audio conversion handlers (ffmpeg)
     video.cjs           # Video conversion handlers (ffmpeg)
@@ -53,7 +53,7 @@ electron/
     settings.cjs        # Persistent settings handlers
 src/
   pages/                # One React page per tool
-  components/           # Sidebar, Icons, SwissKnifeWidget
+  components/           # Sidebar, Icons, ToolKitWidget
   contexts/             # ThemeContext (themes, sizes, fonts)
   App.jsx               # Router + layout
 public/
