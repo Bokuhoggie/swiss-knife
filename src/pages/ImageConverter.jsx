@@ -6,6 +6,16 @@ import logoGoff from '../assets/logos/logo-Goff.png'
 import { useTheme } from '../contexts/ThemeContext'
 
 const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff', 'ico']
+const ICO_PRESETS = {
+  '256':       { label: '256×256 (standard)',       sizes: [256] },
+  '128':       { label: '128×128',                  sizes: [128] },
+  '64':        { label: '64×64',                    sizes: [64] },
+  '48':        { label: '48×48 (Windows shell)',     sizes: [48] },
+  '32':        { label: '32×32 (taskbar)',           sizes: [32] },
+  '16':        { label: '16×16 (favicon)',           sizes: [16] },
+  'multi-std': { label: 'Multi (16+32+48+256)',      sizes: [16, 32, 48, 256] },
+  'multi-all': { label: 'Multi (16+32+48+64+128+256)', sizes: [16, 32, 48, 64, 128, 256] },
+}
 const api = window.swissKnife
 
 export default function ImageConverter() {
@@ -20,6 +30,7 @@ export default function ImageConverter() {
   const [loading, setLoading]           = useState(false)
   const [dragOver, setDragOver]         = useState(false)
   const [customName, setCustomName]     = useState('')
+  const [icoPreset, setIcoPreset]       = useState('256')
   useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [isFlashing, setIsFlashing]     = useState(false)
 
@@ -175,6 +186,7 @@ export default function ImageConverter() {
         height: height ? parseInt(height) : undefined,
         keepMetadata,
         outputName: (selectedFiles.length === 1 && customName.trim()) ? customName.trim() : undefined,
+        icoSizes: outputFormat === 'ico' ? ICO_PRESETS[icoPreset].sizes : undefined,
       })
       setResults(res)
     } catch (err) {
@@ -306,12 +318,21 @@ export default function ImageConverter() {
                   {FORMATS.map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-label">Quality: {quality}</label>
-                <div className="range-wrap">
-                  <input type="range" min={10} max={100} value={quality} onChange={e => setQuality(+e.target.value)} />
+              {outputFormat === 'ico' ? (
+                <div className="form-group">
+                  <label className="form-label">ICO Size</label>
+                  <select className="form-select" value={icoPreset} onChange={e => setIcoPreset(e.target.value)}>
+                    {Object.entries(ICO_PRESETS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                  </select>
                 </div>
-              </div>
+              ) : (
+                <div className="form-group">
+                  <label className="form-label">Quality: {quality}</label>
+                  <div className="range-wrap">
+                    <input type="range" min={10} max={100} value={quality} onChange={e => setQuality(+e.target.value)} />
+                  </div>
+                </div>
+              )}
               <div style={{ flex: 1 }} />
               <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
               <button 
