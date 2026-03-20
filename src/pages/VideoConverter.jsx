@@ -83,7 +83,7 @@ export default function VideoConverter() {
   }
 
   const handleBrowse = async () => {
-    const selected = await api.video.selectFile() // Actually, api.video.selectFile only selects one file currently, let's keep it simply adding one or an array if changed
+    const selected = await api.video.selectFile()
     if (selected) { 
       const arr = Array.isArray(selected) ? selected : [selected]
       addFiles(arr)

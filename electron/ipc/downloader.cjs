@@ -32,7 +32,7 @@ function setupDownloaderHandlers(ipcMain, dialog) {
   });
 
   ipcMain.handle('downloader:download', async (event, { url, outputDir, formatType, quality, audioFormat, embedThumbnail, embedSubs, subsLang, rateLimit, outputName, cookiesFromBrowser }) => {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       // Use path.join so separators are correct on Windows
       const outFolder = outputDir || path.join(os.homedir(), 'Downloads');
 

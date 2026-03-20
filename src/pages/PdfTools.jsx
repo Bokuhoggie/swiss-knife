@@ -200,7 +200,7 @@ function SplitTab() {
   )
 }
 
-function CompressTab() {
+function CompressTab({ preloadFile }) {
   const [file, setFile] = useState(null)
   const [outputDir, setOutputDir] = useState('')
   const [compressionLevel, setCompressionLevel] = useState('medium')
@@ -215,6 +215,10 @@ function CompressTab() {
       if (s.pdf?.compressionLevel)          setCompressionLevel(s.pdf.compressionLevel)
     }).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (preloadFile) setFile(preloadFile)
+  }, [preloadFile])
 
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 

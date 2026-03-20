@@ -158,6 +158,8 @@ app.whenReady().then(() => {
     // Strip query params (e.g. ?t=timestamp for cache busting)
     const qIdx = rawPath.indexOf('?')
     if (qIdx !== -1) rawPath = rawPath.substring(0, qIdx)
+    // Normalize to prevent path traversal
+    rawPath = path.normalize(rawPath)
     return net.fetch(pathToFileURL(rawPath).href)
   })
 

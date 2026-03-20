@@ -22,9 +22,10 @@ function setupVideoHandlers(ipcMain, dialog) {
     audioCodec, audioBitrate, fps, hwAccel,
     outputName,
   }) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const autoName = path.basename(filePath, path.extname(filePath));
-      const baseName = outputName ? outputName.trim() : `${autoName}_converted`;
+      const safeName = outputName ? outputName.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, '_') : '';
+      const baseName = safeName || `${autoName}_converted`;
       const outPath = path.join(outputDir, `${baseName}.${outputFormat}`);
 
       let cmd = ffmpeg(filePath);
@@ -39,7 +40,8 @@ function setupVideoHandlers(ipcMain, dialog) {
       if (resolution) cmd = cmd.size(resolution);
       if (crf !== undefined && crf !== null) cmd = cmd.addOption('-crf', String(crf));
       if (audioBitrate) cmd = cmd.audioBitrate(audioBitrate);
-      if (fps && fps !== '') cmd = cmd.fps(parseInt(fps));
+      const fpsVal = parseInt(fps);
+      if (fps && fps !== '' && !isNaN(fpsVal)) cmd = cmd.fps(fpsVal);
 
       cmd
         .output(outPath)

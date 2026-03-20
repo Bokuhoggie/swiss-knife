@@ -21,7 +21,8 @@ function setupImageHandlers(ipcMain, dialog) {
       try {
         const ext = outputFormat.toLowerCase();
         const autoName = path.basename(filePath, path.extname(filePath));
-        const baseName = (outputName && filePaths.length === 1) ? outputName.trim() : autoName;
+        const safeName = outputName ? outputName.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, '_') : '';
+        const baseName = (safeName && filePaths.length === 1) ? safeName : autoName;
         const outPath = path.join(outputDir, `${baseName}.${ext}`);
 
         let processor = sharp(filePath);
@@ -32,36 +33,62 @@ function setupImageHandlers(ipcMain, dialog) {
         }
 
         const opts = {};
-        if (quality) opts.quality = parseInt(quality);
+        const q = parseInt(quality);
+        if (!isNaN(q)) opts.quality = q;
 
-        switch (ext) {
-          case 'jpg':
-          case 'jpeg':
-            processor = processor.jpeg(opts);
-            break;
-          case 'png':
-            processor = processor.png();
-            break;
-          case 'webp':
-            processor = processor.webp(opts);
-            break;
-          case 'avif':
-            processor = processor.avif(opts);
-            break;
-          case 'gif':
-            processor = processor.gif();
-            break;
-          case 'bmp':
-            processor = processor.bmp();
-            break;
-          case 'tiff':
-            processor = processor.tiff(opts);
-            break;
-          default:
-            processor = processor.png();
+        if (ext === 'ico') {
+          // ICO format: resize to 256x256 max, render as PNG, wrap in ICO container
+          const pngBuf = await processor
+            .resize(256, 256, { fit: 'inside', withoutEnlargement: true })
+            .png()
+            .toBuffer();
+          const meta = await sharp(pngBuf).metadata();
+          const w = meta.width >= 256 ? 0 : meta.width;  // 0 means 256 in ICO spec
+          const h = meta.height >= 256 ? 0 : meta.height;
+          // Build ICO: 6-byte header + 16-byte directory entry + PNG data
+          const ico = Buffer.alloc(6 + 16 + pngBuf.length);
+          ico.writeUInt16LE(0, 0);       // reserved
+          ico.writeUInt16LE(1, 2);       // type: 1 = ICO
+          ico.writeUInt16LE(1, 4);       // 1 image
+          ico[6]  = w;                   // width (0 = 256)
+          ico[7]  = h;                   // height (0 = 256)
+          ico[8]  = 0;                   // color palette
+          ico[9]  = 0;                   // reserved
+          ico.writeUInt16LE(1, 10);      // color planes
+          ico.writeUInt16LE(32, 12);     // bits per pixel
+          ico.writeUInt32LE(pngBuf.length, 14); // image size
+          ico.writeUInt32LE(22, 18);     // offset to image data
+          pngBuf.copy(ico, 22);
+          fs.writeFileSync(outPath, ico);
+        } else {
+          switch (ext) {
+            case 'jpg':
+            case 'jpeg':
+              processor = processor.jpeg(opts);
+              break;
+            case 'png':
+              processor = processor.png();
+              break;
+            case 'webp':
+              processor = processor.webp(opts);
+              break;
+            case 'avif':
+              processor = processor.avif(opts);
+              break;
+            case 'gif':
+              processor = processor.gif();
+              break;
+            case 'bmp':
+              processor = processor.bmp();
+              break;
+            case 'tiff':
+              processor = processor.tiff(opts);
+              break;
+            default:
+              processor = processor.png();
+          }
+          await processor.toFile(outPath);
         }
-
-        await processor.toFile(outPath);
         results.push({ success: true, inputPath: filePath, outputPath: outPath });
       } catch (err) {
         results.push({ success: false, inputPath: filePath, error: err.message });

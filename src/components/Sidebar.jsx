@@ -60,7 +60,7 @@ export default function Sidebar({ collapsed, onToggle }) {
       </nav>
 
       <div className="sidebar-footer">
-        <div className="sidebar-version">{collapsed ? 'v0.1' : 'HTK v0.1.0'}</div>
+        <div className="sidebar-version">{collapsed ? 'v1.0' : 'HTK v1.0.0'}</div>
       </div>
     </aside>
   )

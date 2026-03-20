@@ -5,7 +5,7 @@ import { getDropPaths } from '../dropHelpers.js'
 import logoGoff from '../assets/logos/logo-Goff.png'
 import { useTheme } from '../contexts/ThemeContext'
 
-const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
+const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff', 'ico']
 const api = window.swissKnife
 
 export default function ImageConverter() {
@@ -60,9 +60,17 @@ export default function ImageConverter() {
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
+  const [previews, setPreviews] = useState({}) // { [path]: dataURL }
+
   const addFiles = (paths) => {
     const unique = paths.filter(p => p && !files.some(f => f.path === p))
     const objects = unique.map(p => ({ path: p, selected: true }))
+    // Load thumbnails for new files
+    unique.forEach(p => {
+      api.image.readAsDataURL(p).then(url => {
+        if (url) setPreviews(prev => ({ ...prev, [p]: url }))
+      }).catch(() => {})
+    })
     setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
     // If we're adding files and the Remove BG tab has no file, pick the first one as a convenience
@@ -188,8 +196,8 @@ export default function ImageConverter() {
               src={logoGoff} 
               alt="Goff" 
               style={{
-                width: 40,
-                height: 28,
+                width: 72,
+                height: 50,
                 marginRight: 12,
                 verticalAlign: 'middle',
                 objectFit: 'contain'
@@ -200,7 +208,7 @@ export default function ImageConverter() {
           )}
           Image Converter
         </h1>
-        <p className="page-subtitle">Convert images between JPG, PNG, WebP, AVIF, GIF, BMP, and TIFF</p>
+        <p className="page-subtitle">Convert images between JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, and ICO</p>
       </div>
 
       <div className="card">
@@ -221,7 +229,7 @@ export default function ImageConverter() {
             >
               <div className="dropzone-icon"><IconImage size={36} /></div>
               <div className="dropzone-title">Drop images here or click to browse</div>
-              <div className="dropzone-sub">JPG, PNG, WebP, AVIF, GIF, BMP, TIFF — multiple files OK</div>
+              <div className="dropzone-sub">JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, ICO — multiple files OK</div>
             </div>
 
             {files.length > 0 && (
@@ -256,7 +264,11 @@ export default function ImageConverter() {
                         style={{ accentColor: 'var(--accent)', marginRight: 4, cursor: 'pointer' }}
                         title="Toggle conversion for this file"
                       />
-                      <span className="file-item-icon" style={{ marginLeft: 4 }}><IconImage size={16} /></span>
+                      <span className="file-item-icon" style={{ marginLeft: 4 }}>
+                        {previews[fileObj.path]
+                          ? <img src={previews[fileObj.path]} alt="" style={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 3, border: '1px solid var(--border)' }} />
+                          : <IconImage size={16} />}
+                      </span>
                       <span className="file-item-name" title={fileObj.path}>{basename(fileObj.path)}</span>
                       {result && (
                         <span 
