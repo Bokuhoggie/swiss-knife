@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconVideo } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
+import WaveformPlayer from '../components/WaveformPlayer.jsx'
 
 const FORMATS    = ['mp4', 'mkv', 'avi', 'mov', 'webm']
 const RESOLUTIONS = ['', '1920x1080', '1280x720', '854x480', '640x360']
@@ -41,6 +42,7 @@ export default function VideoConverter() {
   const [audioBitrate, setAudioBitrate] = useState('192k')
   const [fps, setFps]                   = useState('')
   const [hwAccel, setHwAccel]           = useState('')
+  const [previewFile, setPreviewFile]   = useState(null)
 
   useEffect(() => {
     api.settings?.read().then(s => {
@@ -64,18 +66,19 @@ export default function VideoConverter() {
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
-  const addFiles = (paths) => {
+  const addFiles = (paths, autoPreview = false) => {
     const unique = paths.filter(p => p && !files.some(f => f.path === p))
     const objects = unique.map(p => ({ path: p, selected: true }))
     setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
+    if (autoPreview && unique.length === 1) setPreviewFile(unique[0])
   }
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const paths = getDropPaths(e)
     if (paths.length) {
-      addFiles(paths)
+      addFiles(paths, true)
       setIsFlashing(true)
       setTimeout(() => setIsFlashing(false), 500)
       window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/video' }))
@@ -84,9 +87,9 @@ export default function VideoConverter() {
 
   const handleBrowse = async () => {
     const selected = await api.video.selectFile()
-    if (selected) { 
+    if (selected) {
       const arr = Array.isArray(selected) ? selected : [selected]
-      addFiles(arr)
+      addFiles(arr, true)
     }
   }
 
@@ -188,7 +191,12 @@ export default function VideoConverter() {
                         title="Toggle conversion for this file"
                       />
                       <span className="file-item-icon"><IconVideo size={16} /></span>
-                      <span className="file-item-name" title={fileObj.path}>{basename(fileObj.path)}</span>
+                      <span
+                        className="file-item-name"
+                        title={fileObj.path}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => { e.stopPropagation(); setPreviewFile(previewFile === fileObj.path ? null : fileObj.path) }}
+                      >{basename(fileObj.path)}</span>
                       {isCurrent && progress && (
                         <span className="file-item-status pending">{Math.round(progress.percent || 0)}%</span>
                       )}
@@ -204,6 +212,19 @@ export default function VideoConverter() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {previewFile && (
+              <div className="media-preview">
+                <WaveformPlayer
+                  filePath={previewFile}
+                  type="video"
+                  accentColor="var(--accent)"
+                  glowColor="var(--accent)"
+                  label={`Preview — ${basename(previewFile)}`}
+                  onClose={() => setPreviewFile(null)}
+                />
               </div>
             )}
 

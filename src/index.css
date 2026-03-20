@@ -358,7 +358,10 @@ body.theme-light::after { display: none; }
 .page-scroll {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 28px 32px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .page-header {
@@ -592,10 +595,152 @@ body.theme-light::after { display: none; }
   white-space: nowrap;
 }
 
+.file-item-name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-underline-offset: 3px;
+}
+
 .file-item-size {
   font-family: 'VT323', monospace;
   font-size: 15px;
   color: var(--text-muted);
+}
+
+/* ── Media Preview ── */
+.media-preview {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  overflow: hidden;
+}
+
+.media-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.media-preview-player {
+  display: block;
+  width: 100%;
+  max-height: 400px;
+  background: #000;
+}
+
+.media-preview-audio {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: var(--bg-surface);
+  outline: none;
+}
+
+/* ── Waveform Player ── */
+.waveform-player {
+  overflow: visible;
+}
+
+.waveform-crown {
+  position: relative;
+  margin-top: -6px;            /* poke above the card edge */
+  padding: 0 12px;
+  z-index: 1;
+}
+
+.waveform-container {
+  position: relative;
+  height: 72px;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--bg-base);
+  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--wf-glow, var(--accent)) 35%, transparent);
+}
+
+.waveform-bars {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 1px;
+  padding: 6px 0;
+}
+
+.waveform-bar {
+  flex: 1;
+  min-width: 1px;
+  border-radius: 1px;
+  transition: opacity 0.08s;
+}
+
+.waveform-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  pointer-events: none;
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--wf-accent, var(--accent)) 60%, transparent);
+  z-index: 2;
+}
+
+.waveform-clip-region {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--accent-3, #3b82f6) 15%, transparent);
+  border-left: 1px solid var(--accent-3, #3b82f6);
+  border-right: 1px solid var(--accent-3, #3b82f6);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.waveform-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(6px * var(--font-scale));
+  color: var(--text-muted);
+}
+
+.waveform-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+}
+
+.waveform-play-btn {
+  font-size: 14px;
+  min-width: 28px;
+}
+
+.waveform-time {
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(6px * var(--font-scale));
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.waveform-clip-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.waveform-clip-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(5px * var(--font-scale));
+  color: var(--accent-3, #3b82f6);
+  white-space: nowrap;
 }
 
 .file-item-status {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconAudio } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
+import WaveformPlayer from '../components/WaveformPlayer.jsx'
 
 const FORMATS      = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
 const BITRATES     = ['64k', '128k', '192k', '256k', '320k']
@@ -26,6 +27,8 @@ export default function AudioConverter() {
   const [isFlashing, setIsFlashing]     = useState(false)
   const [currentIdx, setCurrentIdx]     = useState(-1)
   const [customName, setCustomName]     = useState('')
+
+  const [previewFile, setPreviewFile]   = useState(null)
 
   // Advanced
   const [channels, setChannels]   = useState('')
@@ -52,18 +55,19 @@ export default function AudioConverter() {
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
-  const addFiles = (paths) => {
+  const addFiles = (paths, autoPreview = false) => {
     const unique = paths.filter(p => p && !files.some(f => f.path === p))
     const objects = unique.map(p => ({ path: p, selected: true }))
     setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
+    if (autoPreview && unique.length === 1) setPreviewFile(unique[0])
   }
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const paths = getDropPaths(e)
     if (paths.length) {
-      addFiles(paths)
+      addFiles(paths, true)
       setIsFlashing(true)
       setTimeout(() => setIsFlashing(false), 500)
       window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/audio' }))
@@ -72,7 +76,7 @@ export default function AudioConverter() {
 
   const handleBrowse = async () => {
     const selected = await api.audio.selectFiles()
-    if (selected.length) addFiles(selected)
+    if (selected.length) addFiles(selected, true)
   }
 
   const pickOutputDir = async () => {
@@ -168,7 +172,12 @@ export default function AudioConverter() {
                         title="Toggle conversion for this file"
                       />
                       <span className="file-item-icon"><IconAudio size={16} /></span>
-                      <span className="file-item-name" title={fileObj.path}>{basename(fileObj.path)}</span>
+                      <span
+                        className="file-item-name"
+                        title={fileObj.path}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => { e.stopPropagation(); setPreviewFile(previewFile === fileObj.path ? null : fileObj.path) }}
+                      >{basename(fileObj.path)}</span>
                       {isCurrent && progress && (
                         <span className="file-item-status pending">{Math.round(progress.percent || 0)}%</span>
                       )}
@@ -184,6 +193,19 @@ export default function AudioConverter() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {previewFile && (
+              <div className="media-preview">
+                <WaveformPlayer
+                  filePath={previewFile}
+                  type="audio"
+                  accentColor="var(--accent-2)"
+                  glowColor="var(--accent-2)"
+                  label={`Preview — ${basename(previewFile)}`}
+                  onClose={() => setPreviewFile(null)}
+                />
               </div>
             )}
 

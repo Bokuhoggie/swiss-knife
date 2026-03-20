@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { IconInspect } from '../components/Icons.jsx'
 import { consumePendingFile } from '../globalDrop.js'
 import { getFirstDropPath } from '../dropHelpers.js'
+import WaveformPlayer from '../components/WaveformPlayer.jsx'
 
 const api = window.swissKnife
 
@@ -40,10 +41,11 @@ export default function FileInspector() {
   const navigate = useNavigate()
 
   const [error, setError] = useState(null)
+  const [showPreview, setShowPreview] = useState(false)
 
   const analyze = useCallback(async (filePath) => {
     if (!filePath) return
-    setLoading(true); setInfo(null); setHash(null); setError(null)
+    setLoading(true); setInfo(null); setHash(null); setError(null); setShowPreview(false)
     try {
       const result = await api.inspector.analyze(filePath)
       if (result?.error) setError(result.error)
@@ -208,6 +210,30 @@ export default function FileInspector() {
                   <StatCard key={k} label={k} value={String(v)} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* ── Media Preview ── */}
+          {(info.category === 'video' || info.category === 'audio') && (
+            <div className="card" style={{ marginBottom: 12 }}>
+              <div className="inspector-section-title" style={{ color: accent }}>
+                // PREVIEW
+              </div>
+              {!showPreview ? (
+                <button className="btn btn-secondary" onClick={() => setShowPreview(true)}>
+                  {info.category === 'video' ? '🎬' : '🎵'} Play {info.category === 'video' ? 'Video' : 'Audio'}
+                </button>
+              ) : (
+                <WaveformPlayer
+                  filePath={info.path}
+                  type={info.category}
+                  accentColor={accent}
+                  glowColor={accent}
+                  label={info.name}
+                  onClose={() => setShowPreview(false)}
+                  autoPlay
+                />
+              )}
             </div>
           )}
 

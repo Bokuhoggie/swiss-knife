@@ -21,6 +21,7 @@ const { setupPdfHandlers } = require('./ipc/pdf.cjs');
 const { setupHashHandlers } = require('./ipc/hash.cjs');
 const { setupSettingsHandlers } = require('./ipc/settings.cjs');
 const { setupInspectorHandlers } = require('./ipc/inspector.cjs');
+const { setupMediaHandlers } = require('./ipc/media.cjs');
 const { autoUpdater } = require('electron-updater');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -153,14 +154,24 @@ app.on('second-instance', () => {
 
 app.whenReady().then(() => {
   // Register custom protocol to load local files (bypasses "Not allowed to load local resource")
+  // Uses query-param format: sk-media://file?path=<encoded-path>
+  // This avoids Windows drive-letter being parsed as a hostname.
   protocol.handle('sk-media', (request) => {
-    let rawPath = decodeURIComponent(request.url.replace('sk-media://', ''))
-    // Strip query params (e.g. ?t=timestamp for cache busting)
-    const qIdx = rawPath.indexOf('?')
-    if (qIdx !== -1) rawPath = rawPath.substring(0, qIdx)
-    // Normalize to prevent path traversal
-    rawPath = path.normalize(rawPath)
-    return net.fetch(pathToFileURL(rawPath).href)
+    let rawPath;
+    try {
+      const url = new URL(request.url);
+      rawPath = url.searchParams.get('path');
+    } catch { /* fallback below */ }
+
+    // Fallback for legacy format (sk-media://C%3A%5C...)
+    if (!rawPath) {
+      rawPath = decodeURIComponent(request.url.replace(/^sk-media:\/\/\/?/, ''));
+      const qIdx = rawPath.indexOf('?');
+      if (qIdx !== -1) rawPath = rawPath.substring(0, qIdx);
+    }
+
+    rawPath = path.normalize(rawPath);
+    return net.fetch(pathToFileURL(rawPath).href);
   })
 
   const win = createWindow();
@@ -174,6 +185,7 @@ app.whenReady().then(() => {
   setupHashHandlers(ipcMain, dialog);
   setupSettingsHandlers(ipcMain);
   setupInspectorHandlers(ipcMain, dialog);
+  setupMediaHandlers(ipcMain);
 
   // Open output folder in Finder/Explorer
   ipcMain.handle('shell:openPath', async (_, filePath) => {
