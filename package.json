@@ -10,7 +10,6 @@
     "electron:dev": "concurrently -k \"cross-env BROWSER=none vite\" \"wait-on tcp:5173 && electron .\" ",
     "electron:build": "vite build && electron-builder",
     "electron:build:win": "vite build && electron-builder --win",
-    "electron:build:win:portable": "vite build && electron-builder --win portable",
     "electron:publish:win": "vite build && electron-builder --win --publish always",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -76,12 +75,6 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
           "arch": [
             "x64"
           ]
