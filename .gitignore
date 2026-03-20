@@ -26,3 +26,7 @@ dist-ssr
 #test files
 Test Subjects
 release/
+
+# Environment secrets
+.env
+.env.*

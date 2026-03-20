@@ -1,7 +1,7 @@
 {
   "name": "hoggies-tool-kit",
   "private": true,
-  "version": "0.3.1",
+  "version": "1.0.0",
   "description": "Your all-in-one file conversion and utility toolkit",
   "author": "Hoggie's Tool Kit",
   "scripts": {
@@ -11,7 +11,6 @@
     "electron:build": "vite build && electron-builder",
     "electron:build:mac": "vite build && electron-builder --mac",
     "electron:build:win": "vite build && electron-builder --win",
-    "electron:build:win:portable": "vite build && electron-builder --win portable",
     "electron:publish:win": "vite build && electron-builder --win --publish always",
     "electron:publish:mac": "vite build && electron-builder --mac --publish always",
     "lint": "eslint .",
@@ -100,15 +99,9 @@
           "arch": [
             "x64"
           ]
-        },
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
         }
       ],
-      "icon": "public/icon.png"
+      "icon": "public/icon.ico"
     },
     "nsis": {
       "oneClick": false,

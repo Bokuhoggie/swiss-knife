@@ -15,13 +15,14 @@ function setupImageHandlers(ipcMain, dialog) {
     return canceled ? [] : filePaths;
   });
 
-  ipcMain.handle('image:convert', async (event, { filePaths, outputFormat, outputDir, quality, width, height, keepMetadata, outputName }) => {
+  ipcMain.handle('image:convert', async (event, { filePaths, outputFormat, outputDir, quality, width, height, keepMetadata, outputName, icoSizes }) => {
     const results = [];
     for (const filePath of filePaths) {
       try {
         const ext = outputFormat.toLowerCase();
         const autoName = path.basename(filePath, path.extname(filePath));
-        const baseName = (outputName && filePaths.length === 1) ? outputName.trim() : autoName;
+        const safeName = outputName ? outputName.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, '_') : '';
+        const baseName = (safeName && filePaths.length === 1) ? safeName : autoName;
         const outPath = path.join(outputDir, `${baseName}.${ext}`);
 
         let processor = sharp(filePath);
@@ -32,36 +33,72 @@ function setupImageHandlers(ipcMain, dialog) {
         }
 
         const opts = {};
-        if (quality) opts.quality = parseInt(quality);
+        const q = parseInt(quality);
+        if (!isNaN(q)) opts.quality = q;
 
-        switch (ext) {
-          case 'jpg':
-          case 'jpeg':
-            processor = processor.jpeg(opts);
-            break;
-          case 'png':
-            processor = processor.png();
-            break;
-          case 'webp':
-            processor = processor.webp(opts);
-            break;
-          case 'avif':
-            processor = processor.avif(opts);
-            break;
-          case 'gif':
-            processor = processor.gif();
-            break;
-          case 'bmp':
-            processor = processor.bmp();
-            break;
-          case 'tiff':
-            processor = processor.tiff(opts);
-            break;
-          default:
-            processor = processor.png();
+        if (ext === 'ico') {
+          // ICO format: render each requested size as PNG, wrap in multi-image ICO container
+          const sizes = (icoSizes && icoSizes.length) ? icoSizes : [256];
+          const pngBuffers = [];
+          for (const size of sizes) {
+            const buf = await sharp(filePath)
+              .resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+              .png()
+              .toBuffer();
+            pngBuffers.push({ size, buf });
+          }
+          // ICO header: 6 bytes + 16 bytes per image, then all PNG data
+          const headerSize = 6 + 16 * pngBuffers.length;
+          const totalDataSize = pngBuffers.reduce((sum, p) => sum + p.buf.length, 0);
+          const ico = Buffer.alloc(headerSize + totalDataSize);
+          ico.writeUInt16LE(0, 0);                    // reserved
+          ico.writeUInt16LE(1, 2);                    // type: 1 = ICO
+          ico.writeUInt16LE(pngBuffers.length, 4);    // image count
+          let dataOffset = headerSize;
+          for (let i = 0; i < pngBuffers.length; i++) {
+            const { size, buf } = pngBuffers[i];
+            const dirOffset = 6 + i * 16;
+            ico[dirOffset]     = size >= 256 ? 0 : size;  // width (0 = 256)
+            ico[dirOffset + 1] = size >= 256 ? 0 : size;  // height (0 = 256)
+            ico[dirOffset + 2] = 0;                       // color palette
+            ico[dirOffset + 3] = 0;                       // reserved
+            ico.writeUInt16LE(1, dirOffset + 4);          // color planes
+            ico.writeUInt16LE(32, dirOffset + 6);         // bits per pixel
+            ico.writeUInt32LE(buf.length, dirOffset + 8); // image data size
+            ico.writeUInt32LE(dataOffset, dirOffset + 12);// offset to data
+            buf.copy(ico, dataOffset);
+            dataOffset += buf.length;
+          }
+          fs.writeFileSync(outPath, ico);
+        } else {
+          switch (ext) {
+            case 'jpg':
+            case 'jpeg':
+              processor = processor.jpeg(opts);
+              break;
+            case 'png':
+              processor = processor.png();
+              break;
+            case 'webp':
+              processor = processor.webp(opts);
+              break;
+            case 'avif':
+              processor = processor.avif(opts);
+              break;
+            case 'gif':
+              processor = processor.gif();
+              break;
+            case 'bmp':
+              processor = processor.bmp();
+              break;
+            case 'tiff':
+              processor = processor.tiff(opts);
+              break;
+            default:
+              processor = processor.png();
+          }
+          await processor.toFile(outPath);
         }
-
-        await processor.toFile(outPath);
         results.push({ success: true, inputPath: filePath, outputPath: outPath });
       } catch (err) {
         results.push({ success: false, inputPath: filePath, error: err.message });

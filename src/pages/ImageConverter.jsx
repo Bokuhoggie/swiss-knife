@@ -5,7 +5,17 @@ import { getDropPaths } from '../dropHelpers.js'
 import logoGoff from '../assets/logos/logo-Goff.png'
 import { useTheme } from '../contexts/ThemeContext'
 
-const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
+const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff', 'ico']
+const ICO_PRESETS = {
+  '256':       { label: '256×256 (standard)',       sizes: [256] },
+  '128':       { label: '128×128',                  sizes: [128] },
+  '64':        { label: '64×64',                    sizes: [64] },
+  '48':        { label: '48×48 (Windows shell)',     sizes: [48] },
+  '32':        { label: '32×32 (taskbar)',           sizes: [32] },
+  '16':        { label: '16×16 (favicon)',           sizes: [16] },
+  'multi-std': { label: 'Multi (16+32+48+256)',      sizes: [16, 32, 48, 256] },
+  'multi-all': { label: 'Multi (16+32+48+64+128+256)', sizes: [16, 32, 48, 64, 128, 256] },
+}
 const api = window.htk
 
 export default function ImageConverter() {
@@ -20,6 +30,7 @@ export default function ImageConverter() {
   const [loading, setLoading]           = useState(false)
   const [dragOver, setDragOver]         = useState(false)
   const [customName, setCustomName]     = useState('')
+  const [icoPreset, setIcoPreset]       = useState('256')
   useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [isFlashing, setIsFlashing]     = useState(false)
 
@@ -60,9 +71,17 @@ export default function ImageConverter() {
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
+  const [previews, setPreviews] = useState({}) // { [path]: dataURL }
+
   const addFiles = (paths) => {
     const unique = paths.filter(p => p && !files.some(f => f.path === p))
     const objects = unique.map(p => ({ path: p, selected: true }))
+    // Load thumbnails for new files
+    unique.forEach(p => {
+      api.image.readAsDataURL(p).then(url => {
+        if (url) setPreviews(prev => ({ ...prev, [p]: url }))
+      }).catch(() => {})
+    })
     setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
     // If we're adding files and the Remove BG tab has no file, pick the first one as a convenience
@@ -167,6 +186,7 @@ export default function ImageConverter() {
         height: height ? parseInt(height) : undefined,
         keepMetadata,
         outputName: (selectedFiles.length === 1 && customName.trim()) ? customName.trim() : undefined,
+        icoSizes: outputFormat === 'ico' ? ICO_PRESETS[icoPreset].sizes : undefined,
       })
       setResults(res)
     } catch (err) {
@@ -188,12 +208,11 @@ export default function ImageConverter() {
               src={logoGoff} 
               alt="Goff" 
               style={{
-                width: 28,
-                height: 28,
-                marginRight: 16,
+                width: 72,
+                height: 50,
+                marginRight: 12,
                 verticalAlign: 'middle',
-                objectFit: 'contain',
-                clipPath: 'inset(0 11px)'
+                objectFit: 'contain'
               }} 
             />
           ) : (
@@ -201,7 +220,7 @@ export default function ImageConverter() {
           )}
           Image Converter
         </h1>
-        <p className="page-subtitle">Convert images between JPG, PNG, WebP, AVIF, GIF, BMP, and TIFF</p>
+        <p className="page-subtitle">Convert images between JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, and ICO</p>
       </div>
 
       <div className="card">
@@ -222,7 +241,7 @@ export default function ImageConverter() {
             >
               <div className="dropzone-icon"><IconImage size={36} /></div>
               <div className="dropzone-title">Drop images here or click to browse</div>
-              <div className="dropzone-sub">JPG, PNG, WebP, AVIF, GIF, BMP, TIFF — multiple files OK</div>
+              <div className="dropzone-sub">JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, ICO — multiple files OK</div>
             </div>
 
             {files.length > 0 && (
@@ -257,7 +276,11 @@ export default function ImageConverter() {
                         style={{ accentColor: 'var(--accent)', marginRight: 4, cursor: 'pointer' }}
                         title="Toggle conversion for this file"
                       />
-                      <span className="file-item-icon" style={{ marginLeft: 4 }}><IconImage size={16} /></span>
+                      <span className="file-item-icon" style={{ marginLeft: 4 }}>
+                        {previews[fileObj.path]
+                          ? <img src={previews[fileObj.path]} alt="" style={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 3, border: '1px solid var(--border)' }} />
+                          : <IconImage size={16} />}
+                      </span>
                       <span className="file-item-name" title={fileObj.path}>{basename(fileObj.path)}</span>
                       {result && (
                         <span 
@@ -295,12 +318,21 @@ export default function ImageConverter() {
                   {FORMATS.map(f => <option key={f} value={f}>{f.toUpperCase()}</option>)}
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-label">Quality: {quality}</label>
-                <div className="range-wrap">
-                  <input type="range" min={10} max={100} value={quality} onChange={e => setQuality(+e.target.value)} />
+              {outputFormat === 'ico' ? (
+                <div className="form-group">
+                  <label className="form-label">ICO Size</label>
+                  <select className="form-select" value={icoPreset} onChange={e => setIcoPreset(e.target.value)}>
+                    {Object.entries(ICO_PRESETS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                  </select>
                 </div>
-              </div>
+              ) : (
+                <div className="form-group">
+                  <label className="form-label">Quality: {quality}</label>
+                  <div className="range-wrap">
+                    <input type="range" min={10} max={100} value={quality} onChange={e => setQuality(+e.target.value)} />
+                  </div>
+                </div>
+              )}
               <div style={{ flex: 1 }} />
               <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
               <button 

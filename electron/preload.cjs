@@ -84,8 +84,3 @@ contextBridge.exposeInMainWorld('htk', {
   },
 });
 
-contextBridge.exposeInMainWorld('ipcRenderer', {
-  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
-  on: (channel, cb) => ipcRenderer.on(channel, cb),
-  removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
-});
