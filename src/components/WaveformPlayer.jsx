@@ -9,19 +9,6 @@ function formatTime(seconds) {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-/**
- * WaveformPlayer — reusable audio/video player with waveform visualisation.
- *
- * Props:
- *   filePath    – absolute path to the media file
- *   type        – 'audio' | 'video'  (default 'audio')
- *   accentColor – CSS colour value for the played portion of the waveform
- *   glowColor   – CSS colour value for the glow (defaults to accentColor)
- *   onClose     – callback when user clicks the close button
- *   label       – display name shown in the header
- *   autoPlay    – auto-play on mount (default false)
- *   showClip    – show clip/trim controls (default true)
- */
 export default function WaveformPlayer({
   filePath,
   type = 'audio',
@@ -29,31 +16,32 @@ export default function WaveformPlayer({
   glowColor,
   onClose,
   label = '',
-  autoPlay = false,
   showClip = true,
 }) {
-  const [peaks, setPeaks]           = useState([])
+  const [peaks, setPeaks]             = useState([])
   const [waveLoading, setWaveLoading] = useState(true)
-  const [playing, setPlaying]       = useState(false)
+  const [playing, setPlaying]         = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration]     = useState(0)
-  const [clipStart, setClipStart]   = useState(null)
-  const [clipEnd, setClipEnd]       = useState(null)
-  const [clipping, setClipping]     = useState(false)
-  const [clipResult, setClipResult] = useState(null)
+  const [duration, setDuration]       = useState(0)
+  const [clipStart, setClipStart]     = useState(null)
+  const [clipEnd, setClipEnd]         = useState(null)
+  const [clipping, setClipping]       = useState(false)
+  const [clipResult, setClipResult]   = useState(null)
 
   const mediaRef    = useRef(null)
   const waveformRef = useRef(null)
-  const animRef     = useRef(null)
+  const playheadRef = useRef(null)
 
   const glow = glowColor || accentColor
 
-  // ── Load waveform peaks ───────────────────────────────────────────────────
+  // ── Load waveform peaks ───────────────────────────────────────────────
   useEffect(() => {
     if (!filePath) return
     setWaveLoading(true)
     setPeaks([])
     setCurrentTime(0)
+    setDuration(0)
+    setPlaying(false)
     setClipStart(null)
     setClipEnd(null)
     setClipResult(null)
@@ -64,21 +52,25 @@ export default function WaveformPlayer({
     }).catch(() => setWaveLoading(false))
   }, [filePath])
 
-  // ── RAF loop to sync time ────────────────────────────────────────────────
+  // ── Sync time at 10fps (not 60fps RAF — prevents UI freezing) ────────
   useEffect(() => {
-    const tick = () => {
+    const interval = setInterval(() => {
       const el = mediaRef.current
-      if (el) {
-        setCurrentTime(el.currentTime)
-        if (el.duration && !isNaN(el.duration)) setDuration(el.duration)
+      if (!el) return
+      if (el.duration && !isNaN(el.duration) && el.duration !== Infinity) {
+        setDuration(el.duration)
       }
-      animRef.current = requestAnimationFrame(tick)
-    }
-    animRef.current = requestAnimationFrame(tick)
-    return () => { if (animRef.current) cancelAnimationFrame(animRef.current) }
+      setCurrentTime(el.currentTime)
+      // Direct DOM update for playhead (avoids re-rendering 200 bars)
+      if (playheadRef.current && el.duration) {
+        const pct = (el.currentTime / el.duration) * 100
+        playheadRef.current.style.left = `${pct}%`
+      }
+    }, 100)
+    return () => clearInterval(interval)
   }, [filePath])
 
-  // ── Play / pause ─────────────────────────────────────────────────────────
+  // ── Play / pause ─────────────────────────────────────────────────────
   const togglePlay = useCallback(() => {
     const el = mediaRef.current
     if (!el) return
@@ -88,19 +80,24 @@ export default function WaveformPlayer({
 
   const handleEnded = useCallback(() => setPlaying(false), [])
 
-  // ── Click-to-seek on waveform ─────────────────────────────────────────────
-  const seek = useCallback((e) => {
+  // ── Click-to-seek on waveform ─────────────────────────────────────────
+  const handleSeek = useCallback((e) => {
+    e.stopPropagation()
     const el   = mediaRef.current
     const rect = waveformRef.current?.getBoundingClientRect()
     if (!el || !rect) return
-    const dur = el.duration || duration
-    if (!dur || isNaN(dur)) return
+    const dur = el.duration && !isNaN(el.duration) ? el.duration : 0
+    if (!dur) return
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
     el.currentTime = pct * dur
     setCurrentTime(pct * dur)
-  }, [duration])
+    // Immediately update playhead via DOM
+    if (playheadRef.current) {
+      playheadRef.current.style.left = `${pct * 100}%`
+    }
+  }, [])
 
-  // ── Clip ──────────────────────────────────────────────────────────────────
+  // ── Clip ──────────────────────────────────────────────────────────────
   const handleClip = async () => {
     if (clipStart === null || clipEnd === null || clipStart >= clipEnd) return
     const outputDir = await api.selectOutputDir()
@@ -115,44 +112,19 @@ export default function WaveformPlayer({
     setClipping(false)
   }
 
-  // ── Derived values ────────────────────────────────────────────────────────
-  const playPct     = duration > 0 ? currentTime / duration : 0
+  // ── Derived ───────────────────────────────────────────────────────────
+  const playPct      = duration > 0 ? currentTime / duration : 0
   const clipStartPct = clipStart !== null && duration > 0 ? clipStart / duration : null
   const clipEndPct   = clipEnd   !== null && duration > 0 ? clipEnd   / duration : null
 
   const mediaUrl = `sk-media://file?path=${encodeURIComponent(filePath)}`
 
   return (
-    <div className="waveform-player">
-      {/* ── Header ── */}
-      <div className="media-preview-header">
-        <span className="form-label">{label || (type === 'video' ? 'Video Preview' : 'Audio Preview')}</span>
-        {onClose && <button className="btn btn-ghost btn-sm" onClick={onClose}>✕ Close</button>}
-      </div>
+    <div className="waveform-player" style={{ '--wf-accent': accentColor, '--wf-glow': glow }}>
 
-      {/* ── Video element ── */}
-      {type === 'video' && (
-        <video
-          ref={mediaRef}
-          key={filePath}
-          src={mediaUrl}
-          controls
-          preload="metadata"
-          className="media-preview-player"
-          autoPlay={autoPlay}
-          onEnded={handleEnded}
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
-          onLoadedMetadata={(e) => setDuration(e.target.duration)}
-        />
-      )}
-
-      {/* ── Waveform ── */}
-      <div
-        className="waveform-crown"
-        style={{ '--wf-accent': accentColor, '--wf-glow': glow }}
-      >
-        <div className="waveform-container" ref={waveformRef} onClick={seek}>
+      {/* ── Waveform crown — sits at the top, glow radiates upward ── */}
+      <div className="waveform-crown">
+        <div className="waveform-container" ref={waveformRef} onClick={handleSeek}>
           {waveLoading ? (
             <div className="waveform-loading">
               <span className="spinner" style={{ fontSize: 12 }}>⟳</span>
@@ -173,13 +145,13 @@ export default function WaveformPlayer({
                     key={i}
                     className="waveform-bar"
                     style={{
-                      height: `${Math.max(6, peak * 100)}%`,
+                      height: `${Math.max(12, peak * 100)}%`,
                       backgroundColor: inClip
                         ? 'var(--accent-3, #3b82f6)'
                         : played
                           ? 'var(--wf-accent)'
                           : 'var(--text-muted)',
-                      opacity: played || inClip ? 1 : 0.3,
+                      opacity: played || inClip ? 1 : 0.2,
                     }}
                   />
                 )
@@ -187,10 +159,8 @@ export default function WaveformPlayer({
             </div>
           )}
 
-          {/* Playhead */}
-          {duration > 0 && (
-            <div className="waveform-playhead" style={{ left: `${playPct * 100}%`, backgroundColor: 'var(--wf-accent)' }} />
-          )}
+          {/* Playhead line */}
+          <div ref={playheadRef} className="waveform-playhead" style={{ left: `${playPct * 100}%` }} />
 
           {/* Clip region overlay */}
           {clipStartPct !== null && clipEndPct !== null && (
@@ -205,16 +175,39 @@ export default function WaveformPlayer({
         </div>
       </div>
 
+      {/* ── Header ── */}
+      <div className="media-preview-header">
+        <span className="form-label">{label || (type === 'video' ? 'Video Preview' : 'Audio Preview')}</span>
+        {onClose && <button className="btn btn-ghost btn-sm" onClick={onClose}>✕ Close</button>}
+      </div>
+
+      {/* ── Video element ── */}
+      {type === 'video' && (
+        <div className="media-preview-video-wrap">
+          <video
+            ref={mediaRef}
+            key={filePath}
+            src={mediaUrl}
+            controls
+            preload="auto"
+            className="media-preview-player"
+            onEnded={handleEnded}
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onLoadedMetadata={(e) => setDuration(e.target.duration)}
+          />
+        </div>
+      )}
+
       {/* ── Controls ── */}
       <div className="waveform-controls">
-        <button className="btn btn-ghost btn-sm waveform-play-btn" onClick={togglePlay}>
+        <button className="btn btn-ghost btn-sm waveform-play-btn" onClick={togglePlay} title={playing ? 'Pause' : 'Play'}>
           {playing ? '⏸' : '▶'}
         </button>
         <span className="waveform-time">{formatTime(currentTime)} / {formatTime(duration)}</span>
 
         <div style={{ flex: 1 }} />
 
-        {/* Clip controls */}
         {showClip && duration > 0 && (
           <div className="waveform-clip-controls">
             <button
@@ -252,21 +245,19 @@ export default function WaveformPlayer({
         )}
       </div>
 
-      {/* Clip result */}
       {clipResult && (
         <div className={`result-banner ${clipResult.success ? 'success' : 'error'}`} style={{ margin: '0 12px 8px' }}>
           {clipResult.success ? `✓ Saved clip → ${clipResult.outputPath}` : `✗ ${clipResult.error}`}
         </div>
       )}
 
-      {/* Hidden audio element (only for audio type) */}
+      {/* Hidden audio element */}
       {type === 'audio' && (
         <audio
           ref={mediaRef}
           key={filePath}
           src={mediaUrl}
-          preload="metadata"
-          autoPlay={autoPlay}
+          preload="auto"
           onEnded={handleEnded}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}

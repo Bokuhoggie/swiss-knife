@@ -610,10 +610,10 @@ body.theme-light::after { display: none; }
 
 /* ── Media Preview ── */
 .media-preview {
-  margin-top: 28px;               /* extra room so crown can poke above */
+  margin-top: 12px;
   border: 1px solid var(--border);
   background: var(--bg-base);
-  overflow: visible;              /* let the crown escape */
+  overflow: visible;
   position: relative;
 }
 
@@ -629,9 +629,15 @@ body.theme-light::after { display: none; }
 .media-preview-player {
   display: block;
   width: 100%;
-  max-height: 480px;
-  object-fit: contain;            /* respect aspect ratio */
+  max-height: 420px;
+  object-fit: contain;
   background: #000;
+}
+
+.media-preview-video-wrap {
+  position: relative;
+  background: #000;
+  line-height: 0;               /* kill extra space below video */
 }
 
 .media-preview-audio {
@@ -642,48 +648,62 @@ body.theme-light::after { display: none; }
   outline: none;
 }
 
+/* ── Image preview in inspector ── */
+.inspector-image-preview {
+  margin-top: 8px;
+  text-align: center;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  overflow: hidden;
+}
+.inspector-image-preview img {
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: 2px;
+  image-rendering: auto;
+}
+
 /* ── Waveform Player ── */
 .waveform-player {
   overflow: visible;
   position: relative;
 }
 
-/* The crown sits above the card, poking out */
+/* Crown: the waveform strip with upward glow */
 .waveform-crown {
   position: relative;
-  margin-top: -22px;             /* poke well above the card edge */
-  padding: 0 4px;
   z-index: 3;
-  pointer-events: none;          /* let clicks pass through to container */
 }
 
 .waveform-container {
   position: relative;
-  height: 56px;
+  height: 64px;
   cursor: pointer;
   overflow: hidden;
-  border-radius: 6px 6px 0 0;
-  background: color-mix(in srgb, var(--bg-base) 80%, transparent);
-  backdrop-filter: blur(4px);
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  /* The glow radiates upward — this is what makes the "crown" effect */
   box-shadow:
-    0 -4px 24px 4px color-mix(in srgb, var(--wf-glow, var(--accent)) 30%, transparent),
-    0 0 40px 8px color-mix(in srgb, var(--wf-glow, var(--accent)) 12%, transparent);
-  pointer-events: auto;          /* re-enable clicks on the bars */
+    0 -6px 20px 2px var(--wf-glow, var(--accent)),
+    0 -2px 40px 8px color-mix(in srgb, var(--wf-glow, var(--accent)) 20%, transparent);
 }
 
 .waveform-bars {
   display: flex;
-  align-items: flex-end;         /* bars grow upward from bottom */
+  align-items: center;           /* centered bars = mirrored waveform look */
   height: 100%;
   gap: 1px;
-  padding: 4px 2px;
+  padding: 8px 4px;
 }
 
 .waveform-bar {
   flex: 1;
-  min-width: 1.5px;
-  border-radius: 1px 1px 0 0;
-  transition: opacity 0.08s;
+  min-width: 2px;
+  border-radius: 1px;
+  pointer-events: none;          /* clicks pass through to container */
 }
 
 .waveform-playhead {
@@ -691,8 +711,9 @@ body.theme-light::after { display: none; }
   top: 0;
   bottom: 0;
   width: 2px;
+  background: var(--wf-accent, var(--accent));
   pointer-events: none;
-  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--wf-accent, var(--accent)) 70%, transparent);
+  box-shadow: 0 0 10px 2px var(--wf-accent, var(--accent));
   z-index: 2;
 }
 
@@ -700,7 +721,7 @@ body.theme-light::after { display: none; }
   position: absolute;
   top: 0;
   bottom: 0;
-  background: color-mix(in srgb, var(--accent-3, #3b82f6) 15%, transparent);
+  background: rgba(59, 130, 246, 0.12);
   border-left: 2px solid var(--accent-3, #3b82f6);
   border-right: 2px solid var(--accent-3, #3b82f6);
   pointer-events: none;

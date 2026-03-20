@@ -74,22 +74,26 @@ export default function ImageConverter() {
   const [previews, setPreviews] = useState({}) // { [path]: dataURL }
 
   const addFiles = (paths) => {
-    const unique = paths.filter(p => p && !files.some(f => f.path === p))
-    const objects = unique.map(p => ({ path: p, selected: true }))
-    // Load thumbnails for new files
-    unique.forEach(p => {
-      api.image.readAsDataURL(p).then(url => {
-        if (url) setPreviews(prev => ({ ...prev, [p]: url }))
-      }).catch(() => {})
+    setFiles(prev => {
+      const unique = paths.filter(p => p && !prev.some(f => f.path === p))
+      if (!unique.length) return prev
+      const objects = unique.map(p => ({ path: p, selected: true }))
+      // Load thumbnails for new files
+      unique.forEach(p => {
+        api.image.readAsDataURL(p).then(url => {
+          if (url) setPreviews(pr => ({ ...pr, [p]: url }))
+        }).catch(() => {})
+      })
+      if (prev.length + unique.length > 1) setCustomName('')
+      // If Remove BG tab has no file, pick the first one
+      if (!bgFile) {
+        setBgFile(unique[0])
+        setBgStatus('idle')
+        setBgResult('')
+      }
+      return [...prev, ...objects]
     })
-    setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
-    // If we're adding files and the Remove BG tab has no file, pick the first one as a convenience
-    if (unique.length > 0 && !bgFile) {
-      setBgFile(unique[0])
-      setBgStatus('idle')
-      setBgResult('')
-    }
   }
 
   const handleDrop = (e) => {
