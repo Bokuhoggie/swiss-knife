@@ -699,7 +699,7 @@ export default function SwissKnifeWidget() {
                     width: (themeId === 'nmu' || themeId === 'lions') ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
                     height: (themeId === 'nmu' || themeId === 'lions') ? '56px' : (themeId === 'uofm' || themeId === 'msu') ? '48px' : '38px',
                     pointerEvents: 'none',
-                    backgroundColor: (themeId === 'lions' && tool.route === '/image') ? 'transparent' : (themeId === 'lions' ? 'var(--accent-2)' : (themeId === 'uofm' && tool.route === '/image') ? '#FFCB05' : (themeId === 'msu' && tool.route === '/image') ? '#128A50' : (themeId === 'waynestate') ? '#B89540' : tool.color),
+                    backgroundColor: (themeId === 'lions' && tool.route === '/image') ? 'transparent' : (themeId === 'lions' ? 'var(--accent-2)' : (themeId === 'uofm' && tool.route === '/image') ? '#FFCB05' : (themeId === 'msu' && tool.route === '/image') ? '#128A50' : tool.color),
                     WebkitMaskImage: (themeId === 'lions' && tool.route === '/image') ? 'none' : `url(${LOGO_IMAGES[themeId]})`,
                     WebkitMaskSize: 'contain',
                     WebkitMaskRepeat: 'no-repeat',
@@ -710,7 +710,7 @@ export default function SwissKnifeWidget() {
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',
-                    clipPath: (themeId === 'lions' && tool.route === '/image') ? 'inset(0 11px)' : 'none',
+                    clipPath: 'none',
                     imageRendering: 'auto',
                     filter: 'drop-shadow(0 0 1.5px rgba(0,0,0,0.4))'
                   }} />

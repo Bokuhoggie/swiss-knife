@@ -188,12 +188,11 @@ export default function ImageConverter() {
               src={logoGoff} 
               alt="Goff" 
               style={{
-                width: 28,
+                width: 40,
                 height: 28,
-                marginRight: 16,
+                marginRight: 12,
                 verticalAlign: 'middle',
-                objectFit: 'contain',
-                clipPath: 'inset(0 11px)'
+                objectFit: 'contain'
               }} 
             />
           ) : (
