@@ -92,9 +92,12 @@ export default function WaveformPlayer({
   const seek = useCallback((e) => {
     const el   = mediaRef.current
     const rect = waveformRef.current?.getBoundingClientRect()
-    if (!el || !rect || !duration) return
+    if (!el || !rect) return
+    const dur = el.duration || duration
+    if (!dur || isNaN(dur)) return
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
-    el.currentTime = pct * duration
+    el.currentTime = pct * dur
+    setCurrentTime(pct * dur)
   }, [duration])
 
   // ── Clip ──────────────────────────────────────────────────────────────────
@@ -133,11 +136,14 @@ export default function WaveformPlayer({
           ref={mediaRef}
           key={filePath}
           src={mediaUrl}
+          controls
+          preload="metadata"
           className="media-preview-player"
           autoPlay={autoPlay}
           onEnded={handleEnded}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          onLoadedMetadata={(e) => setDuration(e.target.duration)}
         />
       )}
 
@@ -259,11 +265,12 @@ export default function WaveformPlayer({
           ref={mediaRef}
           key={filePath}
           src={mediaUrl}
-          preload="auto"
+          preload="metadata"
           autoPlay={autoPlay}
           onEnded={handleEnded}
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
+          onLoadedMetadata={(e) => setDuration(e.target.duration)}
           style={{ display: 'none' }}
         />
       )}

@@ -49,7 +49,13 @@ export default function FileInspector() {
     try {
       const result = await api.inspector.analyze(filePath)
       if (result?.error) setError(result.error)
-      else setInfo(result)
+      else {
+        setInfo(result)
+        // Auto-show preview for media files
+        if (result.category === 'audio' || result.category === 'video') {
+          setShowPreview(true)
+        }
+      }
     } catch (err) {
       setError(err?.message || 'Failed to analyze file')
     }

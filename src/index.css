@@ -610,10 +610,11 @@ body.theme-light::after { display: none; }
 
 /* ── Media Preview ── */
 .media-preview {
-  margin-top: 12px;
+  margin-top: 28px;               /* extra room so crown can poke above */
   border: 1px solid var(--border);
   background: var(--bg-base);
-  overflow: hidden;
+  overflow: visible;              /* let the crown escape */
+  position: relative;
 }
 
 .media-preview-header {
@@ -628,7 +629,8 @@ body.theme-light::after { display: none; }
 .media-preview-player {
   display: block;
   width: 100%;
-  max-height: 400px;
+  max-height: 480px;
+  object-fit: contain;            /* respect aspect ratio */
   background: #000;
 }
 
@@ -643,37 +645,44 @@ body.theme-light::after { display: none; }
 /* ── Waveform Player ── */
 .waveform-player {
   overflow: visible;
+  position: relative;
 }
 
+/* The crown sits above the card, poking out */
 .waveform-crown {
   position: relative;
-  margin-top: -6px;            /* poke above the card edge */
-  padding: 0 12px;
-  z-index: 1;
+  margin-top: -22px;             /* poke well above the card edge */
+  padding: 0 4px;
+  z-index: 3;
+  pointer-events: none;          /* let clicks pass through to container */
 }
 
 .waveform-container {
   position: relative;
-  height: 72px;
+  height: 56px;
   cursor: pointer;
   overflow: hidden;
-  border-radius: 4px;
-  background: var(--bg-base);
-  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--wf-glow, var(--accent)) 35%, transparent);
+  border-radius: 6px 6px 0 0;
+  background: color-mix(in srgb, var(--bg-base) 80%, transparent);
+  backdrop-filter: blur(4px);
+  box-shadow:
+    0 -4px 24px 4px color-mix(in srgb, var(--wf-glow, var(--accent)) 30%, transparent),
+    0 0 40px 8px color-mix(in srgb, var(--wf-glow, var(--accent)) 12%, transparent);
+  pointer-events: auto;          /* re-enable clicks on the bars */
 }
 
 .waveform-bars {
   display: flex;
-  align-items: center;
+  align-items: flex-end;         /* bars grow upward from bottom */
   height: 100%;
   gap: 1px;
-  padding: 6px 0;
+  padding: 4px 2px;
 }
 
 .waveform-bar {
   flex: 1;
-  min-width: 1px;
-  border-radius: 1px;
+  min-width: 1.5px;
+  border-radius: 1px 1px 0 0;
   transition: opacity 0.08s;
 }
 
@@ -683,7 +692,7 @@ body.theme-light::after { display: none; }
   bottom: 0;
   width: 2px;
   pointer-events: none;
-  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--wf-accent, var(--accent)) 60%, transparent);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--wf-accent, var(--accent)) 70%, transparent);
   z-index: 2;
 }
 
@@ -692,8 +701,8 @@ body.theme-light::after { display: none; }
   top: 0;
   bottom: 0;
   background: color-mix(in srgb, var(--accent-3, #3b82f6) 15%, transparent);
-  border-left: 1px solid var(--accent-3, #3b82f6);
-  border-right: 1px solid var(--accent-3, #3b82f6);
+  border-left: 2px solid var(--accent-3, #3b82f6);
+  border-right: 2px solid var(--accent-3, #3b82f6);
   pointer-events: none;
   z-index: 1;
 }
@@ -713,19 +722,20 @@ body.theme-light::after { display: none; }
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   background: var(--bg-elevated);
   border-top: 1px solid var(--border);
 }
 
 .waveform-play-btn {
-  font-size: 14px;
-  min-width: 28px;
+  font-size: 16px;
+  min-width: 32px;
+  text-align: center;
 }
 
 .waveform-time {
   font-family: 'Press Start 2P', monospace;
-  font-size: calc(6px * var(--font-scale));
+  font-size: calc(7px * var(--font-scale));
   color: var(--text-secondary);
   white-space: nowrap;
 }
@@ -733,12 +743,12 @@ body.theme-light::after { display: none; }
 .waveform-clip-controls {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .waveform-clip-label {
   font-family: 'Press Start 2P', monospace;
-  font-size: calc(5px * var(--font-scale));
+  font-size: calc(6px * var(--font-scale));
   color: var(--accent-3, #3b82f6);
   white-space: nowrap;
 }

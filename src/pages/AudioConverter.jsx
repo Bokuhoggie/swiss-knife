@@ -49,18 +49,22 @@ export default function AudioConverter() {
   }, [])
 
   useEffect(() => {
-    if (state?.file) addFiles([state.file])
+    if (state?.file) addFiles([state.file], true)
   }, [state?.file])
 
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
   const addFiles = (paths, autoPreview = false) => {
-    const unique = paths.filter(p => p && !files.some(f => f.path === p))
-    const objects = unique.map(p => ({ path: p, selected: true }))
-    setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
+    setFiles(prev => {
+      const unique = paths.filter(p => p && !prev.some(f => f.path === p))
+      if (!unique.length) return prev
+      const objects = unique.map(p => ({ path: p, selected: true }))
+      if (prev.length + unique.length > 1) setCustomName('')
+      if (autoPreview && unique.length === 1) setPreviewFile(unique[0])
+      return [...prev, ...objects]
+    })
     setResults([])
-    if (autoPreview && unique.length === 1) setPreviewFile(unique[0])
   }
 
   const handleDrop = (e) => {
