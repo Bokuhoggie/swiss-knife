@@ -680,15 +680,13 @@ body.theme-light::after { display: none; }
 
 .waveform-container {
   position: relative;
-  height: 64px;
+  height: 80px;
   cursor: pointer;
   overflow: hidden;
   background: var(--bg-base);
   border-bottom: 1px solid var(--border);
-  /* The glow radiates upward — this is what makes the "crown" effect */
-  box-shadow:
-    0 -6px 20px 2px var(--wf-glow, var(--accent)),
-    0 -2px 40px 8px color-mix(in srgb, var(--wf-glow, var(--accent)) 20%, transparent);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .waveform-bars {
@@ -704,17 +702,58 @@ body.theme-light::after { display: none; }
   min-width: 2px;
   border-radius: 1px;
   pointer-events: none;          /* clicks pass through to container */
+  transition: opacity 0.15s ease;
+}
+
+/* Hover: dim unplayed bars, brighten played ones */
+.waveform-container:hover .waveform-bar {
+  opacity: 0.35 !important;
+}
+.waveform-container:hover .waveform-bar[style*="opacity: 1"] {
+  opacity: 0.9 !important;
 }
 
 .waveform-playhead {
   position: absolute;
   top: 0;
   bottom: 0;
+  left: 0;
   width: 2px;
   background: var(--wf-accent, var(--accent));
   pointer-events: none;
   box-shadow: 0 0 10px 2px var(--wf-accent, var(--accent));
+  will-change: transform;
   z-index: 2;
+}
+
+.waveform-hover-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--text-muted);
+  pointer-events: none;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 1;
+}
+
+.waveform-hover-tooltip {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(5px * var(--font-scale));
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 2px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 4;
 }
 
 .waveform-clip-region {
@@ -726,6 +765,52 @@ body.theme-light::after { display: none; }
   border-right: 2px solid var(--accent-3, #3b82f6);
   pointer-events: none;
   z-index: 1;
+}
+
+/* ── Draggable clip handles ── */
+.waveform-clip-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  z-index: 5;
+  cursor: ew-resize;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.waveform-clip-handle-left {
+  transform: translateX(-12px);
+}
+.waveform-clip-handle-right {
+  transform: translateX(-2px);
+}
+
+.waveform-clip-handle-bar {
+  width: 4px;
+  height: 100%;
+  background: var(--accent-3, #3b82f6);
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+.waveform-clip-handle:hover .waveform-clip-handle-bar {
+  background: #60a5fa;
+  box-shadow: 0 0 6px 1px var(--accent-3, #3b82f6);
+}
+
+.waveform-clip-handle-label {
+  position: absolute;
+  bottom: -18px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(5px * var(--font-scale));
+  color: var(--accent-3, #3b82f6);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Razor cursor */
+.waveform-razor-active {
+  cursor: crosshair !important;
 }
 
 .waveform-loading {
@@ -742,16 +827,134 @@ body.theme-light::after { display: none; }
 .waveform-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 10px 16px;
   background: var(--bg-elevated);
   border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+/* Transport group: skip-back, play, skip-fwd */
+.waveform-transport {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .waveform-play-btn {
-  font-size: 16px;
-  min-width: 32px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--wf-accent, var(--accent));
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  padding: 0;
+  font-size: 0;
+}
+.waveform-play-btn:hover {
+  background: var(--wf-accent, var(--accent));
+  color: var(--bg-base);
+  box-shadow: 0 0 12px 2px var(--wf-accent, var(--accent));
+}
+
+.waveform-skip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  padding: 0;
+  font-size: 0;
+}
+.waveform-skip-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+/* Volume */
+.waveform-volume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.waveform-volume-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  transition: var(--transition-smooth);
+}
+.waveform-volume-icon:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+.waveform-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 64px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.waveform-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--wf-accent, var(--accent));
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 4px 1px var(--wf-accent, var(--accent));
+}
+.waveform-volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--wf-accent, var(--accent));
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 4px 1px var(--wf-accent, var(--accent));
+}
+
+/* Speed button */
+.waveform-speed-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(6px * var(--font-scale));
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-smooth);
+}
+.waveform-speed-btn:hover {
+  color: var(--wf-accent, var(--accent));
+  border-color: var(--wf-accent, var(--accent));
 }
 
 .waveform-time {
@@ -772,6 +975,33 @@ body.theme-light::after { display: none; }
   font-size: calc(6px * var(--font-scale));
   color: var(--accent-3, #3b82f6);
   white-space: nowrap;
+}
+
+/* Clip tool buttons (razor, set [, set ], clear) */
+.waveform-clip-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(6px * var(--font-scale));
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-smooth);
+}
+.waveform-clip-tool-btn:hover {
+  color: var(--accent-3, #3b82f6);
+  border-color: var(--accent-3, #3b82f6);
+}
+.waveform-clip-tool-btn.active {
+  color: var(--bg-base);
+  background: var(--accent-3, #3b82f6);
+  border-color: var(--accent-3, #3b82f6);
+  box-shadow: 0 0 8px 1px var(--accent-3, #3b82f6);
 }
 
 .file-item-status {
@@ -1642,6 +1872,19 @@ input[type="range"]::-webkit-slider-thumb {
   box-shadow: 0 0 8px var(--badge-color, var(--accent));
   white-space: nowrap;
   background: transparent;
+  letter-spacing: 0.5px;
+}
+
+/* "Open in X" button in inspector */
+.inspector-send-btn {
+  font-size: calc(9px * var(--font-scale)) !important;
+  padding: 10px 20px !important;
+  white-space: nowrap;
+  color: var(--bg-base) !important;
+  background: var(--text-primary) !important;
+  border-color: var(--text-primary) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
   letter-spacing: 0.5px;
 }
 

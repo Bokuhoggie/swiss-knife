@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconVideo } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
 import WaveformPlayer from '../components/WaveformPlayer.jsx'
+import { savePageState, loadPageState } from '../pageCache.js'
 
 const FORMATS    = ['mp4', 'mkv', 'avi', 'mov', 'webm']
 const RESOLUTIONS = ['', '1920x1080', '1280x720', '854x480', '640x360']
@@ -18,17 +19,19 @@ const HW_OPTS    = [
   { value: 'd3d11va', label: 'D3D11VA (Windows)' },
 ]
 const api = window.swissKnife
+const CACHE_KEY = 'video'
 
 export default function VideoConverter() {
   const { state } = useLocation()
+  const cached = useRef(loadPageState(CACHE_KEY)).current
   const [tab, setTab] = useState('convert')
 
-  const [files, setFiles]               = useState([]) // Array of { path, selected }
-  const [outputFormat, setOutputFormat] = useState('mp4')
-  const [resolution, setResolution]   = useState('')
-  const [codec, setCodec]             = useState('')
-  const [crf, setCrf]                 = useState(23)
-  const [outputDir, setOutputDir]     = useState('')
+  const [files, setFiles]               = useState(cached?.files || [])
+  const [outputFormat, setOutputFormat] = useState(cached?.outputFormat || 'mp4')
+  const [resolution, setResolution]   = useState(cached?.resolution || '')
+  const [codec, setCodec]             = useState(cached?.codec || '')
+  const [crf, setCrf]                 = useState(cached?.crf ?? 23)
+  const [outputDir, setOutputDir]     = useState(cached?.outputDir || '')
   const [results, setResults]           = useState([])
   const [loading, setLoading]         = useState(false)
   const [progress, setProgress]       = useState(null)
@@ -44,7 +47,15 @@ export default function VideoConverter() {
   const [hwAccel, setHwAccel]           = useState('')
   const [previewFile, setPreviewFile]   = useState(null)
 
+  // Save state on unmount
   useEffect(() => {
+    return () => {
+      savePageState(CACHE_KEY, { files, outputFormat, resolution, codec, crf, outputDir })
+    }
+  })
+
+  useEffect(() => {
+    if (cached) return
     api.settings?.read().then(s => {
       if (!s) return
       if (s.general?.defaultOutputDir) setOutputDir(s.general.defaultOutputDir)
@@ -224,8 +235,7 @@ export default function VideoConverter() {
                 <WaveformPlayer
                   filePath={previewFile}
                   type="video"
-                  accentColor="var(--accent)"
-                  glowColor="var(--accent)"
+                  accentColor="var(--text-primary)"
                   label={`Preview — ${basename(previewFile)}`}
                   onClose={() => setPreviewFile(null)}
                 />

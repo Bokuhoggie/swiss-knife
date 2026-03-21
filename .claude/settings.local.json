@@ -11,7 +11,8 @@
       "Bash(grep -n \"dialog\\\\|selectFiles\\\\|selectFile\\\\|selectFolder\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
       "Bash(ls -lh /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/public/icon.*)",
       "Bash(grep -n \"ipcMain.handle\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/main.cjs /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
-      "Bash(grep -n \"parseInt.*quality\\\\|parseInt.*fps\\\\|parseInt.*sampleRate\\\\|parseInt.*channels\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)"
+      "Bash(grep -n \"parseInt.*quality\\\\|parseInt.*fps\\\\|parseInt.*sampleRate\\\\|parseInt.*channels\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
+      "Bash(node -e \":*)"
     ]
   }
 }
