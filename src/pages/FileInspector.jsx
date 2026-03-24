@@ -279,7 +279,7 @@ export default function FileInspector() {
                 background: '#fff',
               }}>
                 <embed
-                  src={`sk-media://file?path=${encodeURIComponent(info.path)}`}
+                  src={`htk-media://file?path=${encodeURIComponent(info.path)}`}
                   type="application/pdf"
                   style={{ width: '100%', height: 500, display: 'block' }}
                 />
