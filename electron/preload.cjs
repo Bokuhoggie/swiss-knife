@@ -47,6 +47,10 @@ contextBridge.exposeInMainWorld('htk', {
     merge: (opts) => ipcRenderer.invoke('pdf:merge', opts),
     split: (opts) => ipcRenderer.invoke('pdf:split', opts),
     compress: (opts) => ipcRenderer.invoke('pdf:compress', opts),
+    compressToSize: (opts) => ipcRenderer.invoke('pdf:compressToSize', opts),
+    onCompressProgress: (cb) => ipcRenderer.on('pdf:compressProgress', (_, data) => cb(data)),
+    offCompressProgress: () => ipcRenderer.removeAllListeners('pdf:compressProgress'),
+    fileSize: (filePath) => ipcRenderer.invoke('pdf:fileSize', filePath),
     toImages: (opts) => ipcRenderer.invoke('pdf:toImages', opts),
     selectFiles: () => ipcRenderer.invoke('pdf:selectFiles'),
     selectFile: () => ipcRenderer.invoke('pdf:selectFile'),
@@ -66,6 +70,10 @@ contextBridge.exposeInMainWorld('htk', {
   inspector: {
     analyze:    (filePath) => ipcRenderer.invoke('inspector:analyze', filePath),
     selectFile: ()         => ipcRenderer.invoke('inspector:selectFile'),
+  },
+  media: {
+    waveform: (filePath) => ipcRenderer.invoke('media:waveform', filePath),
+    clip:     (opts)     => ipcRenderer.invoke('media:clip', opts),
   },
   getVersion: () => ipcRenderer.invoke('app:version'),
   updater: {

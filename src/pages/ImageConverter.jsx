@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconImage } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
 import logoGoff from '../assets/logos/logo-Goff.png'
 import { useTheme } from '../contexts/ThemeContext'
+import { savePageState, loadPageState } from '../pageCache.js'
 
 const FORMATS = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff', 'ico']
 const ICO_PRESETS = {
@@ -17,15 +18,17 @@ const ICO_PRESETS = {
   'multi-all': { label: 'Multi (16+32+48+64+128+256)', sizes: [16, 32, 48, 64, 128, 256] },
 }
 const api = window.htk
+const CACHE_KEY = 'image'
 
 export default function ImageConverter() {
   const { state } = useLocation()
+  const cached = useRef(loadPageState(CACHE_KEY)).current
   const [tab, setTab] = useState('convert')
 
-  const [files, setFiles]               = useState([]) // Array of { path, selected }
-  const [outputFormat, setOutputFormat] = useState('png')
-  const [quality, setQuality]           = useState(85)
-  const [outputDir, setOutputDir]       = useState('')
+  const [files, setFiles]               = useState(cached?.files || [])
+  const [outputFormat, setOutputFormat] = useState(cached?.outputFormat || 'png')
+  const [quality, setQuality]           = useState(cached?.quality ?? 85)
+  const [outputDir, setOutputDir]       = useState(cached?.outputDir || '')
   const [results, setResults]           = useState([])
   const [loading, setLoading]           = useState(false)
   const [dragOver, setDragOver]         = useState(false)
@@ -52,7 +55,15 @@ export default function ImageConverter() {
   const [height, setHeight]             = useState('')
   const [keepMetadata, setKeepMetadata] = useState(false)
 
+  // Save state on unmount
   useEffect(() => {
+    return () => {
+      savePageState(CACHE_KEY, { files, outputFormat, quality, outputDir })
+    }
+  })
+
+  useEffect(() => {
+    if (cached) return
     api.settings?.read().then(s => {
       if (!s) return
       if (s.general?.defaultOutputDir)  setOutputDir(s.general.defaultOutputDir)
@@ -74,22 +85,26 @@ export default function ImageConverter() {
   const [previews, setPreviews] = useState({}) // { [path]: dataURL }
 
   const addFiles = (paths) => {
-    const unique = paths.filter(p => p && !files.some(f => f.path === p))
-    const objects = unique.map(p => ({ path: p, selected: true }))
-    // Load thumbnails for new files
-    unique.forEach(p => {
-      api.image.readAsDataURL(p).then(url => {
-        if (url) setPreviews(prev => ({ ...prev, [p]: url }))
-      }).catch(() => {})
+    setFiles(prev => {
+      const unique = paths.filter(p => p && !prev.some(f => f.path === p))
+      if (!unique.length) return prev
+      const objects = unique.map(p => ({ path: p, selected: true }))
+      // Load thumbnails for new files
+      unique.forEach(p => {
+        api.image.readAsDataURL(p).then(url => {
+          if (url) setPreviews(pr => ({ ...pr, [p]: url }))
+        }).catch(() => {})
+      })
+      if (prev.length + unique.length > 1) setCustomName('')
+      // If Remove BG tab has no file, pick the first one
+      if (!bgFile) {
+        setBgFile(unique[0])
+        setBgStatus('idle')
+        setBgResult('')
+      }
+      return [...prev, ...objects]
     })
-    setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
     setResults([])
-    // If we're adding files and the Remove BG tab has no file, pick the first one as a convenience
-    if (unique.length > 0 && !bgFile) {
-      setBgFile(unique[0])
-      setBgStatus('idle')
-      setBgResult('')
-    }
   }
 
   const handleDrop = (e) => {

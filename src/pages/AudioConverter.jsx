@@ -1,23 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconAudio } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
+import WaveformPlayer from '../components/WaveformPlayer.jsx'
+import { savePageState, loadPageState } from '../pageCache.js'
 
 const FORMATS      = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
 const BITRATES     = ['64k', '128k', '192k', '256k', '320k']
 const SAMPLE_RATES = ['22050', '44100', '48000', '96000']
 const CHANNELS     = [{ value: '', label: 'Auto' }, { value: 'stereo', label: 'Stereo' }, { value: 'mono', label: 'Mono' }]
 const api = window.htk
+const CACHE_KEY = 'audio'
 
 export default function AudioConverter() {
   const { state } = useLocation()
+  const cached = useRef(loadPageState(CACHE_KEY)).current
   const [tab, setTab] = useState('convert')
 
-  const [files, setFiles]               = useState([]) // Array of { path, selected }
-  const [outputFormat, setOutputFormat] = useState('mp3')
-  const [bitrate, setBitrate]           = useState('192k')
-  const [sampleRate, setSampleRate]     = useState('44100')
-  const [outputDir, setOutputDir]       = useState('')
+  const [files, setFiles]               = useState(cached?.files || [])
+  const [outputFormat, setOutputFormat] = useState(cached?.outputFormat || 'mp3')
+  const [bitrate, setBitrate]           = useState(cached?.bitrate || '192k')
+  const [sampleRate, setSampleRate]     = useState(cached?.sampleRate || '44100')
+  const [outputDir, setOutputDir]       = useState(cached?.outputDir || '')
   const [results, setResults]           = useState([])
   const [loading, setLoading]           = useState(false)
   const [progress, setProgress]         = useState(null)
@@ -27,12 +31,22 @@ export default function AudioConverter() {
   const [currentIdx, setCurrentIdx]     = useState(-1)
   const [customName, setCustomName]     = useState('')
 
+  const [previewFile, setPreviewFile]   = useState(null)
+
   // Advanced
   const [channels, setChannels]   = useState('')
   const [normalize, setNormalize] = useState(false)
   const [fadeIn, setFadeIn]       = useState(0)
 
+  // Save state on unmount
   useEffect(() => {
+    return () => {
+      savePageState(CACHE_KEY, { files, outputFormat, bitrate, sampleRate, outputDir })
+    }
+  })
+
+  useEffect(() => {
+    if (cached) return // skip settings load if we have cache
     api.settings?.read().then(s => {
       if (!s) return
       if (s.general?.defaultOutputDir) setOutputDir(s.general.defaultOutputDir)
@@ -46,16 +60,21 @@ export default function AudioConverter() {
   }, [])
 
   useEffect(() => {
-    if (state?.file) addFiles([state.file])
+    if (state?.file) addFiles([state.file], true)
   }, [state?.file])
 
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
-  const addFiles = (paths) => {
-    const unique = paths.filter(p => p && !files.some(f => f.path === p))
-    const objects = unique.map(p => ({ path: p, selected: true }))
-    setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
+  const addFiles = (paths, autoPreview = false) => {
+    setFiles(prev => {
+      const unique = paths.filter(p => p && !prev.some(f => f.path === p))
+      if (!unique.length) return prev
+      const objects = unique.map(p => ({ path: p, selected: true }))
+      if (prev.length + unique.length > 1) setCustomName('')
+      if (autoPreview && unique.length === 1) setPreviewFile(unique[0])
+      return [...prev, ...objects]
+    })
     setResults([])
   }
 
@@ -63,7 +82,7 @@ export default function AudioConverter() {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const paths = getDropPaths(e)
     if (paths.length) {
-      addFiles(paths)
+      addFiles(paths, true)
       setIsFlashing(true)
       setTimeout(() => setIsFlashing(false), 500)
       window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/audio' }))
@@ -72,7 +91,7 @@ export default function AudioConverter() {
 
   const handleBrowse = async () => {
     const selected = await api.audio.selectFiles()
-    if (selected.length) addFiles(selected)
+    if (selected.length) addFiles(selected, true)
   }
 
   const pickOutputDir = async () => {
@@ -168,12 +187,17 @@ export default function AudioConverter() {
                         title="Toggle conversion for this file"
                       />
                       <span className="file-item-icon"><IconAudio size={16} /></span>
-                      <span className="file-item-name" title={fileObj.path}>{basename(fileObj.path)}</span>
+                      <span
+                        className="file-item-name"
+                        title={fileObj.path}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => { e.stopPropagation(); setPreviewFile(previewFile === fileObj.path ? null : fileObj.path) }}
+                      >{basename(fileObj.path)}</span>
                       {isCurrent && progress && (
                         <span className="file-item-status pending">{Math.round(progress.percent || 0)}%</span>
                       )}
                       {result && (
-                        <span 
+                        <span
                           className={`file-item-status ${result.success ? 'success' : 'error'}`}
                           title={result.error || ''}
                         >
@@ -184,6 +208,18 @@ export default function AudioConverter() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {previewFile && (
+              <div className="media-preview">
+                <WaveformPlayer
+                  filePath={previewFile}
+                  type="audio"
+                  accentColor="var(--text-primary)"
+                  label={`Preview — ${basename(previewFile)}`}
+                  onClose={() => setPreviewFile(null)}
+                />
               </div>
             )}
 
@@ -234,14 +270,14 @@ export default function AudioConverter() {
               </div>
               <div style={{ flex: 1 }} />
               <button className="btn btn-secondary" onClick={pickOutputDir}>📁 Output Folder</button>
-              <button 
-                className="btn btn-primary" 
-                onClick={convert} 
+              <button
+                className="btn btn-primary"
+                onClick={convert}
                 disabled={loading || !files.some(f => f.selected)}
               >
                 {loading ? <span className="spinner">⟳</span> : null}
-                {loading 
-                  ? 'Converting…' 
+                {loading
+                  ? 'Converting…'
                   : `Convert ${files.filter(f => f.selected).length > 1 ? `${files.filter(f => f.selected).length} files` : 'Audio'}`
                 }
               </button>

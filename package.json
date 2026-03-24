@@ -1,7 +1,7 @@
 {
   "name": "hoggies-tool-kit",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Your all-in-one file conversion and utility toolkit",
   "author": "Hoggie's Tool Kit",
   "scripts": {
