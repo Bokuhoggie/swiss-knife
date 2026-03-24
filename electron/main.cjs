@@ -1,7 +1,19 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, protocol, net } = require('electron');
 const path = require('path');
+const fs = require('fs');
+
+// ─── Single instance lock (fixes "needs two tries" NSIS installer bug) ───────
+// When the NSIS installer's "Launch app" checkbox is used, it starts the app
+// with elevated privileges. If the user also double-clicks the shortcut, two
+// instances fight. The single-instance lock ensures only one runs at a time
+// and focuses the existing window if a second instance tries to start.
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+}
+
 const { setupImageHandlers } = require('./ipc/image.cjs');
 const { setupVideoHandlers } = require('./ipc/video.cjs');
 const { setupAudioHandlers } = require('./ipc/audio.cjs');
@@ -10,9 +22,21 @@ const { setupPdfHandlers } = require('./ipc/pdf.cjs');
 const { setupHashHandlers } = require('./ipc/hash.cjs');
 const { setupSettingsHandlers } = require('./ipc/settings.cjs');
 const { setupInspectorHandlers } = require('./ipc/inspector.cjs');
+const { setupMediaHandlers } = require('./ipc/media.cjs');
 const { autoUpdater } = require('electron-updater');
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+const { pathToFileURL } = require('url');
+
+// Register sk-media as privileged to allow local image loading and bypass CSP
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'sk-media', privileges: {
+    secure: true,
+    supportFetchAPI: true,
+    bypassCSP: true,
+    stream: true
+  } }
+]);
 
 function createWindow() {
   const isWin = process.platform === 'win32';
@@ -119,7 +143,114 @@ function setupAutoUpdater(win) {
   }, 8000);
 }
 
+// When a second instance tries to start, focus the existing window instead
+app.on('second-instance', () => {
+  const wins = BrowserWindow.getAllWindows();
+  if (wins.length) {
+    const win = wins[0];
+    if (win.isMinimized()) win.restore();
+    win.focus();
+  }
+});
+
 app.whenReady().then(() => {
+  // Register custom protocol to load local files (bypasses "Not allowed to load local resource")
+  // Uses query-param format: sk-media://file?path=<encoded-path>
+  // This avoids Windows drive-letter being parsed as a hostname.
+  protocol.handle('sk-media', (request) => {
+    let rawPath;
+    try {
+      const url = new URL(request.url);
+      rawPath = url.searchParams.get('path');
+    } catch { /* fallback below */ }
+
+    // Fallback for legacy format (sk-media://C%3A%5C...)
+    if (!rawPath) {
+      rawPath = decodeURIComponent(request.url.replace(/^sk-media:\/\/\/?/, ''));
+      const qIdx = rawPath.indexOf('?');
+      if (qIdx !== -1) rawPath = rawPath.substring(0, qIdx);
+    }
+
+    rawPath = path.normalize(rawPath);
+
+    // ── Range-request support (required for <video>/<audio> seeking) ───
+    // Chromium sends Range headers to seek within media files.  Without
+    // proper 206 Partial Content responses, playback / scrubbing breaks.
+    try {
+      const stat = fs.statSync(rawPath);
+      const fileSize = stat.size;
+      const rangeHeader = request.headers.get('range');
+
+      // Guess MIME from extension
+      const ext = path.extname(rawPath).toLowerCase();
+      const mimeMap = {
+        '.mp3': 'audio/mpeg', '.wav': 'audio/wav', '.flac': 'audio/flac',
+        '.aac': 'audio/aac', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4',
+        '.opus': 'audio/opus', '.wma': 'audio/x-ms-wma',
+        '.mp4': 'video/mp4', '.webm': 'video/webm', '.mkv': 'video/x-matroska',
+        '.avi': 'video/x-msvideo', '.mov': 'video/quicktime',
+        '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif', '.webp': 'image/webp', '.svg': 'image/svg+xml',
+        '.pdf': 'application/pdf',
+      };
+      const contentType = mimeMap[ext] || 'application/octet-stream';
+
+      if (rangeHeader) {
+        // Parse "bytes=START-END" (END is optional)
+        const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+        if (match) {
+          const start = parseInt(match[1], 10);
+          const end = match[2] ? parseInt(match[2], 10) : fileSize - 1;
+          const chunkSize = end - start + 1;
+
+          const stream = fs.createReadStream(rawPath, { start, end });
+          const readable = new ReadableStream({
+            start(controller) {
+              stream.on('data', (chunk) => controller.enqueue(new Uint8Array(chunk)));
+              stream.on('end', () => controller.close());
+              stream.on('error', (err) => controller.error(err));
+            },
+            cancel() { stream.destroy(); }
+          });
+
+          return new Response(readable, {
+            status: 206,
+            headers: {
+              'Content-Type': contentType,
+              'Content-Length': String(chunkSize),
+              'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+              'Accept-Ranges': 'bytes',
+            },
+          });
+        }
+      }
+
+      // Full file response (no Range header) — still include Accept-Ranges
+      // so the browser knows it can request ranges later.
+      const stream = fs.createReadStream(rawPath);
+      const readable = new ReadableStream({
+        start(controller) {
+          stream.on('data', (chunk) => controller.enqueue(new Uint8Array(chunk)));
+          stream.on('end', () => controller.close());
+          stream.on('error', (err) => controller.error(err));
+        },
+        cancel() { stream.destroy(); }
+      });
+
+      return new Response(readable, {
+        status: 200,
+        headers: {
+          'Content-Type': contentType,
+          'Content-Length': String(fileSize),
+          'Accept-Ranges': 'bytes',
+        },
+      });
+    } catch {
+      // File not found or other fs error — fall back to net.fetch
+      return net.fetch(pathToFileURL(rawPath).href);
+    }
+  })
+
   const win = createWindow();
 
   // Register all IPC handlers
@@ -131,6 +262,7 @@ app.whenReady().then(() => {
   setupHashHandlers(ipcMain, dialog);
   setupSettingsHandlers(ipcMain);
   setupInspectorHandlers(ipcMain, dialog);
+  setupMediaHandlers(ipcMain);
 
   // Open output folder in Finder/Explorer
   ipcMain.handle('shell:openPath', async (_, filePath) => {

@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconPDF } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
+import { savePageState, loadPageState } from '../pageCache.js'
 
 const api = window.swissKnife
 
@@ -12,14 +13,20 @@ const COMPRESS_LEVELS = [
 ]
 
 function MergeTab() {
-  const [files, setFiles] = useState([])
-  const [outputDir, setOutputDir] = useState('')
+  const cached = useRef(loadPageState('pdf-merge')).current
+  const [files, setFiles] = useState(cached?.files || [])
+  const [outputDir, setOutputDir] = useState(cached?.outputDir || '')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
 
   useEffect(() => {
+    return () => { savePageState('pdf-merge', { files, outputDir }) }
+  })
+
+  useEffect(() => {
+    if (cached) return
     api.settings?.read().then(s => {
       if (!s) return
       if (s.general?.defaultOutputDir) setOutputDir(s.general.defaultOutputDir)
@@ -200,12 +207,22 @@ function SplitTab() {
   )
 }
 
-function CompressTab() {
+function formatSize(bytes) {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${bytes} B`
+}
+
+function CompressTab({ preloadFile }) {
   const [file, setFile] = useState(null)
+  const [fileSize, setFileSize] = useState(null)
   const [outputDir, setOutputDir] = useState('')
   const [compressionLevel, setCompressionLevel] = useState('medium')
+  const [mode, setMode] = useState('level') // 'level' or 'target'
+  const [targetSizeMB, setTargetSizeMB] = useState('')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [progressMsg, setProgressMsg] = useState(null)
   useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
 
   useEffect(() => {
@@ -216,38 +233,121 @@ function CompressTab() {
     }).catch(() => {})
   }, [])
 
+  useEffect(() => {
+    if (preloadFile) selectFile(preloadFile)
+  }, [preloadFile])
+
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 
-  const pickFile = async () => { const f = await api.pdf.selectFile(); if (f) { setFile(f); setResult(null) } }
+  const selectFile = async (f) => {
+    setFile(f)
+    setResult(null)
+    setFileSize(null)
+    const res = await api.pdf.fileSize(f)
+    if (res?.success) setFileSize(res.size)
+  }
+
+  const pickFile = async () => {
+    const f = await api.pdf.selectFile()
+    if (f) selectFile(f)
+  }
   const pickOutputDir = async () => { const dir = await api.selectOutputDir(); if (dir) setOutputDir(dir) }
 
   const compress = async () => {
     if (!file || !outputDir) { alert('Select a PDF and output folder.'); return }
-    setLoading(true)
+    setLoading(true); setResult(null); setProgressMsg(null)
+
     try {
-      const res = await api.pdf.compress({ filePath: file, outputDir, compressionLevel })
+      let res
+      if (mode === 'target' && targetSizeMB) {
+        api.pdf.onCompressProgress((data) => setProgressMsg(data.status))
+        res = await api.pdf.compressToSize({ filePath: file, outputDir, targetSizeMB: parseFloat(targetSizeMB) })
+        api.pdf.offCompressProgress()
+      } else {
+        res = await api.pdf.compress({ filePath: file, outputDir, compressionLevel })
+      }
       setResult(res)
     } catch (err) {
       setResult({ success: false, error: err?.message || 'Compression failed' })
     }
-    setLoading(false)
+    setLoading(false); setProgressMsg(null)
   }
 
   return (
     <div>
-      <div className="controls-row" style={{ marginBottom: 16 }}>
+      <div className="controls-row" style={{ marginBottom: 16, alignItems: 'center' }}>
         <button className="btn btn-secondary" onClick={pickFile} disabled={loading}>📄 Select PDF</button>
-        {file && <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{basename(file)}</span>}
+        {file && (
+          <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+            {basename(file)}
+            {fileSize != null && <span style={{ opacity: 0.6, marginLeft: 8 }}>({formatSize(fileSize)})</span>}
+          </span>
+        )}
       </div>
-      <div className="form-group" style={{ marginBottom: 16 }}>
-        <label className="form-label">Compression Level</label>
-        <select className="form-select" value={compressionLevel} onChange={e => setCompressionLevel(e.target.value)} disabled={loading}>
-          {COMPRESS_LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-        </select>
+
+      {/* Mode toggle */}
+      <div className="controls-row" style={{ marginBottom: 12, gap: 8 }}>
+        <button
+          className={`tab-btn${mode === 'level' ? ' active' : ''}`}
+          onClick={() => setMode('level')}
+          disabled={loading}
+          style={{ fontSize: 'calc(6px * var(--font-scale))' }}
+        >
+          Compression Level
+        </button>
+        <button
+          className={`tab-btn${mode === 'target' ? ' active' : ''}`}
+          onClick={() => setMode('target')}
+          disabled={loading}
+          style={{ fontSize: 'calc(6px * var(--font-scale))' }}
+        >
+          Target File Size
+        </button>
       </div>
+
+      {mode === 'level' && (
+        <div className="form-group" style={{ marginBottom: 16 }}>
+          <label className="form-label">Compression Level</label>
+          <select className="form-select" value={compressionLevel} onChange={e => setCompressionLevel(e.target.value)} disabled={loading}>
+            {COMPRESS_LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+          </select>
+        </div>
+      )}
+
+      {mode === 'target' && (
+        <div className="form-group" style={{ marginBottom: 16 }}>
+          <label className="form-label">Target Size (MB)</label>
+          <input
+            className="form-input"
+            type="number"
+            min={0.1}
+            step={0.1}
+            value={targetSizeMB}
+            onChange={e => setTargetSizeMB(e.target.value)}
+            placeholder={fileSize ? `Current: ${(fileSize / (1024 * 1024)).toFixed(1)} MB` : 'e.g. 2.0'}
+            disabled={loading}
+          />
+        </div>
+      )}
+
+      {loading && progressMsg && (
+        <div style={{
+          padding: '8px 12px',
+          marginBottom: 12,
+          fontSize: 'calc(6px * var(--font-scale))',
+          fontFamily: "'Press Start 2P', monospace",
+          color: 'var(--text-secondary)',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+        }}>
+          <span className="spinner" style={{ fontSize: 10, marginRight: 8 }}>⟳</span>
+          {progressMsg}
+        </div>
+      )}
+
       <div className="controls-row">
         <button className="btn btn-secondary" onClick={pickOutputDir} disabled={loading}>📁 Output Folder</button>
-        <button className="btn btn-primary" onClick={compress} disabled={loading || !file}>
+        <button className="btn btn-primary" onClick={compress} disabled={loading || !file || (mode === 'target' && !targetSizeMB)}>
           {loading ? <span className="spinner">⟳</span> : '🗜'} Compress PDF
         </button>
       </div>
@@ -261,7 +361,20 @@ function CompressTab() {
       {result && (
         <div className={`result-banner ${result.success ? 'success' : 'error'}`}>
           {result.success
-            ? `✓ Compressed: ${basename(result.outputPath)}${result.savedBytes ? ` (saved ${(result.savedBytes / 1024).toFixed(0)} KB)` : ''}`
+            ? <>
+                ✓ Compressed: {basename(result.outputPath)}
+                {result.originalSize && result.finalSize && (
+                  <span style={{ opacity: 0.8, marginLeft: 6 }}>
+                    — {formatSize(result.originalSize)} → {formatSize(result.finalSize)}
+                    {' '}({Math.round((1 - result.finalSize / result.originalSize) * 100)}% reduction)
+                  </span>
+                )}
+                {result.hitTarget === false && (
+                  <span style={{ display: 'block', marginTop: 4, opacity: 0.7 }}>
+                    ⚠ Could not reach target — this is the smallest achievable size
+                  </span>
+                )}
+              </>
             : `✗ ${result.error}`}
         </div>
       )}
@@ -283,7 +396,7 @@ export default function PdfTools() {
     }
   }, [state?.file])
   return (
-    <div className="page-anim" style={{ '--accent': '#FFD60A' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title"><IconPDF size={20} /> PDF Tools</h1>
         <p className="page-subtitle">Merge, split, and compress PDF documents locally</p>

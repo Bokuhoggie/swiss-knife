@@ -114,6 +114,8 @@ body.theme-light::after { display: none; }
   flex-direction: column;
   height: 100vh;
   background: var(--bg-base);
+  position: relative;
+  z-index: 2;
 }
 
 /* ── Title bar (window drag region) ── */
@@ -356,7 +358,10 @@ body.theme-light::after { display: none; }
 .page-scroll {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 28px 32px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .page-header {
@@ -590,10 +595,413 @@ body.theme-light::after { display: none; }
   white-space: nowrap;
 }
 
+.file-item-name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-underline-offset: 3px;
+}
+
 .file-item-size {
   font-family: 'VT323', monospace;
   font-size: 15px;
   color: var(--text-muted);
+}
+
+/* ── Media Preview ── */
+.media-preview {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  overflow: visible;
+  position: relative;
+}
+
+.media-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.media-preview-player {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  background: #000;
+}
+
+.media-preview-video-wrap {
+  position: relative;
+  background: #000;
+  line-height: 0;               /* kill extra space below video */
+}
+
+.media-preview-audio {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: var(--bg-surface);
+  outline: none;
+}
+
+/* ── Image preview in inspector ── */
+.inspector-image-preview {
+  margin-top: 8px;
+  text-align: center;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  overflow: hidden;
+}
+.inspector-image-preview img {
+  max-width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border-radius: 2px;
+  image-rendering: auto;
+}
+
+/* ── Waveform Player ── */
+.waveform-player {
+  overflow: visible;
+  position: relative;
+}
+
+/* Crown: the waveform strip with upward glow */
+.waveform-crown {
+  position: relative;
+  z-index: 3;
+}
+
+.waveform-container {
+  position: relative;
+  height: 80px;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.waveform-bars {
+  display: flex;
+  align-items: center;           /* centered bars = mirrored waveform look */
+  height: 100%;
+  gap: 1px;
+  padding: 8px 4px;
+}
+
+.waveform-bar {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 1px;
+  pointer-events: none;          /* clicks pass through to container */
+  transition: opacity 0.15s ease;
+}
+
+/* Hover: dim unplayed bars, brighten played ones */
+.waveform-container:hover .waveform-bar {
+  opacity: 0.35 !important;
+}
+.waveform-container:hover .waveform-bar[style*="opacity: 1"] {
+  opacity: 0.9 !important;
+}
+
+.waveform-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: var(--wf-accent, var(--accent));
+  pointer-events: none;
+  box-shadow: 0 0 10px 2px var(--wf-accent, var(--accent));
+  will-change: transform;
+  z-index: 2;
+}
+
+.waveform-hover-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: var(--text-muted);
+  pointer-events: none;
+  will-change: transform;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 1;
+}
+
+.waveform-hover-tooltip {
+  position: absolute;
+  top: 4px;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(5px * var(--font-scale));
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 2px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 4;
+}
+
+.waveform-clip-region {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(59, 130, 246, 0.12);
+  border-left: 2px solid var(--accent-3, #3b82f6);
+  border-right: 2px solid var(--accent-3, #3b82f6);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Draggable clip handles ── */
+.waveform-clip-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  z-index: 5;
+  cursor: ew-resize;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.waveform-clip-handle-left {
+  transform: translateX(-12px);
+}
+.waveform-clip-handle-right {
+  transform: translateX(-2px);
+}
+
+.waveform-clip-handle-bar {
+  width: 4px;
+  height: 100%;
+  background: var(--accent-3, #3b82f6);
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+.waveform-clip-handle:hover .waveform-clip-handle-bar {
+  background: #60a5fa;
+  box-shadow: 0 0 6px 1px var(--accent-3, #3b82f6);
+}
+
+.waveform-clip-handle-label {
+  position: absolute;
+  bottom: -18px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(5px * var(--font-scale));
+  color: var(--accent-3, #3b82f6);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Razor cursor */
+.waveform-razor-active {
+  cursor: crosshair !important;
+}
+
+.waveform-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(6px * var(--font-scale));
+  color: var(--text-muted);
+}
+
+.waveform-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+/* Transport group: skip-back, play, skip-fwd */
+.waveform-transport {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.waveform-play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--wf-accent, var(--accent));
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  padding: 0;
+  font-size: 0;
+}
+.waveform-play-btn:hover {
+  background: var(--wf-accent, var(--accent));
+  color: var(--bg-base);
+  box-shadow: 0 0 12px 2px var(--wf-accent, var(--accent));
+}
+
+.waveform-skip-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  padding: 0;
+  font-size: 0;
+}
+.waveform-skip-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+/* Volume */
+.waveform-volume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.waveform-volume-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 4px;
+  transition: var(--transition-smooth);
+}
+.waveform-volume-icon:hover {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+.waveform-volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 64px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.waveform-volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--wf-accent, var(--accent));
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 4px 1px var(--wf-accent, var(--accent));
+}
+.waveform-volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--wf-accent, var(--accent));
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 4px 1px var(--wf-accent, var(--accent));
+}
+
+/* Speed button */
+.waveform-speed-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(6px * var(--font-scale));
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-smooth);
+}
+.waveform-speed-btn:hover {
+  color: var(--wf-accent, var(--accent));
+  border-color: var(--wf-accent, var(--accent));
+}
+
+.waveform-time {
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(7px * var(--font-scale));
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.waveform-clip-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.waveform-clip-label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(6px * var(--font-scale));
+  color: var(--accent-3, #3b82f6);
+  white-space: nowrap;
+}
+
+/* Clip tool buttons (razor, set [, set ], clear) */
+.waveform-clip-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: calc(6px * var(--font-scale));
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-smooth);
+}
+.waveform-clip-tool-btn:hover {
+  color: var(--accent-3, #3b82f6);
+  border-color: var(--accent-3, #3b82f6);
+}
+.waveform-clip-tool-btn.active {
+  color: var(--bg-base);
+  background: var(--accent-3, #3b82f6);
+  border-color: var(--accent-3, #3b82f6);
+  box-shadow: 0 0 8px 1px var(--accent-3, #3b82f6);
 }
 
 .file-item-status {
@@ -1050,11 +1458,11 @@ input[type="range"]::-webkit-slider-thumb {
   pointer-events: auto;
 }
 
-/* Inner Pages: Small and hugging the bottom */
-.sk-widget-container.sk-size-small {
-  bottom: -20px;
+/* Settings Page: Medium size, centered lower */
+.sk-widget-container.sk-size-medium {
+  bottom: 10px;
   left: 50%;
-  transform: translateX(-50%) scale(1.4);
+  transform: translateX(-50%) scale(2.0);
   transform-origin: bottom center;
   width: 500px;
   height: 240px;
@@ -1062,8 +1470,36 @@ input[type="range"]::-webkit-slider-thumb {
   padding-bottom: 0px;
   pointer-events: none;
 }
+.sk-widget-container.sk-size-medium:hover {
+  pointer-events: auto;
+}
+@media (max-height: 700px) {
+  .sk-widget-container.sk-size-medium {
+    transform: translateX(-50%) scale(1.6);
+  }
+}
+@media (max-height: 640px) {
+  .sk-widget-container.sk-size-medium {
+    transform: translateX(-50%) scale(1.3);
+  }
+}
+
+/* Inner Pages: Small and hugging the bottom */
+.sk-widget-container.sk-size-small {
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%) scale(2.0);
+  transform-origin: bottom center;
+  width: 500px;
+  height: 240px;
+  align-items: flex-end;
+  padding-bottom: 0px;
+  pointer-events: none;
+  transition: transform 0.25s ease-out;
+}
 .sk-widget-container.sk-size-small:hover {
   pointer-events: auto;
+  transform: translateX(-50%) scale(2.2);
 }
 @media (max-height: 700px) {
   .sk-widget-container.sk-size-small {
@@ -1108,14 +1544,14 @@ input[type="range"]::-webkit-slider-thumb {
   padding: 0;
   cursor: pointer;
   z-index: 20;
-  filter: drop-shadow(0 0 16px rgba(200,0,26,0.5))
+  filter: drop-shadow(0 0 16px var(--accent-glow))
           drop-shadow(0 8px 32px rgba(0,0,0,0.9));
   transition: filter 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1);
   outline: none;
 }
 
 .sk-handle-btn-horizontal:hover {
-  filter: drop-shadow(0 0 24px rgba(200,0,26,0.8))
+  filter: drop-shadow(0 0 24px var(--accent-glow))
           drop-shadow(0 0 12px rgba(var(--accent-rgb),0.4))
           drop-shadow(0 8px 32px rgba(0,0,0,1));
   transform: scale(1.05); /* very slight lift */
@@ -1439,6 +1875,19 @@ input[type="range"]::-webkit-slider-thumb {
   letter-spacing: 0.5px;
 }
 
+/* "Open in X" button in inspector */
+.inspector-send-btn {
+  font-size: calc(9px * var(--font-scale)) !important;
+  padding: 10px 20px !important;
+  white-space: nowrap;
+  color: var(--bg-base) !important;
+  background: var(--text-primary) !important;
+  border-color: var(--text-primary) !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  letter-spacing: 0.5px;
+}
+
 /* Section title inside inspector cards */
 .inspector-section-title {
   font-family: 'Press Start 2P', monospace;
@@ -1530,4 +1979,232 @@ input[type="range"]::-webkit-slider-thumb {
 .settings-cog-btn:hover {
   opacity: 0.9;
   transform: rotate(90deg);
+}
+
+/* ============================================
+   TRON THEME — Circuit grid & glow overrides
+   Uses var(--accent-rgb) so it works for both
+   blue (tron) and orange (tron_orange) variants
+   ============================================ */
+
+/* Light cycle animations — head + fading trail */
+@keyframes tron-cycle-h {
+  0%   { left: -60px; }
+  100% { left: 100%; }
+}
+@keyframes tron-cycle-h2 {
+  0%   { right: -60px; }
+  100% { right: 100%; }
+}
+@keyframes tron-cycle-v {
+  0%   { top: -60px; }
+  100% { top: 100%; }
+}
+@keyframes tron-cycle-v2 {
+  0%   { bottom: -60px; }
+  100% { bottom: 100%; }
+}
+
+/* Grid background overlay — the iconic TRON grid floor
+   Uses ::before on body so it sits behind everything.
+   body gets isolation:isolate to create a stacking context so
+   z-index:-1 stays above the body background but below all children. */
+body.theme-tron {
+  isolation: isolate;
+}
+body.theme-tron::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(var(--accent-rgb),0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb),0.03) 1px, transparent 1px),
+    linear-gradient(rgba(var(--accent-rgb),0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb),0.06) 1px, transparent 1px);
+  background-size:
+    20px 20px,
+    20px 20px,
+    100px 100px,
+    100px 100px;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.4;
+}
+
+/* Light cycle container — above grid (z:-1), below app-shell (z:2) */
+body.theme-tron .tron-cycles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.7;
+  transition: opacity 0.6s ease, filter 0.6s ease;
+}
+/* Dimmed + blurred when not on home page */
+body.theme-tron .tron-cycles.tron-cycles-dim {
+  opacity: 0.15;
+  filter: blur(6px);
+}
+body.theme-tron .tron-cycles .cycle {
+  position: absolute;
+  border-radius: 0;
+}
+/* Horizontal blue cycles — long bright trail + vivid head */
+body.theme-tron .tron-cycles .cycle-h {
+  width: 160px;
+  height: 2px;
+  background: linear-gradient(to right, transparent 0%, rgba(77,232,255,0.05) 10%, rgba(77,232,255,0.3) 50%, #4DE8FF 85%, #FFFFFF);
+  box-shadow: 0 0 12px 3px rgba(77,232,255,0.9), 0 0 30px 8px rgba(77,232,255,0.4), 0 0 60px 16px rgba(77,232,255,0.15);
+  animation: tron-cycle-h linear infinite;
+}
+body.theme-tron .tron-cycles .cycle-h2 {
+  width: 160px;
+  height: 2px;
+  background: linear-gradient(to left, transparent 0%, rgba(77,232,255,0.05) 10%, rgba(77,232,255,0.3) 50%, #4DE8FF 85%, #FFFFFF);
+  box-shadow: 0 0 12px 3px rgba(77,232,255,0.7), 0 0 30px 8px rgba(77,232,255,0.3), 0 0 60px 16px rgba(77,232,255,0.1);
+  animation: tron-cycle-h2 linear infinite;
+}
+/* Vertical blue cycles */
+body.theme-tron .tron-cycles .cycle-v {
+  width: 2px;
+  height: 160px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(77,232,255,0.05) 10%, rgba(77,232,255,0.3) 50%, #4DE8FF 85%, #FFFFFF);
+  box-shadow: 0 0 12px 3px rgba(77,232,255,0.8), 0 0 30px 8px rgba(77,232,255,0.35), 0 0 60px 16px rgba(77,232,255,0.12);
+  animation: tron-cycle-v linear infinite;
+}
+body.theme-tron .tron-cycles .cycle-v2 {
+  width: 2px;
+  height: 160px;
+  background: linear-gradient(to top, transparent 0%, rgba(77,232,255,0.05) 10%, rgba(77,232,255,0.3) 50%, #4DE8FF 85%, #FFFFFF);
+  box-shadow: 0 0 12px 3px rgba(77,232,255,0.6), 0 0 30px 8px rgba(77,232,255,0.25), 0 0 60px 16px rgba(77,232,255,0.08);
+  animation: tron-cycle-v2 linear infinite;
+}
+/* Orange cycle variants */
+body.theme-tron .tron-cycles .cycle-h.orange {
+  background: linear-gradient(to right, transparent 0%, rgba(255,106,0,0.05) 10%, rgba(255,106,0,0.3) 50%, #FF6A00 85%, #FFCC66);
+  box-shadow: 0 0 12px 3px rgba(255,106,0,0.9), 0 0 30px 8px rgba(255,106,0,0.4), 0 0 60px 16px rgba(255,106,0,0.15);
+}
+body.theme-tron .tron-cycles .cycle-h2.orange {
+  background: linear-gradient(to left, transparent 0%, rgba(255,106,0,0.05) 10%, rgba(255,106,0,0.3) 50%, #FF6A00 85%, #FFCC66);
+  box-shadow: 0 0 12px 3px rgba(255,106,0,0.7), 0 0 30px 8px rgba(255,106,0,0.3), 0 0 60px 16px rgba(255,106,0,0.1);
+}
+body.theme-tron .tron-cycles .cycle-v.orange {
+  background: linear-gradient(to bottom, transparent 0%, rgba(255,106,0,0.05) 10%, rgba(255,106,0,0.3) 50%, #FF6A00 85%, #FFCC66);
+  box-shadow: 0 0 12px 3px rgba(255,106,0,0.8), 0 0 30px 8px rgba(255,106,0,0.35), 0 0 60px 16px rgba(255,106,0,0.12);
+}
+body.theme-tron .tron-cycles .cycle-v2.orange {
+  background: linear-gradient(to top, transparent 0%, rgba(255,106,0,0.05) 10%, rgba(255,106,0,0.3) 50%, #FF6A00 85%, #FFCC66);
+  box-shadow: 0 0 12px 3px rgba(255,106,0,0.6), 0 0 30px 8px rgba(255,106,0,0.25), 0 0 60px 16px rgba(255,106,0,0.08);
+}
+
+/* Cards get a circuit-board inner glow */
+body.theme-tron .card {
+  border: 1px solid rgba(var(--accent-rgb),0.1);
+  box-shadow:
+    var(--shadow-card),
+    inset 0 0 40px rgba(var(--accent-rgb),0.01);
+}
+
+/* Corner accents glow brighter */
+body.theme-tron .card::before,
+body.theme-tron .card::after {
+  opacity: 0.7;
+  box-shadow: 0 0 6px rgba(var(--accent-rgb),0.4);
+}
+
+/* Sidebar border glows like a light wall */
+body.theme-tron .sidebar {
+  border-right: 1px solid rgba(var(--accent-rgb),0.12);
+  box-shadow: 1px 0 20px rgba(var(--accent-rgb),0.04);
+}
+
+/* Sidebar nav links get circuit-line left edge on hover */
+body.theme-tron .sidebar-link:hover,
+body.theme-tron .sidebar-link.active {
+  box-shadow: inset 3px 0 0 var(--accent), 0 0 15px rgba(var(--accent-rgb),0.06);
+}
+
+/* Title bar subtle bottom glow */
+body.theme-tron .title-bar {
+  border-bottom: 1px solid rgba(var(--accent-rgb),0.08);
+  box-shadow: 0 1px 15px rgba(var(--accent-rgb),0.03);
+}
+
+/* Buttons get the TRON glow treatment */
+body.theme-tron .btn-primary {
+  box-shadow: 0 0 12px rgba(var(--accent-rgb),0.25), inset 0 0 12px rgba(var(--accent-rgb),0.04);
+  text-shadow: 0 0 8px rgba(var(--accent-rgb),0.4);
+}
+body.theme-tron .btn-primary:hover {
+  box-shadow: 0 0 24px rgba(var(--accent-rgb),0.4), inset 0 0 20px rgba(var(--accent-rgb),0.06);
+}
+
+/* Secondary buttons glow on hover */
+body.theme-tron .btn-secondary:hover {
+  border-color: rgba(var(--accent-rgb),0.3);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb),0.1);
+}
+
+/* Inputs glow on focus — data entry terminal feel */
+body.theme-tron .form-input:focus,
+body.theme-tron .form-select:focus {
+  border-color: rgba(var(--accent-rgb),0.3);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb),0.1), inset 0 0 8px rgba(var(--accent-rgb),0.02);
+}
+
+/* Range slider thumb glows */
+body.theme-tron input[type="range"]::-webkit-slider-thumb {
+  box-shadow: 0 0 8px rgba(var(--accent-rgb),0.5);
+}
+
+/* Page titles get text glow */
+body.theme-tron .page-title {
+  text-shadow: 0 0 20px rgba(var(--accent-rgb),0.25), 0 0 60px rgba(var(--accent-rgb),0.08);
+}
+
+/* Dropzone border */
+body.theme-tron .dropzone {
+  border-color: rgba(var(--accent-rgb),0.1);
+  box-shadow: inset 0 0 30px rgba(var(--accent-rgb),0.015);
+}
+body.theme-tron .dropzone:hover,
+body.theme-tron .dropzone.drag-over {
+  border-color: rgba(var(--accent-rgb),0.25);
+  box-shadow: inset 0 0 40px rgba(var(--accent-rgb),0.03), 0 0 20px rgba(var(--accent-rgb),0.06);
+}
+
+/* Section dividers glow like circuit traces */
+body.theme-tron .section-divider {
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.15) 20%, rgba(var(--accent-rgb),0.15) 80%, transparent);
+  height: 1px;
+  box-shadow: 0 0 8px rgba(var(--accent-rgb),0.1);
+}
+
+/* Scrollbar */
+body.theme-tron ::-webkit-scrollbar-thumb {
+  box-shadow: 0 0 10px rgba(var(--accent-rgb),0.4);
+}
+
+/* Result banners glow */
+body.theme-tron .result-banner.success {
+  box-shadow: 0 0 15px rgba(var(--accent-rgb),0.1);
+}
+
+/* Toggle track */
+body.theme-tron .pixel-toggle-track {
+  box-shadow: 0 0 6px rgba(var(--accent-rgb),0.15);
+}
+
+/* Tab buttons — circuit-board segments */
+body.theme-tron .tab-btn.active {
+  box-shadow: 0 -2px 0 var(--accent), 0 0 12px rgba(var(--accent-rgb),0.08);
+}
+
+/* SK Widget handle gets extra glow on TRON */
+body.theme-tron .sk-handle-btn-horizontal {
+  filter: drop-shadow(0 0 8px rgba(var(--accent-rgb),0.15));
+}
+body.theme-tron .sk-handle-btn-horizontal:hover {
+  filter: drop-shadow(0 0 16px rgba(var(--accent-rgb),0.3));
 }

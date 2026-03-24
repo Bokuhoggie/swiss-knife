@@ -4,13 +4,24 @@ const STORAGE_KEY = 'swiss-knife-theme'
 const FONT_KEY = 'swiss-knife-font'
 
 export const SIZES = {
-  s:  { id: 's',  name: 'Small',  scale: 0.82 },
-  m:  { id: 'm',  name: 'Medium', scale: 1.0  },
-  l:  { id: 'l',  name: 'Large',  scale: 1.22 },
-  xl: { id: 'xl', name: 'X-Large', scale: 1.48 },
+  s:   { id: 's',   name: 'Small',   scale: 0.82 },
+  m:   { id: 'm',   name: 'Medium',  scale: 1.0  },
+  l:   { id: 'l',   name: 'Large',   scale: 1.22 },
+  xl:  { id: 'xl',  name: 'X-Large', scale: 1.48 },
+  xxl: { id: 'xxl', name: '4K',      scale: 2.10 },
 }
 
 const SIZE_KEY = 'swiss-knife-size'
+
+// Auto-detect best default size for high-DPI/4K displays
+function detectDefaultSize() {
+  const saved = localStorage.getItem(SIZE_KEY)
+  if (saved) return saved
+  const dpr = window.devicePixelRatio || 1
+  if (dpr >= 2.5) return 'xl'    // 4K+ display
+  if (dpr >= 1.75) return 'l'    // QHD / high-DPI
+  return 'm'
+}
 
 export const FONTS = {
   pixel: {
@@ -48,64 +59,64 @@ export const THEMES = {
   arcade: {
     id: 'arcade',
     name: 'Arcade',
-    preview: ['#00FF87', '#FF3CAC', '#39FF14', '#0A0A0C'],
+    preview: ['#00D4A0', '#D84A90', '#30D450', '#0A0A0C'],
     vars: {
       '--bg-base':        '#0A0A0C',
       '--bg-surface':     '#0F0F14',
       '--bg-elevated':    '#16161E',
       '--bg-card':        '#13131A',
       '--bg-hover':       '#1E1E28',
-      '--accent':         '#00FF87',
-      '--accent-dim':     '#00CC6A',
-      '--accent-glow':    'rgba(0, 255, 135, 0.2)',
-      '--accent-2':       '#FF3CAC',
-      '--accent-3':       '#39FF14',
-      '--accent-4':       '#FFD60A',
-      '--accent-rgb':     '0, 255, 135',
-      '--success':        '#00FF87',
-      '--warning':        '#FFD60A',
-      '--error':          '#FF3CAC',
+      '--accent':         '#00D4A0',
+      '--accent-dim':     '#00A87E',
+      '--accent-glow':    'rgba(0, 212, 160, 0.2)',
+      '--accent-2':       '#D84A90',
+      '--accent-3':       '#30D450',
+      '--accent-4':       '#E8C020',
+      '--accent-rgb':     '0, 212, 160',
+      '--success':        '#00D4A0',
+      '--warning':        '#E8C020',
+      '--error':          '#D84A90',
       '--text-primary':   '#E8E8F0',
       '--text-secondary': '#8888A8',
       '--text-muted':     '#444460',
-      '--border':         'rgba(0, 255, 135, 0.12)',
-      '--border-hover':   'rgba(0, 255, 135, 0.28)',
-      '--shadow-card':    '0 0 0 1px rgba(0,255,135,0.1), 0 8px 32px rgba(0,0,0,0.6)',
-      '--glow-accent':    '0 0 12px rgba(0,255,135,0.5)',
-      '--glow-pink':      '0 0 12px rgba(255,60,172,0.5)',
-      '--glow-cyan':      '0 0 12px rgba(57,255,20,0.5)',
+      '--border':         'rgba(0, 212, 160, 0.12)',
+      '--border-hover':   'rgba(0, 212, 160, 0.28)',
+      '--shadow-card':    '0 0 0 1px rgba(0,212,160,0.1), 0 8px 32px rgba(0,0,0,0.6)',
+      '--glow-accent':    '0 0 12px rgba(0,212,160,0.5)',
+      '--glow-pink':      '0 0 12px rgba(216,74,144,0.5)',
+      '--glow-cyan':      '0 0 12px rgba(48,212,80,0.5)',
     },
   },
 
   navy: {
     id: 'navy',
     name: 'Navy',
-    preview: ['#60a5fa', '#818cf8', '#22d3ee', '#080d1a'],
+    preview: ['#5090D8', '#7078D0', '#20B4C8', '#080d1a'],
     vars: {
       '--bg-base':        '#080d1a',
       '--bg-surface':     '#0f172a',
       '--bg-elevated':    '#1e293b',
       '--bg-card':        '#111827',
       '--bg-hover':       '#243449',
-      '--accent':         '#60a5fa',
-      '--accent-dim':     '#3b82f6',
-      '--accent-glow':    'rgba(96, 165, 250, 0.2)',
-      '--accent-2':       '#818cf8',
-      '--accent-3':       '#22d3ee',
-      '--accent-4':       '#34d399',
-      '--accent-rgb':     '96, 165, 250',
-      '--success':        '#34d399',
-      '--warning':        '#fbbf24',
-      '--error':          '#f87171',
+      '--accent':         '#5090D8',
+      '--accent-dim':     '#3570C0',
+      '--accent-glow':    'rgba(80, 144, 216, 0.2)',
+      '--accent-2':       '#7078D0',
+      '--accent-3':       '#20B4C8',
+      '--accent-4':       '#30B888',
+      '--accent-rgb':     '80, 144, 216',
+      '--success':        '#30B888',
+      '--warning':        '#E0A820',
+      '--error':          '#E06868',
       '--text-primary':   '#f1f5f9',
       '--text-secondary': '#94a3b8',
       '--text-muted':     '#334155',
-      '--border':         'rgba(96, 165, 250, 0.12)',
-      '--border-hover':   'rgba(96, 165, 250, 0.28)',
-      '--shadow-card':    '0 0 0 1px rgba(96,165,250,0.1), 0 8px 32px rgba(0,0,0,0.6)',
-      '--glow-accent':    '0 0 12px rgba(96,165,250,0.5)',
-      '--glow-pink':      '0 0 12px rgba(129,140,248,0.5)',
-      '--glow-cyan':      '0 0 12px rgba(34,211,238,0.5)',
+      '--border':         'rgba(80, 144, 216, 0.12)',
+      '--border-hover':   'rgba(80, 144, 216, 0.28)',
+      '--shadow-card':    '0 0 0 1px rgba(80,144,216,0.1), 0 8px 32px rgba(0,0,0,0.6)',
+      '--glow-accent':    '0 0 12px rgba(80,144,216,0.5)',
+      '--glow-pink':      '0 0 12px rgba(112,120,208,0.5)',
+      '--glow-cyan':      '0 0 12px rgba(32,180,200,0.5)',
     },
   },
 
@@ -173,35 +184,102 @@ export const THEMES = {
     },
   },
 
-  papyrus: {
-    id: 'papyrus',
-    name: 'Papyrus',
-    preview: ['#16a34a', '#8b4513', '#b45309', '#f0e6d2'],
+  lions: {
+    id: 'lions',
+    name: 'Detroit Lions',
+    hidden: true,
+    preview: ['#006AA0', '#B0B7BC', '#FFFFFF', '#00111A'],
     vars: {
-      '--bg-base':        '#f0e6d2',
-      '--bg-surface':     '#ead5ba',
-      '--bg-elevated':    '#e8d0b0',
-      '--bg-card':        '#edd8bc',
-      '--bg-hover':       '#d9c4a2',
-      '--accent':         '#16a34a',
-      '--accent-dim':     '#15803d',
-      '--accent-glow':    'rgba(22, 163, 74, 0.2)',
-      '--accent-2':       '#8b4513',
-      '--accent-3':       '#b45309',
-      '--accent-4':       '#22c55e',
-      '--accent-rgb':     '22, 163, 74',
-      '--success':        '#16a34a',
-      '--warning':        '#b45309',
-      '--error':          '#dc2626',
-      '--text-primary':   '#1a0a00',
-      '--text-secondary': '#4a3728',
-      '--text-muted':     '#8b7355',
-      '--border':         'rgba(22, 163, 74, 0.2)',
-      '--border-hover':   'rgba(22, 163, 74, 0.4)',
-      '--shadow-card':    '0 0 0 1px rgba(22,163,74,0.15), 0 4px 16px rgba(0,0,0,0.15)',
-      '--glow-accent':    '0 0 12px rgba(22,163,74,0.4)',
-      '--glow-pink':      '0 0 12px rgba(139,69,19,0.4)',
-      '--glow-cyan':      '0 0 12px rgba(180,83,9,0.4)',
+      '--bg-base':        '#001A2E',
+      '--bg-surface':     '#00243D',
+      '--bg-elevated':    '#002E4D',
+      '--bg-card':        '#002843',
+      '--bg-hover':       '#003557',
+      '--accent':         '#006AA0',
+      '--accent-dim':     '#004E78',
+      '--accent-glow':    'rgba(0, 106, 160, 0.25)',
+      '--accent-2':       '#B0B7BC',
+      '--accent-3':       '#006AA0',
+      '--accent-4':       '#006AA0',
+      '--accent-rgb':     '0, 106, 160',
+      '--success':        '#006AA0',
+      '--warning':        '#A5ACAF',
+      '--error':          '#E31837',
+      '--text-primary':   '#FFFFFF',
+      '--text-secondary': '#A5ACAF',
+      '--text-muted':     '#00334E',
+      '--border':         'rgba(0, 106, 160, 0.2)',
+      '--border-hover':   'rgba(0, 106, 160, 0.45)',
+      '--shadow-card':    '0 0 0 1px rgba(0,106,160,0.15), 0 8px 32px rgba(0,0,0,0.8)',
+      '--glow-accent':    '0 0 16px rgba(0,106,160,0.6)',
+      '--glow-pink':      '0 0 16px rgba(165,172,175,0.5)',
+      '--glow-cyan':      '0 0 16px rgba(0,106,160,0.6)',
+    },
+  },
+
+  tron: {
+    id: 'tron',
+    name: 'TRON',
+    hidden: true,
+    preview: ['#40C8E0', '#0078B0', '#18A8D8', '#000000'],
+    vars: {
+      '--bg-base':        '#000000',
+      '--bg-surface':     '#000004',
+      '--bg-elevated':    '#000008',
+      '--bg-card':        '#000006',
+      '--bg-hover':       '#00050E',
+      '--accent':         '#40C8E0',
+      '--accent-dim':     '#0A4860',
+      '--accent-glow':    'rgba(64, 200, 224, 0.15)',
+      '--accent-2':       '#0078B0',
+      '--accent-3':       '#18A8D8',
+      '--accent-4':       '#58D0E8',
+      '--accent-rgb':     '64, 200, 224',
+      '--success':        '#40C8E0',
+      '--warning':        '#18A8D8',
+      '--error':          '#FF2040',
+      '--text-primary':   '#A0D8E8',
+      '--text-secondary': '#305868',
+      '--text-muted':     '#0A1820',
+      '--border':         'rgba(64, 200, 224, 0.08)',
+      '--border-hover':   'rgba(64, 200, 224, 0.22)',
+      '--shadow-card':    '0 0 0 1px rgba(64,200,224,0.05), 0 0 40px rgba(0,0,0,0.98), inset 0 0 20px rgba(64,200,224,0.01)',
+      '--glow-accent':    '0 0 16px rgba(64,200,224,0.5), 0 0 50px rgba(64,200,224,0.12)',
+      '--glow-pink':      '0 0 16px rgba(0,120,176,0.5), 0 0 50px rgba(0,120,176,0.12)',
+      '--glow-cyan':      '0 0 16px rgba(24,168,216,0.5), 0 0 50px rgba(24,168,216,0.12)',
+    },
+  },
+
+  clu: {
+    id: 'clu',
+    name: 'CLU',
+    hidden: true,
+    preview: ['#FF6A00', '#FF8800', '#FFBB44', '#000000'],
+    vars: {
+      '--bg-base':        '#000000',
+      '--bg-surface':     '#040200',
+      '--bg-elevated':    '#080400',
+      '--bg-card':        '#060300',
+      '--bg-hover':       '#0E0800',
+      '--accent':         '#FF6A00',
+      '--accent-dim':     '#4A2000',
+      '--accent-glow':    'rgba(255, 106, 0, 0.15)',
+      '--accent-2':       '#FF8800',
+      '--accent-3':       '#CC4400',
+      '--accent-4':       '#FFBB44',
+      '--accent-rgb':     '255, 106, 0',
+      '--success':        '#FF8800',
+      '--warning':        '#FFBB44',
+      '--error':          '#FF2020',
+      '--text-primary':   '#E8C8A0',
+      '--text-secondary': '#685030',
+      '--text-muted':     '#201008',
+      '--border':         'rgba(255, 106, 0, 0.08)',
+      '--border-hover':   'rgba(255, 106, 0, 0.22)',
+      '--shadow-card':    '0 0 0 1px rgba(255,106,0,0.05), 0 0 40px rgba(0,0,0,0.98), inset 0 0 20px rgba(255,106,0,0.01)',
+      '--glow-accent':    '0 0 16px rgba(255,106,0,0.5), 0 0 50px rgba(255,106,0,0.12)',
+      '--glow-pink':      '0 0 16px rgba(255,136,0,0.5), 0 0 50px rgba(255,136,0,0.12)',
+      '--glow-cyan':      '0 0 16px rgba(204,68,0,0.5), 0 0 50px rgba(204,68,0,0.12)',
     },
   },
 
@@ -217,7 +295,7 @@ export const THEMES = {
       '--bg-card':        '#00254D',
       '--bg-hover':       '#003870',
       '--accent':         '#FFCB05',
-      '--accent-dim':     '#D4A800',
+      '--accent-dim':     '#0E3D6B',
       '--accent-glow':    'rgba(255, 203, 5, 0.2)',
       '--accent-2':       '#1A6BB5',
       '--accent-3':       '#FFE566',
@@ -283,7 +361,7 @@ export const THEMES = {
       '--bg-card':        '#001F14',
       '--bg-hover':       '#003520',
       '--accent':         '#F2A900',
-      '--accent-dim':     '#C48800',
+      '--accent-dim':     '#004D32',
       '--accent-glow':    'rgba(242, 169, 0, 0.2)',
       '--accent-2':       '#006341',
       '--accent-3':       '#FFD050',
@@ -316,7 +394,7 @@ export const THEMES = {
       '--bg-card':        '#10201A',
       '--bg-hover':       '#1A3028',
       '--accent':         '#CFAA5E',
-      '--accent-dim':     '#A88840',
+      '--accent-dim':     '#0C5449',
       '--accent-glow':    'rgba(207, 170, 94, 0.2)',
       '--accent-2':       '#0C5449',
       '--accent-3':       '#E8CC88',
@@ -347,9 +425,7 @@ export function ThemeProvider({ children }) {
   const [fontId, setFontId] = useState(
     () => localStorage.getItem(FONT_KEY) || 'inter'
   )
-  const [sizeId, setSizeId] = useState(
-    () => localStorage.getItem(SIZE_KEY) || 'm'
-  )
+  const [sizeId, setSizeId] = useState(detectDefaultSize)
 
   useEffect(() => {
     const theme = THEMES[themeId] || THEMES.arcade
@@ -357,7 +433,7 @@ export function ThemeProvider({ children }) {
     for (const [prop, value] of Object.entries(theme.vars)) {
       root.style.setProperty(prop, value)
     }
-    document.body.classList.toggle('theme-light', themeId === 'papyrus')
+    document.body.classList.toggle('theme-tron', themeId === 'tron' || themeId === 'clu')
     localStorage.setItem(STORAGE_KEY, themeId)
   }, [themeId])
 

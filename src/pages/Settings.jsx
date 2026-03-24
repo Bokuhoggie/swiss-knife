@@ -96,7 +96,7 @@ export default function Settings() {
 
   if (!settings) {
     return (
-      <div className="page-anim" style={{ '--accent': '#AAAACC' }}>
+      <div className="page-anim">
         <div className="page-header">
           <h1 className="page-title">⚙ Settings</h1>
         </div>
@@ -112,14 +112,83 @@ export default function Settings() {
     if (dir) update('general.defaultOutputDir', dir)
   }
 
+  const unlockSecret = () => {
+    const code = secretCode.trim().toLowerCase()
+    const nospace = code.replace(/\s+/g, '')
+    const map = {
+      'go green': ['msu'],
+      'go blue': ['uofm'],
+      'go cats': ['nmu'],
+      'warrior strong': ['waynestate'],
+      'digital jazz': ['tron', 'clu'],
+      'jared goff': ['lions'],
+    }
+    // Try exact match first, then spaceless match
+    let ids = map[code]
+    if (!ids) {
+      for (const [phrase, val] of Object.entries(map)) {
+        if (phrase.replace(/\s+/g, '') === nospace) { ids = val; break }
+      }
+    }
+    if (!ids) { setSecretCode(''); return }
+    const newIds = ids.filter(id => !unlockedThemes.includes(id))
+    if (newIds.length) {
+      const newU = [...unlockedThemes, ...newIds]
+      setUnlockedThemes(newU)
+      localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
+    }
+    setThemeId(ids[0])
+    setSecretCode('')
+  }
+
   return (
-    <div className="page-anim" style={{ '--accent': '#AAAACC' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title">⚙ Settings</h1>
         <p className="page-subtitle">Defaults auto-save as you change them — no Save button needed</p>
       </div>
 
       <div className="card" style={{ marginBottom: 16 }}>
+
+        {/* ─── APPEARANCE ─── */}
+        <Section title="// APPEARANCE">
+          <AppCarousel
+            label="Color Theme"
+            keys={Object.keys(THEMES).filter(k => !THEMES[k].hidden || unlockedThemes.includes(k) || themeId === k)}
+            value={themeId}
+            onChange={setThemeId}
+            renderPreview={(key) => {
+              const t = THEMES[key]
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 5 }}>
+                    {t.preview.map((c, i) => (
+                      <div key={i} style={{ width: 18, height: 18, background: c, border: '1px solid rgba(255,255,255,0.15)' }} />
+                    ))}
+                  </div>
+                  <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.55rem', color: 'var(--text-primary)' }}>{t.name}</span>
+                </div>
+              )
+            }}
+          />
+          <AppCarousel
+            label="Text Size"
+            keys={Object.keys(SIZES)}
+            value={sizeId}
+            onChange={setSizeId}
+            renderPreview={(key) => {
+              const s = SIZES[key]
+              return (
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10 }}>
+                  <span style={{ fontSize: `${s.scale * 1.1}rem`, color: 'var(--text-primary)' }}>Aa</span>
+                  <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem', color: 'var(--text-muted)' }}>{s.name}</span>
+                </div>
+              )
+            }}
+          />
+        </Section>
+
+        <div className="section-divider" />
 
         {/* ─── GENERAL ─── */}
         <Section title="// GENERAL">
@@ -329,46 +398,6 @@ export default function Settings() {
 
         <div className="section-divider" />
 
-        {/* ─── APPEARANCE ─── */}
-        <Section title="// APPEARANCE">
-          <AppCarousel
-            label="Color Theme"
-            keys={Object.keys(THEMES).filter(k => !THEMES[k].hidden || unlockedThemes.includes(k) || themeId === k)}
-            value={themeId}
-            onChange={setThemeId}
-            renderPreview={(key) => {
-              const t = THEMES[key]
-              return (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                  <div style={{ display: 'flex', gap: 5 }}>
-                    {t.preview.map((c, i) => (
-                      <div key={i} style={{ width: 18, height: 18, background: c, border: '1px solid rgba(255,255,255,0.15)' }} />
-                    ))}
-                  </div>
-                  <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.55rem', color: 'var(--text-primary)' }}>{t.name}</span>
-                </div>
-              )
-            }}
-          />
-          <AppCarousel
-            label="Text Size"
-            keys={Object.keys(SIZES)}
-            value={sizeId}
-            onChange={setSizeId}
-            renderPreview={(key) => {
-              const s = SIZES[key]
-              return (
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10 }}>
-                  <span style={{ fontSize: `${s.scale * 1.1}rem`, color: 'var(--text-primary)' }}>Aa</span>
-                  <span style={{ fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem', color: 'var(--text-muted)' }}>{s.name}</span>
-                </div>
-              )
-            }}
-          />
-        </Section>
-
-        <div className="section-divider" />
-
         {/* ─── PDF ─── */}
         <Section title="// PDF DEFAULTS">
           <div className="form-group">
@@ -396,53 +425,9 @@ export default function Settings() {
                  placeholder="Enter secret passphrase..." 
                  value={secretCode} 
                  onChange={e => setSecretCode(e.target.value)} 
-                 onKeyDown={e => {
-                   if (e.key === 'Enter') {
-                     const code = secretCode.trim().toLowerCase()
-                     const map = {
-                       'go green go white': 'msu',
-                       'hail to the victors': 'uofm',
-                       'go cats': 'nmu',
-                       'warrior strong': 'waynestate'
-                     }
-                     const id = map[code]
-                     if (id && !unlockedThemes.includes(id)) {
-                       const newU = [...unlockedThemes, id]
-                       setUnlockedThemes(newU)
-                       localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
-                       setThemeId(id)
-                       setSecretCode('')
-                     } else if (id) {
-                       setThemeId(id)
-                       setSecretCode('')
-                     } else {
-                       setSecretCode('')
-                     }
-                   }
-                 }}
+                 onKeyDown={e => { if (e.key === 'Enter') unlockSecret() }}
                />
-               <button className="btn btn-secondary" onClick={() => {
-                 const code = secretCode.trim().toLowerCase()
-                 const map = {
-                   'go green go white': 'msu',
-                   'hail to the victors': 'uofm',
-                   'go cats': 'nmu',
-                   'warrior strong': 'waynestate'
-                 }
-                 const id = map[code]
-                 if (id && !unlockedThemes.includes(id)) {
-                   const newU = [...unlockedThemes, id]
-                   setUnlockedThemes(newU)
-                   localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
-                   setThemeId(id)
-                   setSecretCode('')
-                 } else if (id) {
-                   setThemeId(id)
-                   setSecretCode('')
-                 } else {
-                   setSecretCode('')
-                 }
-               }}>Unlock</button>
+               <button className="btn btn-secondary" onClick={unlockSecret}>Unlock</button>
              </div>
           </div>
         </Section>

@@ -1,17 +1,18 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { IconInspect } from '../components/Icons.jsx'
 import { consumePendingFile } from '../globalDrop.js'
 import { getFirstDropPath } from '../dropHelpers.js'
+import WaveformPlayer from '../components/WaveformPlayer.jsx'
 
 const api = window.swissKnife
 
 // Category → accent colour
 const CATEGORY_ACCENT = {
-  image: '#00D4FF',
-  audio: '#FF3CAC',
-  video: '#C77DFF',
-  pdf:   '#FFD60A',
+  image: 'var(--accent-3)',
+  audio: 'var(--accent-2)',
+  video: 'var(--accent)',
+  pdf:   'var(--accent-4)',
 }
 
 // Human-readable category badge
@@ -38,20 +39,39 @@ export default function FileInspector() {
   const [hash, setHash]         = useState(null)
   const [hashing, setHashing]   = useState(false)
   const navigate = useNavigate()
+  const analyzeIdRef = useRef(0)
 
   const [error, setError] = useState(null)
+  const [showPreview, setShowPreview] = useState(false)
+  const [imagePreview, setImagePreview] = useState(null)
 
   const analyze = useCallback(async (filePath) => {
     if (!filePath) return
-    setLoading(true); setInfo(null); setHash(null); setError(null)
+    const id = ++analyzeIdRef.current
+    setLoading(true); setInfo(null); setHash(null); setError(null); setShowPreview(false); setImagePreview(null)
     try {
       const result = await api.inspector.analyze(filePath)
+      if (id !== analyzeIdRef.current) return // stale — a newer analyze() was called
       if (result?.error) setError(result.error)
-      else setInfo(result)
+      else {
+        setInfo(result)
+        // Auto-show preview for media files
+        if (result.category === 'audio' || result.category === 'video') {
+          setShowPreview(true)
+        }
+        // Load image preview
+        if (result.category === 'image') {
+          api.image.readAsDataURL(filePath).then(url => {
+            if (id !== analyzeIdRef.current) return
+            if (url) setImagePreview(url)
+          }).catch(() => {})
+        }
+      }
     } catch (err) {
+      if (id !== analyzeIdRef.current) return
       setError(err?.message || 'Failed to analyze file')
     }
-    setLoading(false)
+    if (id === analyzeIdRef.current) setLoading(false)
   }, [])
 
   // Read pending file on mount (dropped outside a component before we mounted)
@@ -99,7 +119,7 @@ export default function FileInspector() {
     navigate(info.suggestedTool, { state: { file: info.path } })
   }
 
-  const accent = (info?.category && CATEGORY_ACCENT[info.category]) || '#FF9F1C'
+  const accent = (info?.category && CATEGORY_ACCENT[info.category]) || 'var(--accent)'
 
   return (
     <div className="page-anim" style={{ '--accent': accent }}>
@@ -170,16 +190,15 @@ export default function FileInspector() {
                   </span>
                 )}
                 {info.suggestedTool && (
-                  <button 
-                    className="btn btn-primary" 
+                  <button
+                    className="btn btn-primary inspector-send-btn"
                     onClick={() => {
                       window.dispatchEvent(new CustomEvent('blade-peek', { detail: null }))
                       window.dispatchEvent(new CustomEvent('blade-flick', { detail: info.suggestedTool }))
                       openInTool()
-                    }} 
+                    }}
                     onMouseEnter={() => window.dispatchEvent(new CustomEvent('blade-peek', { detail: info.suggestedTool }))}
                     onMouseLeave={() => window.dispatchEvent(new CustomEvent('blade-peek', { detail: null }))}
-                    style={{ fontSize: 6 }}
                   >
                     Open in {info.suggestedToolLabel} ↗
                   </button>
@@ -207,6 +226,63 @@ export default function FileInspector() {
                 {Object.entries(info.details).map(([k, v]) => (
                   <StatCard key={k} label={k} value={String(v)} />
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Image Preview ── */}
+          {info.category === 'image' && imagePreview && (
+            <div className="card" style={{ marginBottom: 12 }}>
+              <div className="inspector-section-title" style={{ color: accent }}>
+                // PREVIEW
+              </div>
+              <div className="inspector-image-preview">
+                <img src={imagePreview} alt={info.name} />
+              </div>
+            </div>
+          )}
+
+          {/* ── Media Preview ── */}
+          {(info.category === 'video' || info.category === 'audio') && (
+            <div className="card" style={{ marginBottom: 12, overflow: 'visible' }}>
+              <div className="inspector-section-title" style={{ color: accent }}>
+                // PREVIEW
+              </div>
+              {!showPreview ? (
+                <button className="btn btn-secondary" onClick={() => setShowPreview(true)}>
+                  {info.category === 'video' ? '🎬' : '🎵'} Play {info.category === 'video' ? 'Video' : 'Audio'}
+                </button>
+              ) : (
+                <div className="media-preview" style={{ marginTop: 8 }}>
+                  <WaveformPlayer
+                    filePath={info.path}
+                    type={info.category}
+                    accentColor="var(--text-primary)"
+                    label={info.name}
+                    onClose={() => setShowPreview(false)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── PDF Preview ── */}
+          {info.category === 'pdf' && (
+            <div className="card" style={{ marginBottom: 12 }}>
+              <div className="inspector-section-title" style={{ color: accent }}>
+                // PREVIEW
+              </div>
+              <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 4,
+                overflow: 'hidden',
+                background: '#fff',
+              }}>
+                <embed
+                  src={`sk-media://file?path=${encodeURIComponent(info.path)}`}
+                  type="application/pdf"
+                  style={{ width: '100%', height: 500, display: 'block' }}
+                />
               </div>
             </div>
           )}

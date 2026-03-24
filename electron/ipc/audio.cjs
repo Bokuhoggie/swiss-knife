@@ -21,13 +21,15 @@ function setupAudioHandlers(ipcMain, dialog) {
     channels, normalize, fadeIn,
     outputName,
   }) => {
-    return new Promise((resolve) => {
-      const baseName = outputName ? outputName.trim() : path.basename(filePath, path.extname(filePath));
+    return new Promise((resolve, reject) => {
+      const safeName = outputName ? outputName.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, '_') : '';
+      const baseName = safeName || path.basename(filePath, path.extname(filePath));
       const outPath = path.join(outputDir, `${baseName}.${outputFormat}`);
 
       let cmd = ffmpeg(filePath);
       if (bitrate) cmd = cmd.audioBitrate(bitrate);
-      if (sampleRate) cmd = cmd.audioFrequency(parseInt(sampleRate));
+      const sr = parseInt(sampleRate);
+      if (sampleRate && !isNaN(sr)) cmd = cmd.audioFrequency(sr);
       if (channels === 'mono') cmd = cmd.audioChannels(1);
       else if (channels === 'stereo') cmd = cmd.audioChannels(2);
 

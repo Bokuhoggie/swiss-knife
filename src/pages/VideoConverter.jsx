@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconVideo } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
+import WaveformPlayer from '../components/WaveformPlayer.jsx'
+import { savePageState, loadPageState } from '../pageCache.js'
 
 const FORMATS    = ['mp4', 'mkv', 'avi', 'mov', 'webm']
 const RESOLUTIONS = ['', '1920x1080', '1280x720', '854x480', '640x360']
@@ -17,17 +19,19 @@ const HW_OPTS    = [
   { value: 'd3d11va', label: 'D3D11VA (Windows)' },
 ]
 const api = window.swissKnife
+const CACHE_KEY = 'video'
 
 export default function VideoConverter() {
   const { state } = useLocation()
+  const cached = useRef(loadPageState(CACHE_KEY)).current
   const [tab, setTab] = useState('convert')
 
-  const [files, setFiles]               = useState([]) // Array of { path, selected }
-  const [outputFormat, setOutputFormat] = useState('mp4')
-  const [resolution, setResolution]   = useState('')
-  const [codec, setCodec]             = useState('')
-  const [crf, setCrf]                 = useState(23)
-  const [outputDir, setOutputDir]     = useState('')
+  const [files, setFiles]               = useState(cached?.files || [])
+  const [outputFormat, setOutputFormat] = useState(cached?.outputFormat || 'mp4')
+  const [resolution, setResolution]   = useState(cached?.resolution || '')
+  const [codec, setCodec]             = useState(cached?.codec || '')
+  const [crf, setCrf]                 = useState(cached?.crf ?? 23)
+  const [outputDir, setOutputDir]     = useState(cached?.outputDir || '')
   const [results, setResults]           = useState([])
   const [loading, setLoading]         = useState(false)
   const [progress, setProgress]       = useState(null)
@@ -41,8 +45,17 @@ export default function VideoConverter() {
   const [audioBitrate, setAudioBitrate] = useState('192k')
   const [fps, setFps]                   = useState('')
   const [hwAccel, setHwAccel]           = useState('')
+  const [previewFile, setPreviewFile]   = useState(null)
+
+  // Save state on unmount
+  useEffect(() => {
+    return () => {
+      savePageState(CACHE_KEY, { files, outputFormat, resolution, codec, crf, outputDir })
+    }
+  })
 
   useEffect(() => {
+    if (cached) return
     api.settings?.read().then(s => {
       if (!s) return
       if (s.general?.defaultOutputDir) setOutputDir(s.general.defaultOutputDir)
@@ -58,16 +71,21 @@ export default function VideoConverter() {
 
   useEffect(() => {
     if (state?.file) {
-      addFiles([state.file])
+      addFiles([state.file], true)
     }
   }, [state?.file])
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
-  const addFiles = (paths) => {
-    const unique = paths.filter(p => p && !files.some(f => f.path === p))
-    const objects = unique.map(p => ({ path: p, selected: true }))
-    setFiles(prev => { if (prev.length + unique.length > 1) setCustomName(''); return [...prev, ...objects] })
+  const addFiles = (paths, autoPreview = false) => {
+    setFiles(prev => {
+      const unique = paths.filter(p => p && !prev.some(f => f.path === p))
+      if (!unique.length) return prev
+      const objects = unique.map(p => ({ path: p, selected: true }))
+      if (prev.length + unique.length > 1) setCustomName('')
+      if (autoPreview && unique.length === 1) setPreviewFile(unique[0])
+      return [...prev, ...objects]
+    })
     setResults([])
   }
 
@@ -75,7 +93,7 @@ export default function VideoConverter() {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
     const paths = getDropPaths(e)
     if (paths.length) {
-      addFiles(paths)
+      addFiles(paths, true)
       setIsFlashing(true)
       setTimeout(() => setIsFlashing(false), 500)
       window.dispatchEvent(new CustomEvent('blade-flick', { detail: '/video' }))
@@ -83,10 +101,10 @@ export default function VideoConverter() {
   }
 
   const handleBrowse = async () => {
-    const selected = await api.video.selectFile() // Actually, api.video.selectFile only selects one file currently, let's keep it simply adding one or an array if changed
-    if (selected) { 
+    const selected = await api.video.selectFile()
+    if (selected) {
       const arr = Array.isArray(selected) ? selected : [selected]
-      addFiles(arr)
+      addFiles(arr, true)
     }
   }
 
@@ -128,7 +146,7 @@ export default function VideoConverter() {
   }
 
   return (
-    <div className="page-anim" style={{ '--accent': '#C77DFF' }}>
+    <div className="page-anim">
       <div className="page-header">
         <h1 className="page-title"><IconVideo size={20} /> Video Converter</h1>
         <p className="page-subtitle">Convert videos between MP4, MKV, AVI, MOV, and WebM</p>
@@ -188,7 +206,12 @@ export default function VideoConverter() {
                         title="Toggle conversion for this file"
                       />
                       <span className="file-item-icon"><IconVideo size={16} /></span>
-                      <span className="file-item-name" title={fileObj.path}>{basename(fileObj.path)}</span>
+                      <span
+                        className="file-item-name"
+                        title={fileObj.path}
+                        style={{ cursor: 'pointer' }}
+                        onClick={(e) => { e.stopPropagation(); setPreviewFile(previewFile === fileObj.path ? null : fileObj.path) }}
+                      >{basename(fileObj.path)}</span>
                       {isCurrent && progress && (
                         <span className="file-item-status pending">{Math.round(progress.percent || 0)}%</span>
                       )}
@@ -204,6 +227,18 @@ export default function VideoConverter() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+
+            {previewFile && (
+              <div className="media-preview">
+                <WaveformPlayer
+                  filePath={previewFile}
+                  type="video"
+                  accentColor="var(--text-primary)"
+                  label={`Preview — ${basename(previewFile)}`}
+                  onClose={() => setPreviewFile(null)}
+                />
               </div>
             )}
 

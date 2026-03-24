@@ -20,8 +20,10 @@ contextBridge.exposeInMainWorld('swissKnife', {
   },
 
   image: {
-    convert: (opts) => ipcRenderer.invoke('image:convert', opts),
-    selectFiles: () => ipcRenderer.invoke('image:selectFiles'),
+    convert:       (opts) => ipcRenderer.invoke('image:convert', opts),
+    selectFiles:   ()     => ipcRenderer.invoke('image:selectFiles'),
+    removeBg:      (opts) => ipcRenderer.invoke('image:removeBg', opts),
+    readAsDataURL: (path) => ipcRenderer.invoke('image:readAsDataURL', path),
   },
   video: {
     convert: (opts) => ipcRenderer.invoke('video:convert', opts),
@@ -45,6 +47,10 @@ contextBridge.exposeInMainWorld('swissKnife', {
     merge: (opts) => ipcRenderer.invoke('pdf:merge', opts),
     split: (opts) => ipcRenderer.invoke('pdf:split', opts),
     compress: (opts) => ipcRenderer.invoke('pdf:compress', opts),
+    compressToSize: (opts) => ipcRenderer.invoke('pdf:compressToSize', opts),
+    onCompressProgress: (cb) => ipcRenderer.on('pdf:compressProgress', (_, data) => cb(data)),
+    offCompressProgress: () => ipcRenderer.removeAllListeners('pdf:compressProgress'),
+    fileSize: (filePath) => ipcRenderer.invoke('pdf:fileSize', filePath),
     toImages: (opts) => ipcRenderer.invoke('pdf:toImages', opts),
     selectFiles: () => ipcRenderer.invoke('pdf:selectFiles'),
     selectFile: () => ipcRenderer.invoke('pdf:selectFile'),
@@ -65,6 +71,10 @@ contextBridge.exposeInMainWorld('swissKnife', {
     analyze:    (filePath) => ipcRenderer.invoke('inspector:analyze', filePath),
     selectFile: ()         => ipcRenderer.invoke('inspector:selectFile'),
   },
+  media: {
+    waveform: (filePath) => ipcRenderer.invoke('media:waveform', filePath),
+    clip:     (opts)     => ipcRenderer.invoke('media:clip', opts),
+  },
   getVersion: () => ipcRenderer.invoke('app:version'),
   updater: {
     check:    ()   => ipcRenderer.invoke('updater:check'),
@@ -82,8 +92,3 @@ contextBridge.exposeInMainWorld('swissKnife', {
   },
 });
 
-contextBridge.exposeInMainWorld('ipcRenderer', {
-  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
-  on: (channel, cb) => ipcRenderer.on(channel, cb),
-  removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel),
-});
