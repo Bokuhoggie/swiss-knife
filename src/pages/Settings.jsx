@@ -10,7 +10,7 @@ const VID_CODECS    = ['', 'libx264', 'libx265', 'vp9', 'libvpx']
 const VID_ACODECS   = ['aac', 'mp3', 'copy', 'libopus']
 const VID_ABITRATES = ['128k', '192k', '256k', '320k']
 const VID_FPS       = ['', '24', '30', '60']
-const VID_HWACCELS  = ['', 'cuda', 'dxva2', 'qsv', 'd3d11va']
+const VID_HWACCELS  = ['', 'cuda', 'videotoolbox', 'dxva2', 'qsv', 'd3d11va']
 const AUD_FORMATS   = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
 const AUD_BITRATES  = ['64k', '128k', '192k', '256k', '320k']
 const AUD_RATES     = ['22050', '44100', '48000', '96000']
@@ -210,7 +210,7 @@ export default function Settings() {
           </div>
           <ToggleRow
             label="Open folder after conversion"
-            desc="Auto-opens the output folder in Explorer when done"
+            desc="Auto-opens the output folder when done"
             checked={settings.general.openAfterConvert}
             onChange={v => update('general.openAfterConvert', v)}
           />
@@ -297,6 +297,7 @@ export default function Settings() {
               <label className="form-label">HW Acceleration</label>
               <select className="form-select" value={settings.video.hwAccel} onChange={e => update('video.hwAccel', e.target.value)}>
                 <option value="">None (CPU)</option>
+                <option value="videotoolbox">VideoToolbox (macOS)</option>
                 <option value="cuda">NVENC (NVIDIA)</option>
                 <option value="dxva2">DXVA2 (Windows)</option>
                 <option value="qsv">QuickSync (Intel)</option>
