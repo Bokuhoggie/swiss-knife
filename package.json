@@ -57,7 +57,7 @@
     "publish": {
       "provider": "github",
       "owner": "Bokuhoggie",
-      "repo": "hoggies-tool-kit"
+      "repo": "Hoggies-Tool-Kit"
     },
     "files": [
       "dist/**/*",

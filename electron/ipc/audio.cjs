@@ -1,8 +1,14 @@
 'use strict';
 
 const path = require('path');
+const fs = require('fs');
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static').replace('app.asar', 'app.asar.unpacked');
+
+// Ensure ffmpeg binary is executable on macOS/Linux
+if (process.platform !== 'win32' && fs.existsSync(ffmpegPath)) {
+  try { fs.chmodSync(ffmpegPath, 0o755); } catch {}
+}
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
