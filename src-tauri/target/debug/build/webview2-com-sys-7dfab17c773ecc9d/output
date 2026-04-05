@@ -1,0 +1,2 @@
+cargo:rustc-link-search=native=C:\Users\clone\FuckOneDrive\Desktop\Coding\Github\swiss-knife\src-tauri\target\debug\build\webview2-com-sys-7dfab17c773ecc9d\out\x64
+cargo:rustc-link-lib=advapi32

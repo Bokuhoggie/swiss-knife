@@ -1,0 +1,8 @@
+pub mod dialog_commands;
+pub mod download_commands;
+pub mod hash_commands;
+pub mod image_commands;
+pub mod inspector_commands;
+pub mod media_commands;
+pub mod pdf_commands;
+pub mod settings_commands;
