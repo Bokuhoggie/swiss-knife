@@ -18,7 +18,7 @@ const HW_OPTS    = [
   { value: 'qsv',     label: 'QuickSync (Intel)' },
   { value: 'd3d11va', label: 'D3D11VA (Windows)' },
 ]
-const api = window.htk
+const api = window.swissKnife
 const CACHE_KEY = 'video'
 
 export default function VideoConverter() {

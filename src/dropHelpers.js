@@ -2,10 +2,10 @@
  * dropHelpers — utilities for drag-and-drop file handling.
  *
  * Electron 32+ deprecated File.path. Use webUtils.getPathForFile() via
- * the preload bridge (window.htk.getPathForFile) instead.
+ * the preload bridge (window.swissKnife.getPathForFile) instead.
  */
 
-const api = window.htk
+const api = window.swissKnife
 
 /**
  * Extract the native file path from a dropped File object.

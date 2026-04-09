@@ -1,78 +1,88 @@
 # CLAUDE.md - Hoggie's Tool Kit (HTK) Project Guide
 
 ## Project Overview
-Hoggie's Tool Kit (HTK) is an all-in-one Electron + React (Vite) desktop utility app featuring:
-- Image conversion + background removal (sharp)
-- Video conversion (ffmpeg-static + fluent-ffmpeg)
-- Audio conversion (ffmpeg-static + fluent-ffmpeg)
-- Video/audio downloader (yt-dlp-wrap — auto-downloads yt-dlp binary on first run)
-- PDF tools (pdf-lib: merge, split, compress)
-- File hasher / inspector
+Hoggie's Tool Kit (HTK) is an all-in-one Tauri (Rust) + React (Vite) desktop utility app featuring:
+- Image conversion + background removal (Rust `image` crate)
+- Video conversion (ffmpeg via Rust `tokio::process`)
+- Audio conversion (ffmpeg via Rust `tokio::process`)
+- Video/audio downloader (yt-dlp — auto-downloads binary on first run)
+- PDF tools (Rust `lopdf`: merge, split, compress)
+- File hasher / inspector (Rust `sha2`, `sha1`, `md-5`)
 
 ## Branch Strategy
 | Branch | Purpose |
 |--------|---------|
 | `master` | Stable base, merges from both dev branches |
-| `win-dev` | Windows-specific work |
-| `mac-dev` | macOS-specific work (current) |
+| `win-dev` | Windows-specific work (Electron) |
+| `mac-dev` | macOS-specific work (Electron) |
+| `win-rust` | Windows Tauri/Rust rewrite |
+| `mac-rust` | macOS Tauri/Rust rewrite (current) |
 
-## Current Branch: `mac-dev`
-macOS-specific work branch. Key fixes applied:
-- ✅ `titleBarStyle: 'hiddenInset'` on macOS for native traffic-light buttons
-- ✅ `window-all-closed` respects macOS convention (app stays alive until Cmd+Q)
-- ✅ `app.on('activate')` re-creates window when clicking dock icon with no windows
-- ✅ `ffmpeg-static` binary chmod'd 0o755 on first use (macOS/Linux)
-- ✅ `yt-dlp` binary chmod'd 0o755 after auto-download (macOS/Linux)
-- ✅ `file://` URLs fixed in Remove BG preview (`file:// + /abs/path` → `file:///abs/path`)
-- ✅ Mac build targets: `dmg` (installer) + `zip` (for auto-updater delta)
-- ✅ `electron:publish:mac` script added for GitHub Releases CI
-- ✅ arm64 + x64 universal build targets for Apple Silicon + Intel
+## Current Branch: `mac-rust`
+macOS Tauri/Rust rewrite. Migrated from Electron to Tauri v2 with a full Rust backend.
+- ✅ Tauri v2 with native macOS titlebar (`titleBarStyle: "overlay"`, hidden title)
+- ✅ All IPC handlers rewritten in Rust (`src-tauri/src/commands/`)
+- ✅ `tauriBridge.js` polyfills `window.swissKnife` API for React components
+- ✅ ffmpeg/ffprobe resolved as macOS binaries (no `.exe` extension)
+- ✅ `yt-dlp` auto-downloads macOS universal binary + chmod 0o755
+- ✅ Bundle targets: `dmg` + `app` for macOS distribution
+- ✅ `tauri:build:mac` script targets `universal-apple-darwin` (arm64 + x64)
 
 ## Dev & Build Commands
 ```
-npm install                    # Install dependencies
-npm run electron:dev           # Dev mode — starts Vite + Electron together
-npm run electron:build:mac     # Build .dmg + .zip → /release
-npm run electron:publish:mac   # Build + publish to GitHub Releases
+npm install                    # Install JS dependencies
+npm run tauri:dev              # Dev mode — starts Vite + Tauri together
+npm run tauri:build            # Build for current platform
+npm run tauri:build:mac        # Build universal macOS binary (arm64 + x64)
 npm run lint                   # ESLint
 ```
 
+### Prerequisites
+- **Rust**: Install via `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+- **Node.js**: v18+
+- **ffmpeg/ffprobe**: Place in `src-tauri/resources/` for bundling, or install via Homebrew for dev
+
 ## Project Structure
 ```
-electron/
-  main.cjs              # Electron main process, BrowserWindow setup
-  preload.cjs           # Context bridge — exposes window.htk to renderer
-  ipc/
-    audio.cjs           # Audio conversion handlers (ffmpeg)
-    video.cjs           # Video conversion handlers (ffmpeg)
-    image.cjs           # Image conversion + Remove BG handlers (sharp)
-    downloader.cjs      # yt-dlp download handlers (auto-downloads binary)
-    pdf.cjs             # PDF merge/split/compress handlers (pdf-lib)
-    hash.cjs            # File hash handlers
-    inspector.cjs       # File inspector handlers
-    settings.cjs        # Persistent settings handlers
+src-tauri/
+  src/
+    main.rs              # Tauri app entry point
+    commands/
+      mod.rs             # Module declarations
+      media_commands.rs  # Video/audio convert, waveform, clip (ffmpeg)
+      image_commands.rs  # Image convert + remove BG (image crate)
+      download_commands.rs # yt-dlp downloader (auto-downloads binary)
+      pdf_commands.rs    # PDF merge/split/compress (lopdf)
+      hash_commands.rs   # File hashing (sha2/sha1/md5)
+      inspector_commands.rs # File inspector
+      dialog_commands.rs # Native file/folder dialogs
+      settings_commands.rs # Persistent settings (JSON file)
+  Cargo.toml             # Rust dependencies
+  tauri.conf.json        # Tauri app config (window, bundle, CSP)
+  capabilities/          # Tauri permission capabilities
+  resources/             # Bundled binaries (ffmpeg, ffprobe)
+  icons/                 # App icons (icon.png, icon.ico)
 src/
-  pages/                # One React page per tool
-  components/           # Sidebar, Icons, ToolKitWidget
-  contexts/             # ThemeContext (themes, sizes, fonts)
-  App.jsx               # Router + layout
-public/
-  icon.png              # macOS app icon (used for .icns via electron-builder)
-  icon.ico              # Windows icon (for win-dev)
+  tauriBridge.js         # Polyfills window.swissKnife → Tauri invoke()
+  pageCache.js           # Module-level page state cache
+  pages/                 # One React page per tool
+  components/            # SwissKnifeWidget, WaveformPlayer, Icons
+  contexts/              # ThemeContext (themes, sizes, fonts)
+  App.jsx                # Router + layout
+  main.jsx               # Entry point (imports tauriBridge.js first)
 ```
 
 ## Code Style Guidelines
 - **JavaScript/React**: Functional components with hooks
-- **Electron IPC**: All native ops go through `electron/ipc/`, exposed via `preload.cjs`
-- **CSS**: Plain CSS in `src/index.css`
-- **Path handling**: Always use `path.join()` — never string-concatenate paths
-- **File URLs**: Use `'file://' + absolutePath` (not `'file:///' + path`) — macOS paths start with `/` so `file://` + `/abs/path` = `file:///abs/path` correctly
-- **Platform checks**: Use `process.platform === 'win32'` / `'darwin'` for OS-specific logic
-- **Binary permissions**: Always chmod 0o755 native binaries (ffmpeg, yt-dlp) on macOS/Linux after resolving/downloading
+- **Rust backend**: All native ops in `src-tauri/src/commands/`, invoked via `@tauri-apps/api`
+- **Bridge layer**: `src/tauriBridge.js` maps `window.swissKnife.*` to `invoke()` calls
+- **CSS**: Plain CSS in `src/index.css`, class prefix `sk-` for widget components
+- **Path handling**: Rust uses `std::path::PathBuf` — never string-concatenate paths
+- **Binary permissions**: chmod 0o755 downloaded binaries (yt-dlp) on macOS via `#[cfg(unix)]`
 
 ## Known TODO (macOS)
-- [ ] Create `public/icon.icns` for best-quality macOS dock/Finder icon (electron-builder can auto-convert from icon.png but quality is better with a proper .icns)
-- [ ] Test code-signing + notarization flow (`CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD` env vars)
-- [ ] Test auto-updater with real GitHub Release on macOS (zip-based delta)
-- [ ] `--cookies-from-browser safari` requires macOS Keychain access — test on a packaged build
-- [ ] PDF → Image feature (needs `pdftoppm` or alternative bundled for macOS)
+- [ ] Bundle ffmpeg/ffprobe binaries in `src-tauri/resources/` for production builds
+- [ ] Create proper `.icns` icon for macOS dock/Finder
+- [ ] Test code-signing + notarization flow for macOS distribution
+- [ ] Test auto-updater with tauri-plugin-updater
+- [ ] `--cookies-from-browser safari` requires macOS Keychain access — test on packaged build

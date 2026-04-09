@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-const api = window.htk
+const api = window.swissKnife
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2]
 
@@ -397,7 +397,7 @@ export default function WaveformPlayer({
   const clipStartPct = clipStart !== null && duration > 0 ? clipStart / duration : null
   const clipEndPct   = clipEnd   !== null && duration > 0 ? clipEnd   / duration : null
 
-  const mediaUrl = `htk-media://file?path=${encodeURIComponent(filePath)}`
+  const mediaUrl = `sk-media://file?path=${encodeURIComponent(filePath)}`
 
   return (
     <div

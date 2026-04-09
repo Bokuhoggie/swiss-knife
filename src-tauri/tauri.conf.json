@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicholasrice/tauri/master/crates/tauri-cli/schema.json",
+  "identifier": "com.hoggiestoolkit.app",
+  "productName": "Hoggie's Tool Kit",
+  "version": "1.0.1",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Hoggie's Tool Kit",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 960,
+        "minHeight": 620,
+        "decorations": false,
+        "transparent": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost data:; media-src 'self' asset: https://asset.localhost; style-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app"],
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
+    "resources": [],
+    "category": "public.app-category.utilities",
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "frameworks": [],
+      "signingIdentity": null,
+      "entitlements": null
+    }
+  },
+  "plugins": {
+    "dialog": {},
+    "shell": {
+      "open": true
+    }
+  }
+}

@@ -17,7 +17,7 @@ const ICO_PRESETS = {
   'multi-std': { label: 'Multi (16+32+48+256)',      sizes: [16, 32, 48, 256] },
   'multi-all': { label: 'Multi (16+32+48+64+128+256)', sizes: [16, 32, 48, 64, 128, 256] },
 }
-const api = window.htk
+const api = window.swissKnife
 const CACHE_KEY = 'image'
 
 export default function ImageConverter() {
@@ -175,7 +175,7 @@ export default function ImageConverter() {
       })
       if (res.success) {
         setBgResult(res.outputPath); setBgStatus('done')
-        // Load previews as data URLs (bypasses htk-media:// protocol issues)
+        // Load previews as data URLs (bypasses sk-media:// protocol issues)
         const [before, after] = await Promise.all([
           api.image.readAsDataURL(bgFile),
           api.image.readAsDataURL(res.outputPath)

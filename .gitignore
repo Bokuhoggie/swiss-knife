@@ -27,6 +27,5 @@ dist-ssr
 Test Subjects
 release/
 
-# Environment secrets
-.env
-.env.*
+# Tauri build cache
+src-tauri/target/

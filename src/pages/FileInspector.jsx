@@ -5,7 +5,7 @@ import { consumePendingFile } from '../globalDrop.js'
 import { getFirstDropPath } from '../dropHelpers.js'
 import WaveformPlayer from '../components/WaveformPlayer.jsx'
 
-const api = window.htk
+const api = window.swissKnife
 
 // Category → accent colour
 const CATEGORY_ACCENT = {
@@ -279,7 +279,7 @@ export default function FileInspector() {
                 background: '#fff',
               }}>
                 <embed
-                  src={`htk-media://file?path=${encodeURIComponent(info.path)}`}
+                  src={`sk-media://file?path=${encodeURIComponent(info.path)}`}
                   type="application/pdf"
                   style={{ width: '100%', height: 500, display: 'block' }}
                 />

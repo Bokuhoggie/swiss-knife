@@ -4,7 +4,7 @@ import { IconPDF } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
 import { savePageState, loadPageState } from '../pageCache.js'
 
-const api = window.htk
+const api = window.swissKnife
 
 const COMPRESS_LEVELS = [
   { value: 'low',    label: 'Low — Faster, larger file' },

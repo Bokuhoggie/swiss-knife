@@ -10,7 +10,7 @@ const ALGO_INFO = {
   sha256: { label: 'SHA-256', bits: 256, note: 'Recommended for most use cases' },
   sha512: { label: 'SHA-512', bits: 512, note: 'Maximum security' },
 }
-const api = window.htk
+const api = window.swissKnife
 
 export default function FileHasher() {
   const { state } = useLocation()

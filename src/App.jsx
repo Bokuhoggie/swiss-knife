@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext.jsx'
-import ToolKitWidget from './components/ToolKitWidget.jsx'
+import SwissKnifeWidget from './components/SwissKnifeWidget.jsx'
 import Home from './pages/Home.jsx'
 import ImageConverter from './pages/ImageConverter.jsx'
 import AudioConverter from './pages/AudioConverter.jsx'
@@ -46,7 +46,7 @@ function UpdateNotifier() {
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    const api = window.htk?.updater
+    const api = window.swissKnife?.updater
     if (!api) return
 
     api.onUpdateAvailable((info) => { setVersion(info.version); setState('available'); setDismissed(false) })
@@ -81,7 +81,7 @@ function UpdateNotifier() {
           <button
             className="btn btn-primary btn-sm"
             style={{ fontSize: 10, padding: '4px 10px', marginLeft: 'auto' }}
-            onClick={() => window.htk.updater.download()}
+            onClick={() => window.swissKnife.updater.download()}
           >Download</button>
           <button
             className="btn btn-ghost btn-sm"
@@ -107,7 +107,7 @@ function UpdateNotifier() {
           <button
             className="btn btn-primary btn-sm"
             style={{ fontSize: 10, padding: '4px 10px', marginLeft: 'auto' }}
-            onClick={() => window.htk.updater.install()}
+            onClick={() => window.swissKnife.updater.install()}
           >Restart & Install</button>
           <button
             className="btn btn-ghost btn-sm"
@@ -219,7 +219,7 @@ export default function App() {
             </Routes>
           </div>
         </main>
-        <ToolKitWidget />
+        <SwissKnifeWidget />
         <SettingsCog />
         <UpdateNotifier />
         <TronCycles />

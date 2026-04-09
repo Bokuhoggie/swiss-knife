@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSettings } from '../hooks/useSettings.js'
 import { useTheme, THEMES, SIZES } from '../contexts/ThemeContext.jsx'
 
-const api = window.htk
+const api = window.swissKnife
 
 const IMG_FORMATS   = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
 const VID_FORMATS   = ['mp4', 'mkv', 'avi', 'mov', 'webm']
@@ -10,7 +10,7 @@ const VID_CODECS    = ['', 'libx264', 'libx265', 'vp9', 'libvpx']
 const VID_ACODECS   = ['aac', 'mp3', 'copy', 'libopus']
 const VID_ABITRATES = ['128k', '192k', '256k', '320k']
 const VID_FPS       = ['', '24', '30', '60']
-const VID_HWACCELS  = ['', 'cuda', 'videotoolbox', 'dxva2', 'qsv', 'd3d11va']
+const VID_HWACCELS  = ['', 'cuda', 'dxva2', 'qsv', 'd3d11va']
 const AUD_FORMATS   = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
 const AUD_BITRATES  = ['64k', '128k', '192k', '256k', '320k']
 const AUD_RATES     = ['22050', '44100', '48000', '96000']
@@ -91,7 +91,7 @@ export default function Settings() {
   const { themeId, setThemeId, sizeId, setSizeId } = useTheme()
   const [secretCode, setSecretCode] = useState('')
   const [unlockedThemes, setUnlockedThemes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('htk-unlocks') || '[]') } catch(e) { return [] }
+    try { return JSON.parse(localStorage.getItem('swiss-knife-unlocks') || '[]') } catch(e) { return [] }
   })
 
   if (!settings) {
@@ -135,7 +135,7 @@ export default function Settings() {
     if (newIds.length) {
       const newU = [...unlockedThemes, ...newIds]
       setUnlockedThemes(newU)
-      localStorage.setItem('htk-unlocks', JSON.stringify(newU))
+      localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
     }
     setThemeId(ids[0])
     setSecretCode('')
@@ -210,7 +210,7 @@ export default function Settings() {
           </div>
           <ToggleRow
             label="Open folder after conversion"
-            desc="Auto-opens the output folder when done"
+            desc="Auto-opens the output folder in Explorer when done"
             checked={settings.general.openAfterConvert}
             onChange={v => update('general.openAfterConvert', v)}
           />
@@ -297,7 +297,6 @@ export default function Settings() {
               <label className="form-label">HW Acceleration</label>
               <select className="form-select" value={settings.video.hwAccel} onChange={e => update('video.hwAccel', e.target.value)}>
                 <option value="">None (CPU)</option>
-                <option value="videotoolbox">VideoToolbox (macOS)</option>
                 <option value="cuda">NVENC (NVIDIA)</option>
                 <option value="dxva2">DXVA2 (Windows)</option>
                 <option value="qsv">QuickSync (Intel)</option>
