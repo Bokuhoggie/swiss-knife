@@ -6,11 +6,7 @@ import { savePageState, loadPageState } from '../pageCache.js'
 
 const api = window.htk
 
-const COMPRESS_LEVELS = [
-  { value: 'low',    label: 'Low — Faster, larger file' },
-  { value: 'medium', label: 'Medium — Balanced (recommended)' },
-  { value: 'high',   label: 'High — Slower, smaller file' },
-]
+
 
 function MergeTab() {
   const [cached] = useState(() => loadPageState('pdf-merge'))
@@ -217,8 +213,7 @@ function CompressTab({ preloadFile }) {
   const [file, setFile] = useState(null)
   const [fileSize, setFileSize] = useState(null)
   const [outputDir, setOutputDir] = useState('')
-  const [compressionLevel, setCompressionLevel] = useState('medium')
-  const [mode, setMode] = useState('level') // 'level' or 'target'
+  const [mode, setMode] = useState('standard') // 'standard' or 'target'
   const [targetSizeMB, setTargetSizeMB] = useState('')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -229,7 +224,6 @@ function CompressTab({ preloadFile }) {
     api.settings?.read().then(s => {
       if (!s) return
       if (s.general?.defaultOutputDir)      setOutputDir(s.general.defaultOutputDir)
-      if (s.pdf?.compressionLevel)          setCompressionLevel(s.pdf.compressionLevel)
     }).catch(() => {})
   }, [])
 
@@ -266,7 +260,7 @@ function CompressTab({ preloadFile }) {
         res = await api.pdf.compressToSize({ filePath: file, outputDir, targetSizeMB: parseFloat(targetSizeMB) })
         api.pdf.offCompressProgress()
       } else {
-        res = await api.pdf.compress({ filePath: file, outputDir, compressionLevel })
+        res = await api.pdf.compress({ filePath: file, outputDir })
       }
       setResult(res)
     } catch (err) {
@@ -290,12 +284,12 @@ function CompressTab({ preloadFile }) {
       {/* Mode toggle */}
       <div className="controls-row" style={{ marginBottom: 12, gap: 8 }}>
         <button
-          className={`tab-btn${mode === 'level' ? ' active' : ''}`}
-          onClick={() => setMode('level')}
+          className={`tab-btn${mode === 'standard' ? ' active' : ''}`}
+          onClick={() => setMode('standard')}
           disabled={loading}
           style={{ fontSize: 'calc(6px * var(--font-scale))' }}
         >
-          Compression Level
+          Standard
         </button>
         <button
           className={`tab-btn${mode === 'target' ? ' active' : ''}`}
@@ -307,12 +301,18 @@ function CompressTab({ preloadFile }) {
         </button>
       </div>
 
-      {mode === 'level' && (
-        <div className="form-group" style={{ marginBottom: 16 }}>
-          <label className="form-label">Compression Level</label>
-          <select className="form-select" value={compressionLevel} onChange={e => setCompressionLevel(e.target.value)} disabled={loading}>
-            {COMPRESS_LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
-          </select>
+      {mode === 'standard' && (
+        <div style={{
+          padding: '10px 14px',
+          marginBottom: 16,
+          fontSize: 'calc(6px * var(--font-scale))',
+          fontFamily: "'VT323', monospace",
+          fontSize: '15px',
+          color: 'var(--text-secondary)',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+        }}>
+          Applies lossless stream compression to reduce file size without altering content.
         </div>
       )}
 
@@ -349,7 +349,7 @@ function CompressTab({ preloadFile }) {
 
       <div className="controls-row">
         <button className="btn btn-secondary" onClick={pickOutputDir} disabled={loading}>📁 Output Folder</button>
-        <button className="btn btn-primary" onClick={compress} disabled={loading || !file || (mode === 'target' && !targetSizeMB)}>
+        <button className="btn btn-primary" onClick={compress} disabled={loading || !file || (mode === 'target' && !targetSizeMB)} style={{ whiteSpace: 'nowrap' }}>
           {loading ? <span className="spinner">⟳</span> : '🗜'} Compress PDF
         </button>
       </div>

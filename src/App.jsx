@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext.jsx'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 import HtkWidget from './components/HtkWidget.jsx'
 import Home from './pages/Home.jsx'
 import ImageConverter from './pages/ImageConverter.jsx'
@@ -198,6 +199,17 @@ export default function App() {
       >
         <div className="title-bar">
           <span className="title-bar-label">Hoggie's Tool Kit</span>
+          <div className="title-bar-controls">
+            <button className="title-bar-btn" onClick={() => getCurrentWindow().minimize()} title="Minimize">
+              <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="5" width="8" height="1" fill="currentColor"/></svg>
+            </button>
+            <button className="title-bar-btn" onClick={() => getCurrentWindow().toggleMaximize()} title="Maximize">
+              <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg>
+            </button>
+            <button className="title-bar-btn title-bar-btn-close" onClick={() => getCurrentWindow().close()} title="Close">
+              <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" strokeWidth="1.4"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="1.4"/></svg>
+            </button>
+          </div>
         </div>
 
         <main className="main-content">

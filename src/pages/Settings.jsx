@@ -17,7 +17,7 @@ const AUD_RATES     = ['22050', '44100', '48000', '96000']
 const AUD_CHANNELS  = ['', 'stereo', 'mono']
 const DL_QUALITIES  = ['1080p', '720p', '480p', '360p']
 const DL_AFORMATS   = ['mp3', 'aac', 'flac', 'opus', 'wav']
-const PDF_COMPRESS  = ['low', 'medium', 'high']
+
 
 function Toggle({ checked, onChange }) {
   return (
@@ -242,12 +242,7 @@ export default function Settings() {
               <input className="form-input" type="number" min={1} placeholder="No limit" value={settings.image.height} onChange={e => update('image.height', e.target.value)} style={{ minWidth: 110 }} />
             </div>
           </div>
-          <ToggleRow
-            label="Preserve metadata (EXIF/ICC)"
-            desc="Keeps camera data, colour profiles, GPS info"
-            checked={settings.image.keepMetadata}
-            onChange={v => update('image.keepMetadata', v)}
-          />
+
         </Section>
 
         <div className="section-divider" />
@@ -398,17 +393,7 @@ export default function Settings() {
 
         <div className="section-divider" />
 
-        {/* ─── PDF ─── */}
-        <Section title="// PDF DEFAULTS">
-          <div className="form-group">
-            <label className="form-label">Compression Level</label>
-            <select className="form-select" value={settings.pdf.compressionLevel} onChange={e => update('pdf.compressionLevel', e.target.value)}>
-              {PDF_COMPRESS.map(l => <option key={l} value={l}>{l.charAt(0).toUpperCase() + l.slice(1)}</option>)}
-            </select>
-          </div>
-        </Section>
 
-        <div className="section-divider" />
 
         {/* ─── UPDATES ─── */}
         <UpdatesSection />

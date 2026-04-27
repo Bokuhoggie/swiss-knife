@@ -24,18 +24,37 @@ async fn ensure_yt_dlp(app: &AppHandle) -> Result<PathBuf, String> {
     }
 
     // Download yt-dlp from GitHub releases (macOS universal binary)
+    // Write to a temp file first, then rename atomically to prevent races
+    // when two concurrent calls both see path.exists() == false.
+    let tmp_path = path.with_extension("tmp");
     let url = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos";
-    let resp = reqwest::get(url).await.map_err(|e| e.to_string())?;
+
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+        .map_err(|e| e.to_string())?;
+
+    let resp = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?
+        .error_for_status()
+        .map_err(|e| format!("Failed to download yt-dlp: {}", e))?;
+
     let bytes = resp.bytes().await.map_err(|e| e.to_string())?;
-    std::fs::write(&path, &bytes).map_err(|e| e.to_string())?;
+    std::fs::write(&tmp_path, &bytes).map_err(|e| e.to_string())?;
 
     // chmod +x on macOS
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755))
+        std::fs::set_permissions(&tmp_path, std::fs::Permissions::from_mode(0o755))
             .map_err(|e| e.to_string())?;
     }
+
+    // Atomic rename into place
+    std::fs::rename(&tmp_path, &path).map_err(|e| e.to_string())?;
 
     Ok(path)
 }
@@ -173,7 +192,7 @@ pub async fn downloader_download(app: AppHandle, args: DownloadArgs) -> serde_js
     let mut child = match Command::new(&yt_dlp)
         .args(&cmd_args)
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stderr(Stdio::null())
         .spawn()
     {
         Ok(c) => c,

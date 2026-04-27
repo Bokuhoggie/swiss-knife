@@ -30,6 +30,7 @@ pub struct ImageConvertArgs {
     pub width: Option<u32>,
     pub height: Option<u32>,
     #[serde(rename = "keepMetadata")]
+    #[allow(dead_code)]
     pub keep_metadata: Option<bool>,
     #[serde(rename = "outputName")]
     pub output_name: Option<String>,

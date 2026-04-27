@@ -61,6 +61,7 @@ pub struct CompressArgs {
     #[serde(rename = "outputDir")]
     pub output_dir: String,
     #[serde(rename = "compressionLevel")]
+    #[allow(dead_code)]
     pub compression_level: Option<String>,
 }
 

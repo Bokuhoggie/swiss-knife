@@ -52,7 +52,6 @@ export default function ImageConverter() {
   // Advanced
   const [width, setWidth]               = useState('')
   const [height, setHeight]             = useState('')
-  const [keepMetadata, setKeepMetadata] = useState(false)
 
   // Save state on unmount
   useEffect(() => {
@@ -70,7 +69,7 @@ export default function ImageConverter() {
       if (s.image?.quality !== undefined) setQuality(s.image.quality)
       if (s.image?.width  !== undefined) setWidth(s.image.width)
       if (s.image?.height !== undefined) setHeight(s.image.height)
-      if (s.image?.keepMetadata !== undefined) setKeepMetadata(s.image.keepMetadata)
+
     }).catch(() => {})
   }, [cached])
 
@@ -199,7 +198,7 @@ export default function ImageConverter() {
         filePaths: selectedFiles, outputFormat, outputDir, quality,
         width:  width  ? parseInt(width)  : undefined,
         height: height ? parseInt(height) : undefined,
-        keepMetadata,
+
         outputName: (selectedFiles.length === 1 && customName.trim()) ? customName.trim() : undefined,
         icoSizes: outputFormat === 'ico' ? ICO_PRESETS[icoPreset].sizes : undefined,
       })
@@ -510,16 +509,6 @@ export default function ImageConverter() {
                 value={height} onChange={e => setHeight(e.target.value)}
                 style={{ minWidth: 130 }}
               />
-            </div>
-            <div className="toggle-row" style={{ gridColumn: '1 / -1' }}>
-              <div className="toggle-info">
-                <div className="toggle-title">Preserve Metadata</div>
-                <div className="toggle-desc">Keep EXIF, ICC colour profile, GPS data (stripped by default)</div>
-              </div>
-              <label className="pixel-toggle">
-                <input type="checkbox" checked={keepMetadata} onChange={e => setKeepMetadata(e.target.checked)} />
-                <span className="pixel-toggle-track" />
-              </label>
             </div>
             <div className="adv-note">
               Resize uses "fit inside" — aspect ratio is always preserved.<br/>
