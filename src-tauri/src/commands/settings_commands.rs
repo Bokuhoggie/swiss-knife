@@ -9,7 +9,7 @@ fn settings_path() -> PathBuf {
     // with the Electron settings file location
     let app_dir = base.join("hoggies-tool-kit");
     fs::create_dir_all(&app_dir).ok();
-    app_dir.join("swiss-knife-settings.json")
+    app_dir.join("htk-settings.json")
 }
 
 fn defaults() -> Value {

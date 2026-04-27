@@ -17,7 +17,7 @@ const ICO_PRESETS = {
   'multi-std': { label: 'Multi (16+32+48+256)',      sizes: [16, 32, 48, 256] },
   'multi-all': { label: 'Multi (16+32+48+64+128+256)', sizes: [16, 32, 48, 64, 128, 256] },
 }
-const api = window.swissKnife
+const api = window.htk
 const CACHE_KEY = 'image'
 
 export default function ImageConverter() {

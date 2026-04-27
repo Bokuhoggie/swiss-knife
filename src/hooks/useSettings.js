@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-const api = window.swissKnife
+const api = window.htk
 
 let _cache = null
 const _listeners = new Set()

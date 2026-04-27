@@ -448,7 +448,7 @@ const ALL_TOOLS = [...LEFT_TOOLS, ...RIGHT_TOOLS]
 /* ============================================================
    WIDGET
 ============================================================ */
-export default function SwissKnifeWidget() {
+export default function HtkWidget() {
   const { themeId } = useTheme()
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(null)

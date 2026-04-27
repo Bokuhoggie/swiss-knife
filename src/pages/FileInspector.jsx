@@ -5,7 +5,7 @@ import { consumePendingFile } from '../globalDrop.js'
 import { getFirstDropPath } from '../dropHelpers.js'
 import WaveformPlayer from '../components/WaveformPlayer.jsx'
 
-const api = window.swissKnife
+const api = window.htk
 
 // Category → accent colour
 const CATEGORY_ACCENT = {

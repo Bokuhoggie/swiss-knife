@@ -1,17 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(wmic process:*)",
-      "Bash(tasklist //FI \"PID eq 29100\")",
-      "Bash(taskkill //PID 29100 //F)",
-      "Bash(grep -n \"eval\\\\|sandbox: false\\\\|nodeIntegration\\\\|remote\\\\|loadURL\\\\|dangerouslyAllowProtocolWhitelist\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/*.cjs)",
-      "Bash(grep -n \"spawnSync\\\\|exec\\\\|spawn\\\\|child_process\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
-      "Bash(grep -n \"readFileSync\\\\|writeFileSync\\\\|fs\\\\.\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
-      "Bash(grep -n \"path.join\\\\|path.resolve\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
-      "Bash(grep -n \"dialog\\\\|selectFiles\\\\|selectFile\\\\|selectFolder\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
-      "Bash(ls -lh /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/public/icon.*)",
-      "Bash(grep -n \"ipcMain.handle\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/main.cjs /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
-      "Bash(grep -n \"parseInt.*quality\\\\|parseInt.*fps\\\\|parseInt.*sampleRate\\\\|parseInt.*channels\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
       "Bash(node -e \":*)",
       "Bash(git checkout:*)",
       "Bash(git rm:*)",
@@ -27,7 +16,8 @@
       "Read(//tmp/**)",
       "Bash(cargo check *)",
       "Bash(cargo clean *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git mv *)"
     ]
   }
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-const api = window.swissKnife
+const api = window.htk
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2]
 

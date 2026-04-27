@@ -1,5 +1,5 @@
 /**
- * Tauri Bridge — polyfills window.swissKnife so that existing React components
+ * Tauri Bridge — polyfills window.htk so that existing React components
  * continue to work without any changes. Replaces electron/preload.cjs.
  */
 import { invoke } from '@tauri-apps/api/core';
@@ -17,7 +17,7 @@ function offEvent(_channel) {
   // components handle their own lifecycle.
 }
 
-window.swissKnife = {
+window.htk = {
   // File path from drag events — Tauri doesn't have webUtils,
   // but we can get the path from the File object if available
   getPathForFile: (file) => {

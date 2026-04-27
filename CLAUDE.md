@@ -22,7 +22,7 @@ Hoggie's Tool Kit (HTK) is an all-in-one Tauri (Rust) + React (Vite) desktop uti
 macOS Tauri/Rust rewrite. Migrated from Electron to Tauri v2 with a full Rust backend.
 - ✅ Tauri v2 with native macOS titlebar (`titleBarStyle: "overlay"`, hidden title)
 - ✅ All IPC handlers rewritten in Rust (`src-tauri/src/commands/`)
-- ✅ `tauriBridge.js` polyfills `window.swissKnife` API for React components
+- ✅ `tauriBridge.js` polyfills `window.htk` API for React components
 - ✅ ffmpeg/ffprobe resolved as macOS binaries (no `.exe` extension)
 - ✅ `yt-dlp` auto-downloads macOS universal binary + chmod 0o755
 - ✅ Bundle targets: `dmg` + `app` for macOS distribution
@@ -63,10 +63,10 @@ src-tauri/
   resources/             # Bundled binaries (ffmpeg, ffprobe)
   icons/                 # App icons (icon.png, icon.ico)
 src/
-  tauriBridge.js         # Polyfills window.swissKnife → Tauri invoke()
+  tauriBridge.js         # Polyfills window.htk → Tauri invoke()
   pageCache.js           # Module-level page state cache
   pages/                 # One React page per tool
-  components/            # SwissKnifeWidget, WaveformPlayer, Icons
+  components/            # HtkWidget, WaveformPlayer, Icons
   contexts/              # ThemeContext (themes, sizes, fonts)
   App.jsx                # Router + layout
   main.jsx               # Entry point (imports tauriBridge.js first)
@@ -75,7 +75,7 @@ src/
 ## Code Style Guidelines
 - **JavaScript/React**: Functional components with hooks
 - **Rust backend**: All native ops in `src-tauri/src/commands/`, invoked via `@tauri-apps/api`
-- **Bridge layer**: `src/tauriBridge.js` maps `window.swissKnife.*` to `invoke()` calls
+- **Bridge layer**: `src/tauriBridge.js` maps `window.htk.*` to `invoke()` calls
 - **CSS**: Plain CSS in `src/index.css`, class prefix `sk-` for widget components
 - **Path handling**: Rust uses `std::path::PathBuf` — never string-concatenate paths
 - **Binary permissions**: chmod 0o755 downloaded binaries (yt-dlp) on macOS via `#[cfg(unix)]`

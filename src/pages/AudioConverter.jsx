@@ -9,7 +9,7 @@ const FORMATS      = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
 const BITRATES     = ['64k', '128k', '192k', '256k', '320k']
 const SAMPLE_RATES = ['22050', '44100', '48000', '96000']
 const CHANNELS     = [{ value: '', label: 'Auto' }, { value: 'stereo', label: 'Stereo' }, { value: 'mono', label: 'Mono' }]
-const api = window.swissKnife
+const api = window.htk
 const CACHE_KEY = 'audio'
 
 export default function AudioConverter() {
