@@ -1,6 +1,6 @@
 [package]
 name = "hoggies-tool-kit"
-version = "1.0.1"
+version = "1.0.2"
 description = "Your all-in-one file conversion and utility toolkit"
 authors = ["Hoggie's Tool Kit"]
 edition = "2021"
