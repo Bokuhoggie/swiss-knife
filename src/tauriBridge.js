@@ -11,7 +11,7 @@ function onEvent(channel, cb) {
   listen(channel, (event) => cb(event.payload));
 }
 
-function offEvent(channel) {
+function offEvent(_channel) {
   // We can't easily remove specific listeners with Tauri's API,
   // but we can track them. For now, this is a no-op since the
   // components handle their own lifecycle.
@@ -61,7 +61,7 @@ window.swissKnife = {
     onCompressProgress:  (cb)   => onEvent('pdf:compressProgress', cb),
     offCompressProgress: ()     => offEvent('pdf:compressProgress'),
     fileSize:            (filePath) => invoke('pdf_file_size', { filePath }),
-    toImages:            (opts) => invoke('pdf_to_images'),
+    toImages:            ()    => invoke('pdf_to_images'),
     selectFiles:         ()     => invoke('pdf_select_files'),
     selectFile:          ()     => invoke('pdf_select_file'),
   },
@@ -100,11 +100,11 @@ window.swissKnife = {
     check:    ()   => Promise.resolve(),
     download: ()   => Promise.resolve(),
     install:  ()   => Promise.resolve(),
-    onUpdateAvailable: (cb) => {},
-    onNoUpdate:        (cb) => {},
-    onProgress:        (cb) => {},
-    onDownloaded:      (cb) => {},
-    onError:           (cb) => {},
+    onUpdateAvailable: (_cb) => {},
+    onNoUpdate:        (_cb) => {},
+    onProgress:        (_cb) => {},
+    onDownloaded:      (_cb) => {},
+    onError:           (_cb) => {},
     offAll:            ()   => {},
   },
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconPDF } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
@@ -13,7 +13,7 @@ const COMPRESS_LEVELS = [
 ]
 
 function MergeTab() {
-  const cached = useRef(loadPageState('pdf-merge')).current
+  const [cached] = useState(() => loadPageState('pdf-merge'))
   const [files, setFiles] = useState(cached?.files || [])
   const [outputDir, setOutputDir] = useState(cached?.outputDir || '')
   const [result, setResult] = useState(null)
@@ -31,7 +31,7 @@ function MergeTab() {
       if (!s) return
       if (s.general?.defaultOutputDir) setOutputDir(s.general.defaultOutputDir)
     }).catch(() => {})
-  }, [])
+  }, [cached])
 
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 
@@ -233,18 +233,20 @@ function CompressTab({ preloadFile }) {
     }).catch(() => {})
   }, [])
 
-  useEffect(() => {
-    if (preloadFile) selectFile(preloadFile)
-  }, [preloadFile])
-
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 
-  const selectFile = async (f) => {
+  const selectFile = useCallback(async (f) => {
     setFile(f)
     setResult(null)
     setFileSize(null)
     const res = await api.pdf.fileSize(f)
     if (res?.success) setFileSize(res.size)
+  }, [])
+
+  const [lastPreloadFile, setLastPreloadFile] = useState(null)
+  if (preloadFile && preloadFile !== lastPreloadFile) {
+    setLastPreloadFile(preloadFile)
+    selectFile(preloadFile)
   }
 
   const pickFile = async () => {
@@ -385,16 +387,17 @@ function CompressTab({ preloadFile }) {
 const TABS = ['Merge', 'Split', 'Compress']
 
 export default function PdfTools() {
-  const [activeTab, setActiveTab] = useState('Merge')
   const { state } = useLocation()
+  const [activeTab, setActiveTab] = useState('Merge')
   const [inspectorFile, setInspectorFile] = useState(null)
+  const [lastRouteFile, setLastRouteFile] = useState(null)
 
-  useEffect(() => {
-    if (state?.file) {
-      setActiveTab('Compress')
-      setInspectorFile(state.file)
-    }
-  }, [state?.file])
+  // React 19 idiom: react to route-state changes during render rather than in an effect.
+  if (state?.file && state.file !== lastRouteFile) {
+    setLastRouteFile(state.file)
+    setActiveTab('Compress')
+    setInspectorFile(state.file)
+  }
   return (
     <div className="page-anim">
       <div className="page-header">

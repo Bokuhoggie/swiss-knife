@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext.jsx'
 import SwissKnifeWidget from './components/SwissKnifeWidget.jsx'
@@ -134,48 +134,49 @@ function handleGlobalDrop(e) {
 }
 
 // ─── TRON Light Cycles — bright racing trails on gridlines ───────────────────
+// Positions / timings randomized once per theme and cached so re-renders are stable
+// (keeps Math.random out of render — react-hooks/purity).
+const cycleCache = new Map()
+function generateCycles(themeId) {
+  if (cycleCache.has(themeId)) return cycleCache.get(themeId)
+  const color = themeId === 'clu' ? 'orange' : ''
+  const arr = []
+  for (let i = 0; i < 5; i++) {
+    const row = 60 + (i * 120) + Math.floor(Math.random() * 60)
+    arr.push({
+      type: i % 2 === 0 ? 'cycle-h' : 'cycle-h2',
+      color,
+      style: {
+        top: `${row}px`,
+        animationDuration: `${6 + Math.random() * 8}s`,
+        animationDelay: `${-Math.random() * 12}s`,
+      },
+    })
+  }
+  for (let i = 0; i < 4; i++) {
+    const col = 100 + (i * 250) + Math.floor(Math.random() * 100)
+    arr.push({
+      type: i % 2 === 0 ? 'cycle-v' : 'cycle-v2',
+      color,
+      style: {
+        left: `${col}px`,
+        animationDuration: `${8 + Math.random() * 10}s`,
+        animationDelay: `${-Math.random() * 15}s`,
+      },
+    })
+  }
+  cycleCache.set(themeId, arr)
+  return arr
+}
+
 function TronCycles() {
   const { themeId } = useTheme()
   const location = useLocation()
   const isTron = themeId === 'tron' || themeId === 'clu'
   const isHome = location.pathname === '/'
 
-  const cycles = useMemo(() => {
-    if (!isTron) return []
-    const isClu = themeId === 'clu'
-    // TRON = all blue, CLU = all orange
-    const color = isClu ? 'orange' : ''
-    const arr = []
-    // Horizontal cycles
-    for (let i = 0; i < 5; i++) {
-      const row = 60 + (i * 120) + Math.floor(Math.random() * 60)
-      arr.push({
-        type: i % 2 === 0 ? 'cycle-h' : 'cycle-h2',
-        color,
-        style: {
-          top: `${row}px`,
-          animationDuration: `${6 + Math.random() * 8}s`,
-          animationDelay: `${-Math.random() * 12}s`,
-        },
-      })
-    }
-    // Vertical cycles
-    for (let i = 0; i < 4; i++) {
-      const col = 100 + (i * 250) + Math.floor(Math.random() * 100)
-      arr.push({
-        type: i % 2 === 0 ? 'cycle-v' : 'cycle-v2',
-        color,
-        style: {
-          left: `${col}px`,
-          animationDuration: `${8 + Math.random() * 10}s`,
-          animationDelay: `${-Math.random() * 15}s`,
-        },
-      })
-    }
-    return arr
-  }, [isTron, themeId])
-
   if (!isTron) return null
+  const cycles = generateCycles(themeId)
 
   return (
     <div className={`tron-cycles ${isHome ? '' : 'tron-cycles-dim'}`}>
@@ -187,18 +188,13 @@ function TronCycles() {
 }
 
 export default function App() {
-  const [dragOverApp, setDragOverApp] = useState(false)
-
   return (
     <ThemeProvider>
     <HashRouter>
       <div
         className="app-shell"
-        onDragOver={(e) => { e.preventDefault(); setDragOverApp(true) }}
-        onDragLeave={(e) => {
-          if (e.currentTarget === e.target) setDragOverApp(false)
-        }}
-        onDrop={(e) => { setDragOverApp(false); handleGlobalDrop(e) }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleGlobalDrop}
       >
         <div className="title-bar">
           <span className="title-bar-label">Hoggie's Tool Kit</span>

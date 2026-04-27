@@ -1,3 +1,7 @@
+/* eslint-disable react-refresh/only-export-components --
+   Theme constants, provider, and hook live together by design. Splitting
+   them just to satisfy fast-refresh's "components-only" rule isn't worth
+   the import churn for a single-developer project. */
 import { createContext, useContext, useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'swiss-knife-theme'

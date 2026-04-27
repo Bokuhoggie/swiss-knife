@@ -91,7 +91,7 @@ export default function Settings() {
   const { themeId, setThemeId, sizeId, setSizeId } = useTheme()
   const [secretCode, setSecretCode] = useState('')
   const [unlockedThemes, setUnlockedThemes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('swiss-knife-unlocks') || '[]') } catch(e) { return [] }
+    try { return JSON.parse(localStorage.getItem('swiss-knife-unlocks') || '[]') } catch { return [] }
   })
 
   if (!settings) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconAudio } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
@@ -14,7 +14,7 @@ const CACHE_KEY = 'audio'
 
 export default function AudioConverter() {
   const { state } = useLocation()
-  const cached = useRef(loadPageState(CACHE_KEY)).current
+  const [cached] = useState(() => loadPageState(CACHE_KEY))
   const [tab, setTab] = useState('convert')
 
   const [files, setFiles]               = useState(cached?.files || [])
@@ -57,16 +57,11 @@ export default function AudioConverter() {
       if (s.audio?.normalize !== undefined) setNormalize(s.audio.normalize)
       if (s.audio?.fadeIn   !== undefined) setFadeIn(s.audio.fadeIn)
     }).catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    if (state?.file) addFiles([state.file], true)
-  }, [state?.file])
-
+  }, [cached])
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
-  const addFiles = (paths, autoPreview = false) => {
+  const addFiles = useCallback((paths, autoPreview = false) => {
     setFiles(prev => {
       const unique = paths.filter(p => p && !prev.some(f => f.path === p))
       if (!unique.length) return prev
@@ -76,6 +71,15 @@ export default function AudioConverter() {
       return [...prev, ...objects]
     })
     setResults([])
+  }, [])
+
+  // Auto-add file passed via route state (e.g. opened from File Inspector).
+  // Done at render-time rather than in an effect to satisfy
+  // react-hooks/set-state-in-effect — see PdfTools default export for the same idiom.
+  const [lastRouteFile, setLastRouteFile] = useState(null)
+  if (state?.file && state.file !== lastRouteFile) {
+    setLastRouteFile(state.file)
+    addFiles([state.file], true)
   }
 
   const handleDrop = (e) => {

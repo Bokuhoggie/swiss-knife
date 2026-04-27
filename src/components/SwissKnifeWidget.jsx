@@ -49,7 +49,7 @@ function BladeSVG({ color, flip, baseColor }) {
   )
 }
 
-function ScissorsSVG({ color, flip, baseColor }) {
+function ScissorsSVG({ color, flip }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
@@ -488,7 +488,7 @@ export default function SwissKnifeWidget() {
       setIsWaving(true)
       setTimeout(() => setIsWaving(false), 500)
     }
-  }, [themeId])
+  }, [themeId, prevThemeRef])
 
   // Wave: choppy slicing pattern — interleaves left/right blades, each pops open briefly
   useEffect(() => {

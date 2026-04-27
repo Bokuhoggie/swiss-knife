@@ -39,7 +39,7 @@ export function getDropPaths(e) {
           // Handle Windows paths vs Unix paths
           const isWindows = /^[A-Z]:\//i.test(decoded) || /^[A-Z]:\\/i.test(decoded)
           paths.push(isWindows ? decoded : '/' + decoded)
-        } catch (err) {}
+        } catch { /* malformed file URI — skip */ }
       } else if (/^[A-Z]:\\[^/:*?"<>|]+$/i.test(line) || line.startsWith('/')) {
         // Plain absolute path from text
         paths.push(line)

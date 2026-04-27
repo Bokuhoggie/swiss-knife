@@ -68,6 +68,7 @@ export default function WaveformPlayer({
   const [volume, setVolume]           = useState(1)
   const [speed, setSpeed]             = useState(1)
   const [hoverTime, setHoverTime]     = useState(null)
+  const [hoverX, setHoverX]           = useState(0)
   const [razorMode, setRazorMode]     = useState(false)
 
   const mediaRef       = useRef(null)
@@ -85,17 +86,18 @@ export default function WaveformPlayer({
 
   // ── Cleanup on unmount ──────────────────────────────────────────────
   useEffect(() => {
+    const el = mediaRef.current
+    const raf = rafRef
     return () => {
-      const el = mediaRef.current
       if (el) { el.pause(); el.src = '' }
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      if (raf.current) cancelAnimationFrame(raf.current)
     }
   }, [])
 
-  // ── Load waveform peaks ─────────────────────────────────────────────
-  useEffect(() => {
-    if (!filePath) return
-    setWaveLoading(true)
+  // ── Reset state when filePath changes (render-time, not in an effect) ──
+  const [lastFilePath, setLastFilePath] = useState(filePath)
+  if (filePath !== lastFilePath) {
+    setLastFilePath(filePath)
     setPeaks([])
     setCurrentTime(0)
     setDuration(0)
@@ -105,11 +107,19 @@ export default function WaveformPlayer({
     setClipResult(null)
     setHoverTime(null)
     setRazorMode(false)
+    setWaveLoading(!!filePath)
+  }
 
+  // ── Async load (setState only happens in .then, not the effect body) ──
+  useEffect(() => {
+    if (!filePath) return
+    let cancelled = false
     api.media.waveform(filePath).then((data) => {
+      if (cancelled) return
       setPeaks(data || [])
       setWaveLoading(false)
-    }).catch(() => setWaveLoading(false))
+    }).catch(() => { if (!cancelled) setWaveLoading(false) })
+    return () => { cancelled = true }
   }, [filePath])
 
   // ── RAF playhead loop (60fps DOM-only, throttled React state) ───────
@@ -324,8 +334,10 @@ export default function WaveformPlayer({
     const rect = waveformRef.current?.getBoundingClientRect()
     if (!rect) return
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    const x = pct * rect.width
+    setHoverX(x)
     if (hoverLineRef.current) {
-      hoverLineRef.current.style.transform = `translateX(${pct * rect.width}px)`
+      hoverLineRef.current.style.transform = `translateX(${x}px)`
       hoverLineRef.current.style.opacity = '1'
     }
     const el = mediaRef.current
@@ -455,9 +467,7 @@ export default function WaveformPlayer({
 
           {/* Hover time tooltip */}
           {hoverTime !== null && (
-            <div className="waveform-hover-tooltip" style={{
-              left: hoverLineRef.current ? hoverLineRef.current.style.transform.replace('translateX(', '').replace('px)', '') + 'px' : 0
-            }}>
+            <div className="waveform-hover-tooltip" style={{ left: `${hoverX}px` }}>
               {formatTime(hoverTime)}
             </div>
           )}

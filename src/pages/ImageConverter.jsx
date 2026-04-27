@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconImage } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
@@ -22,7 +22,7 @@ const CACHE_KEY = 'image'
 
 export default function ImageConverter() {
   const { state } = useLocation()
-  const cached = useRef(loadPageState(CACHE_KEY)).current
+  const [cached] = useState(() => loadPageState(CACHE_KEY))
   const [tab, setTab] = useState('convert')
 
   const [files, setFiles]               = useState(cached?.files || [])
@@ -39,7 +39,6 @@ export default function ImageConverter() {
 
   // ── Remove BG tab state ──
   const [bgFile, setBgFile]           = useState('')
-  const [bgResult, setBgResult]       = useState('')
   const [bgStatus, setBgStatus]       = useState('idle')
   const [bgDragOver, setBgDragOver]   = useState(false)
   const [bgTolerance, setBgTolerance] = useState(30)
@@ -73,18 +72,13 @@ export default function ImageConverter() {
       if (s.image?.height !== undefined) setHeight(s.image.height)
       if (s.image?.keepMetadata !== undefined) setKeepMetadata(s.image.keepMetadata)
     }).catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    if (state?.file) addFiles([state.file])
-  }, [state?.file])
-
+  }, [cached])
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
   const [previews, setPreviews] = useState({}) // { [path]: dataURL }
 
-  const addFiles = (paths) => {
+  const addFiles = useCallback((paths) => {
     setFiles(prev => {
       const unique = paths.filter(p => p && !prev.some(f => f.path === p))
       if (!unique.length) return prev
@@ -97,15 +91,21 @@ export default function ImageConverter() {
       })
       if (prev.length + unique.length > 1) setCustomName('')
       // If Remove BG tab has no file, pick the first one
-      if (!bgFile) {
-        setBgFile(unique[0])
-        setBgStatus('idle')
-        setBgResult('')
-      }
+      setBgFile(curBg => {
+        if (!curBg) {
+          setBgStatus('idle')
+          return unique[0]
+        }
+        return curBg
+      })
       return [...prev, ...objects]
     })
     setResults([])
-  }
+  }, [])
+
+  useEffect(() => {
+    if (state?.file) addFiles([state.file])
+  }, [state?.file, addFiles])
 
   const handleDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setDragOver(false)
@@ -131,12 +131,12 @@ export default function ImageConverter() {
   // ── Remove BG handlers ──
   const handleBgBrowse = async () => {
     const selected = await api.image.selectFiles()
-    if (selected.length) { setBgFile(selected[0]); setBgResult(''); setBgStatus('idle'); setBgPreviewAfter(null) }
+    if (selected.length) { setBgFile(selected[0]); setBgStatus('idle'); setBgPreviewAfter(null) }
   }
   const handleBgDrop = (e) => {
     e.preventDefault(); e.stopPropagation(); setBgDragOver(false)
     const paths = getDropPaths(e)
-    if (paths.length) { setBgFile(paths[0]); setBgResult(''); setBgStatus('idle'); setBgPreviewAfter(null) }
+    if (paths.length) { setBgFile(paths[0]); setBgStatus('idle'); setBgPreviewAfter(null) }
   }
   // Auto-load preview when file is selected
   useEffect(() => {
@@ -166,7 +166,7 @@ export default function ImageConverter() {
   const removeBg = async () => {
     if (!bgFile) return
     if (!outputDir) { alert('Please select an output folder first.'); return }
-    setLoading(true); setBgStatus('Processing…'); setBgResult(''); setBgPreviewBefore(null); setBgPreviewAfter(null)
+    setLoading(true); setBgStatus('Processing…'); setBgPreviewBefore(null); setBgPreviewAfter(null)
     try {
       const res = await api.image.removeBg({
         filePath: bgFile, outputDir, outputName: bgOutputName.trim() || undefined,
@@ -174,7 +174,7 @@ export default function ImageConverter() {
         customColor: bgMode === 'custom' ? bgCustomColor : undefined
       })
       if (res.success) {
-        setBgResult(res.outputPath); setBgStatus('done')
+        setBgStatus('done')
         // Load previews as data URLs (bypasses sk-media:// protocol issues)
         const [before, after] = await Promise.all([
           api.image.readAsDataURL(bgFile),
@@ -380,7 +380,7 @@ export default function ImageConverter() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <IconImage size={20} />
                   <span style={{ color: 'var(--accent)', fontFamily: "'Press Start 2P', monospace", fontSize: '0.5rem' }}>{basename(bgFile)}</span>
-                  <button className="btn btn-ghost btn-sm" onClick={e => { e.stopPropagation(); setBgFile(''); setBgResult(''); setBgStatus('idle'); setBgPreviewBefore(null); setBgPreviewAfter(null); setBgEyedropper(false) }}>✕</button>
+                  <button className="btn btn-ghost btn-sm" onClick={e => { e.stopPropagation(); setBgFile(''); setBgStatus('idle'); setBgPreviewBefore(null); setBgPreviewAfter(null); setBgEyedropper(false) }}>✕</button>
                 </div>
               ) : (
                 <>

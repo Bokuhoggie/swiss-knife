@@ -74,17 +74,16 @@ export default function FileInspector() {
     if (id === analyzeIdRef.current) setLoading(false)
   }, [])
 
-  // Read pending file on mount (dropped outside a component before we mounted)
-  // and stay subscribed to future global drops while mounted.
+  // Subscribe to global drops while mounted. Pre-mount drops are consumed via
+  // a deferred call so the setState happens outside the effect body
+  // (react-hooks/set-state-in-effect).
   useEffect(() => {
-    const pending = consumePendingFile()
-    if (pending) analyze(pending)
-
     const handler = () => {
       const f = consumePendingFile()
       if (f) analyze(f)
     }
     window.addEventListener('global-file-drop', handler)
+    queueMicrotask(handler)
     return () => window.removeEventListener('global-file-drop', handler)
   }, [analyze])
 
@@ -108,7 +107,7 @@ export default function FileInspector() {
     try {
       const res = await api.hash.compute({ filePath: info.path, algorithms: ['sha256', 'md5'] })
       setHash(res?.hashes || null)
-    } catch (err) {
+    } catch {
       setHash(null)
     }
     setHashing(false)

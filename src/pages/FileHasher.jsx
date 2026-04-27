@@ -22,10 +22,13 @@ export default function FileHasher() {
   useEffect(() => { window.dispatchEvent(new CustomEvent('blade-wave', { detail: loading })) }, [loading])
   const [compareVal, setCompareVal] = useState('')
   const [dragOver, setDragOver] = useState(false)
+  const [lastRouteFile, setLastRouteFile] = useState(null)
 
-  useEffect(() => {
-    if (state?.file) { setFile(state.file); setResult(null) }
-  }, [state?.file])
+  if (state?.file && state.file !== lastRouteFile) {
+    setLastRouteFile(state.file)
+    setFile(state.file)
+    setResult(null)
+  }
 
   const basename = (p) => p?.split('/').pop().split('\\').pop()
 

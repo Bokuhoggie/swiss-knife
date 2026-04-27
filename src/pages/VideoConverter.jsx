@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconVideo } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
@@ -23,7 +23,7 @@ const CACHE_KEY = 'video'
 
 export default function VideoConverter() {
   const { state } = useLocation()
-  const cached = useRef(loadPageState(CACHE_KEY)).current
+  const [cached] = useState(() => loadPageState(CACHE_KEY))
   const [tab, setTab] = useState('convert')
 
   const [files, setFiles]               = useState(cached?.files || [])
@@ -67,17 +67,11 @@ export default function VideoConverter() {
       if (s.video?.fps !== undefined) setFps(s.video.fps)
       if (s.video?.hwAccel !== undefined) setHwAccel(s.video.hwAccel)
     }).catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    if (state?.file) {
-      addFiles([state.file], true)
-    }
-  }, [state?.file])
+  }, [cached])
 
   const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
 
-  const addFiles = (paths, autoPreview = false) => {
+  const addFiles = useCallback((paths, autoPreview = false) => {
     setFiles(prev => {
       const unique = paths.filter(p => p && !prev.some(f => f.path === p))
       if (!unique.length) return prev
@@ -87,6 +81,12 @@ export default function VideoConverter() {
       return [...prev, ...objects]
     })
     setResults([])
+  }, [])
+
+  const [lastRouteFile, setLastRouteFile] = useState(null)
+  if (state?.file && state.file !== lastRouteFile) {
+    setLastRouteFile(state.file)
+    addFiles([state.file], true)
   }
 
   const handleDrop = (e) => {
