@@ -30,7 +30,8 @@
     "targets": ["dmg", "app"],
     "icon": [
       "icons/icon.png",
-      "icons/icon.ico"
+      "icons/icon.ico",
+      "icons/icon.icns"
     ],
     "resources": [],
     "category": "public.app-category.utilities",
