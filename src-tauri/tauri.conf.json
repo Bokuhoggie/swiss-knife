@@ -42,7 +42,6 @@
     }
   },
   "plugins": {
-    "dialog": {},
     "shell": {
       "open": true
     }
