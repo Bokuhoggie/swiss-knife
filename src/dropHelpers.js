@@ -1,15 +1,15 @@
 /**
  * dropHelpers — utilities for drag-and-drop file handling.
  *
- * Electron 32+ deprecated File.path. Use webUtils.getPathForFile() via
- * the preload bridge (window.swissKnife.getPathForFile) instead.
+ * Uses the Tauri bridge (window.htk.getPathForFile) to extract
+ * native file paths from dropped File objects.
  */
 
-const api = window.swissKnife
+const api = window.htk
 
 /**
  * Extract the native file path from a dropped File object.
- * Uses Electron's webUtils.getPathForFile via the preload bridge.
+ * Uses the Tauri bridge to resolve the path.
  */
 export function getDropPath(file) {
   if (!file) return ''
@@ -39,7 +39,7 @@ export function getDropPaths(e) {
           // Handle Windows paths vs Unix paths
           const isWindows = /^[A-Z]:\//i.test(decoded) || /^[A-Z]:\\/i.test(decoded)
           paths.push(isWindows ? decoded : '/' + decoded)
-        } catch (err) {}
+        } catch { /* malformed file URI — skip */ }
       } else if (/^[A-Z]:\\[^/:*?"<>|]+$/i.test(line) || line.startsWith('/')) {
         // Plain absolute path from text
         paths.push(line)

@@ -25,7 +25,6 @@ dist-ssr
 
 #test files
 Test Subjects
-release/
 
 # Tauri build cache
 src-tauri/target/

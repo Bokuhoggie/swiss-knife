@@ -1,7 +1,11 @@
+/* eslint-disable react-refresh/only-export-components --
+   Theme constants, provider, and hook live together by design. Splitting
+   them just to satisfy fast-refresh's "components-only" rule isn't worth
+   the import churn for a single-developer project. */
 import { createContext, useContext, useEffect, useState } from 'react'
 
-const STORAGE_KEY = 'swiss-knife-theme'
-const FONT_KEY = 'swiss-knife-font'
+const STORAGE_KEY = 'htk-theme'
+const FONT_KEY = 'htk-font'
 
 export const SIZES = {
   s:   { id: 's',   name: 'Small',   scale: 0.82 },
@@ -11,7 +15,23 @@ export const SIZES = {
   xxl: { id: 'xxl', name: '4K',      scale: 2.10 },
 }
 
-const SIZE_KEY = 'swiss-knife-size'
+const SIZE_KEY = 'htk-size'
+
+// One-time migration from old swiss-knife-* keys → htk-* keys
+;(function migrateStorageKeys() {
+  const migrations = [
+    ['swiss-knife-theme', STORAGE_KEY],
+    ['swiss-knife-font', FONT_KEY],
+    ['swiss-knife-size', SIZE_KEY],
+    ['swiss-knife-unlocks', 'htk-unlocks'],
+  ]
+  for (const [oldKey, newKey] of migrations) {
+    if (!localStorage.getItem(newKey) && localStorage.getItem(oldKey)) {
+      localStorage.setItem(newKey, localStorage.getItem(oldKey))
+      localStorage.removeItem(oldKey)
+    }
+  }
+})()
 
 // Auto-detect best default size for high-DPI/4K displays
 function detectDefaultSize() {

@@ -3,7 +3,7 @@ import { IconDownload } from '../components/Icons.jsx'
 
 const QUALITIES  = ['1080p', '720p', '480p', '360p']
 const AFORMATS   = ['mp3', 'aac', 'flac', 'opus', 'wav']
-const api = window.swissKnife
+const api = window.htk
 
 export default function Downloader() {
   const [tab, setTab] = useState('download')

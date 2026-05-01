@@ -12,7 +12,21 @@
       "Bash(ls -lh /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/public/icon.*)",
       "Bash(grep -n \"ipcMain.handle\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/main.cjs /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
       "Bash(grep -n \"parseInt.*quality\\\\|parseInt.*fps\\\\|parseInt.*sampleRate\\\\|parseInt.*channels\" /c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/electron/ipc/*.cjs)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(git checkout:*)",
+      "Bash(rustc --version)",
+      "Bash(winget --version)",
+      "Bash(winget install:*)",
+      "Bash(mkdir -p src-tauri/src/commands)",
+      "Bash(mkdir -p src-tauri/resources)",
+      "Bash(mkdir -p src-tauri/icons)",
+      "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")",
+      "Bash(cargo check:*)",
+      "Bash(\"C:/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/src-tauri/resources/.gitkeep\")",
+      "Bash(export PATH=$HOME/.cargo/bin:$PATH)",
+      "Read(//c/Users/clone/FuckOneDrive/Desktop/Coding/Github/swiss-knife/$HOME/.cargo/registry/src/index.crates.io-*/lopdf-0.34.*/src/**)",
+      "Bash(powershell -Command \"Remove-Item -Force ''C:\\\\Users\\\\clone\\\\FuckOneDrive\\\\Desktop\\\\Coding\\\\Github\\\\swiss-knife\\\\.git\\\\index.lock'' -ErrorAction SilentlyContinue; Write-Output ''done''\")",
+      "Bash(powershell -Command \"Get-Process git -ErrorAction SilentlyContinue | Stop-Process -Force; Start-Sleep -Seconds 2; Remove-Item -Force ''C:\\\\Users\\\\clone\\\\FuckOneDrive\\\\Desktop\\\\Coding\\\\Github\\\\swiss-knife\\\\.git\\\\index.lock'' -ErrorAction SilentlyContinue; Write-Output ''cleaned''\")"
     ]
   }
 }

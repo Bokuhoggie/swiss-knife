@@ -1,5 +1,5 @@
 /**
- * useSettings — shared settings hook backed by electron IPC.
+ * useSettings — shared settings hook backed by Tauri IPC.
  *
  * Module-level cache means only one IPC read call ever happens per session,
  * regardless of how many components call useSettings(). All subscribers
@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
-const api = window.swissKnife
+const api = window.htk
 
 let _cache = null
 const _listeners = new Set()

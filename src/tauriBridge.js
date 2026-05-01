@@ -1,27 +1,25 @@
 /**
- * Tauri Bridge — polyfills window.swissKnife so that existing React components
- * continue to work without any changes. Replaces electron/preload.cjs.
+ * Tauri Bridge — creates window.htk so that React components can call
+ * Rust backend commands via Tauri's invoke() API.
  */
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 
-// Helper: subscribe to Tauri events with the same API shape as ipcRenderer.on
+// Helper: subscribe to Tauri events with the same API shape as the bridge callbacks
 function onEvent(channel, cb) {
   // listen() returns a promise that resolves to an unlisten function
   listen(channel, (event) => cb(event.payload));
 }
 
-function offEvent(channel) {
+function offEvent(_channel) {
   // We can't easily remove specific listeners with Tauri's API,
   // but we can track them. For now, this is a no-op since the
   // components handle their own lifecycle.
 }
 
-window.swissKnife = {
-  // File path from drag events — Tauri doesn't have webUtils,
-  // but we can get the path from the File object if available
+window.htk = {
+  // File path from drag events — Tauri gets the path from the File object
   getPathForFile: (file) => {
-    // In Tauri, File objects from drag-and-drop include the path
     return file?.path || file?.name || '';
   },
 
@@ -61,7 +59,7 @@ window.swissKnife = {
     onCompressProgress:  (cb)   => onEvent('pdf:compressProgress', cb),
     offCompressProgress: ()     => offEvent('pdf:compressProgress'),
     fileSize:            (filePath) => invoke('pdf_file_size', { filePath }),
-    toImages:            (opts) => invoke('pdf_to_images'),
+    toImages:            ()    => invoke('pdf_to_images'),
     selectFiles:         ()     => invoke('pdf_select_files'),
     selectFile:          ()     => invoke('pdf_select_file'),
   },
@@ -96,15 +94,14 @@ window.swissKnife = {
 
   updater: {
     // Updater will be handled by tauri-plugin-updater in the future
-    // For now, stub these out
     check:    ()   => Promise.resolve(),
     download: ()   => Promise.resolve(),
     install:  ()   => Promise.resolve(),
-    onUpdateAvailable: (cb) => {},
-    onNoUpdate:        (cb) => {},
-    onProgress:        (cb) => {},
-    onDownloaded:      (cb) => {},
-    onError:           (cb) => {},
+    onUpdateAvailable: (_cb) => {},
+    onNoUpdate:        (_cb) => {},
+    onProgress:        (_cb) => {},
+    onDownloaded:      (_cb) => {},
+    onError:           (_cb) => {},
     offAll:            ()   => {},
   },
 };

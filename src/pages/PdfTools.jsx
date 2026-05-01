@@ -4,7 +4,7 @@ import { IconPDF } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
 import { savePageState, loadPageState } from '../pageCache.js'
 
-const api = window.swissKnife
+const api = window.htk
 
 const COMPRESS_LEVELS = [
   { value: 'low',    label: 'Low — Faster, larger file' },
@@ -385,16 +385,17 @@ function CompressTab({ preloadFile }) {
 const TABS = ['Merge', 'Split', 'Compress']
 
 export default function PdfTools() {
-  const [activeTab, setActiveTab] = useState('Merge')
   const { state } = useLocation()
+  const [activeTab, setActiveTab] = useState('Merge')
   const [inspectorFile, setInspectorFile] = useState(null)
+  const [lastRouteFile, setLastRouteFile] = useState(null)
 
-  useEffect(() => {
-    if (state?.file) {
-      setActiveTab('Compress')
-      setInspectorFile(state.file)
-    }
-  }, [state?.file])
+  // React 19 idiom: react to route-state changes during render rather than in an effect.
+  if (state?.file && state.file !== lastRouteFile) {
+    setLastRouteFile(state.file)
+    setActiveTab('Compress')
+    setInspectorFile(state.file)
+  }
   return (
     <div className="page-anim">
       <div className="page-header">

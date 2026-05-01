@@ -7,7 +7,7 @@ import App from './App.jsx'
 // ── Drag-and-drop foundation ──
 // These CAPTURE-phase listeners fire BEFORE any React or component handler.
 // They ensure: (1) every element in the app is a valid drop target,
-//              (2) Electron never navigates to a dropped file.
+//              (2) the app never navigates to a dropped file.
 // ── Drag-and-drop foundation ──
 document.addEventListener('dragenter', (e) => e.preventDefault(), true)
 document.addEventListener('dragover', (e) => {

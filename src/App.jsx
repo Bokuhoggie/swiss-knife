@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext.jsx'
-import SwissKnifeWidget from './components/SwissKnifeWidget.jsx'
+import { getCurrentWindow } from '@tauri-apps/api/window'
+import HtkWidget from './components/HtkWidget.jsx'
 import Home from './pages/Home.jsx'
 import ImageConverter from './pages/ImageConverter.jsx'
 import AudioConverter from './pages/AudioConverter.jsx'
@@ -46,7 +47,7 @@ function UpdateNotifier() {
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    const api = window.swissKnife?.updater
+    const api = window.htk?.updater
     if (!api) return
 
     api.onUpdateAvailable((info) => { setVersion(info.version); setState('available'); setDismissed(false) })
@@ -81,7 +82,7 @@ function UpdateNotifier() {
           <button
             className="btn btn-primary btn-sm"
             style={{ fontSize: 10, padding: '4px 10px', marginLeft: 'auto' }}
-            onClick={() => window.swissKnife.updater.download()}
+            onClick={() => window.htk.updater.download()}
           >Download</button>
           <button
             className="btn btn-ghost btn-sm"
@@ -107,7 +108,7 @@ function UpdateNotifier() {
           <button
             className="btn btn-primary btn-sm"
             style={{ fontSize: 10, padding: '4px 10px', marginLeft: 'auto' }}
-            onClick={() => window.swissKnife.updater.install()}
+            onClick={() => window.htk.updater.install()}
           >Restart & Install</button>
           <button
             className="btn btn-ghost btn-sm"
@@ -134,48 +135,49 @@ function handleGlobalDrop(e) {
 }
 
 // ─── TRON Light Cycles — bright racing trails on gridlines ───────────────────
+// Positions / timings randomized once per theme and cached so re-renders are stable
+// (keeps Math.random out of render — react-hooks/purity).
+const cycleCache = new Map()
+function generateCycles(themeId) {
+  if (cycleCache.has(themeId)) return cycleCache.get(themeId)
+  const color = themeId === 'clu' ? 'orange' : ''
+  const arr = []
+  for (let i = 0; i < 5; i++) {
+    const row = 60 + (i * 120) + Math.floor(Math.random() * 60)
+    arr.push({
+      type: i % 2 === 0 ? 'cycle-h' : 'cycle-h2',
+      color,
+      style: {
+        top: `${row}px`,
+        animationDuration: `${6 + Math.random() * 8}s`,
+        animationDelay: `${-Math.random() * 12}s`,
+      },
+    })
+  }
+  for (let i = 0; i < 4; i++) {
+    const col = 100 + (i * 250) + Math.floor(Math.random() * 100)
+    arr.push({
+      type: i % 2 === 0 ? 'cycle-v' : 'cycle-v2',
+      color,
+      style: {
+        left: `${col}px`,
+        animationDuration: `${8 + Math.random() * 10}s`,
+        animationDelay: `${-Math.random() * 15}s`,
+      },
+    })
+  }
+  cycleCache.set(themeId, arr)
+  return arr
+}
+
 function TronCycles() {
   const { themeId } = useTheme()
   const location = useLocation()
   const isTron = themeId === 'tron' || themeId === 'clu'
   const isHome = location.pathname === '/'
 
-  const cycles = useMemo(() => {
-    if (!isTron) return []
-    const isClu = themeId === 'clu'
-    // TRON = all blue, CLU = all orange
-    const color = isClu ? 'orange' : ''
-    const arr = []
-    // Horizontal cycles
-    for (let i = 0; i < 5; i++) {
-      const row = 60 + (i * 120) + Math.floor(Math.random() * 60)
-      arr.push({
-        type: i % 2 === 0 ? 'cycle-h' : 'cycle-h2',
-        color,
-        style: {
-          top: `${row}px`,
-          animationDuration: `${6 + Math.random() * 8}s`,
-          animationDelay: `${-Math.random() * 12}s`,
-        },
-      })
-    }
-    // Vertical cycles
-    for (let i = 0; i < 4; i++) {
-      const col = 100 + (i * 250) + Math.floor(Math.random() * 100)
-      arr.push({
-        type: i % 2 === 0 ? 'cycle-v' : 'cycle-v2',
-        color,
-        style: {
-          left: `${col}px`,
-          animationDuration: `${8 + Math.random() * 10}s`,
-          animationDelay: `${-Math.random() * 15}s`,
-        },
-      })
-    }
-    return arr
-  }, [isTron, themeId])
-
   if (!isTron) return null
+  const cycles = generateCycles(themeId)
 
   return (
     <div className={`tron-cycles ${isHome ? '' : 'tron-cycles-dim'}`}>
@@ -187,21 +189,27 @@ function TronCycles() {
 }
 
 export default function App() {
-  const [dragOverApp, setDragOverApp] = useState(false)
-
   return (
     <ThemeProvider>
     <HashRouter>
       <div
         className="app-shell"
-        onDragOver={(e) => { e.preventDefault(); setDragOverApp(true) }}
-        onDragLeave={(e) => {
-          if (e.currentTarget === e.target) setDragOverApp(false)
-        }}
-        onDrop={(e) => { setDragOverApp(false); handleGlobalDrop(e) }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleGlobalDrop}
       >
         <div className="title-bar">
           <span className="title-bar-label">Hoggie's Tool Kit</span>
+          <div className="title-bar-controls">
+            <button className="title-bar-btn" onClick={() => getCurrentWindow().minimize()} title="Minimize">
+              <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="5" width="8" height="1" fill="currentColor"/></svg>
+            </button>
+            <button className="title-bar-btn" onClick={() => getCurrentWindow().toggleMaximize()} title="Maximize">
+              <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg>
+            </button>
+            <button className="title-bar-btn title-bar-btn-close" onClick={() => getCurrentWindow().close()} title="Close">
+              <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" strokeWidth="1.4"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="1.4"/></svg>
+            </button>
+          </div>
         </div>
 
         <main className="main-content">
@@ -219,7 +227,7 @@ export default function App() {
             </Routes>
           </div>
         </main>
-        <SwissKnifeWidget />
+        <HtkWidget />
         <SettingsCog />
         <UpdateNotifier />
         <TronCycles />

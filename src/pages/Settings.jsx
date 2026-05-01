@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSettings } from '../hooks/useSettings.js'
 import { useTheme, THEMES, SIZES } from '../contexts/ThemeContext.jsx'
 
-const api = window.swissKnife
+const api = window.htk
 
 const IMG_FORMATS   = ['jpg', 'png', 'webp', 'avif', 'gif', 'bmp', 'tiff']
 const VID_FORMATS   = ['mp4', 'mkv', 'avi', 'mov', 'webm']
@@ -91,7 +91,7 @@ export default function Settings() {
   const { themeId, setThemeId, sizeId, setSizeId } = useTheme()
   const [secretCode, setSecretCode] = useState('')
   const [unlockedThemes, setUnlockedThemes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('swiss-knife-unlocks') || '[]') } catch(e) { return [] }
+    try { return JSON.parse(localStorage.getItem('htk-unlocks') || '[]') } catch { return [] }
   })
 
   if (!settings) {
@@ -135,7 +135,7 @@ export default function Settings() {
     if (newIds.length) {
       const newU = [...unlockedThemes, ...newIds]
       setUnlockedThemes(newU)
-      localStorage.setItem('swiss-knife-unlocks', JSON.stringify(newU))
+      localStorage.setItem('htk-unlocks', JSON.stringify(newU))
     }
     setThemeId(ids[0])
     setSecretCode('')

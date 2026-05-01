@@ -1,65 +1,74 @@
 # CLAUDE.md - Hoggie's Tool Kit (HTK) Project Guide
 
 ## Project Overview
-Hoggie's Tool Kit (HTK) is an all-in-one Electron + React (Vite) desktop utility app featuring:
-- Image conversion (sharp)
-- Video conversion (ffmpeg-static + fluent-ffmpeg)
-- Audio conversion (ffmpeg-static + fluent-ffmpeg)
-- Video/audio downloader (yt-dlp-wrap — auto-downloads yt-dlp binary on first run)
-- PDF tools (pdf-lib: merge, split, compress)
-- File hasher
+Hoggie's Tool Kit (HTK) is an all-in-one Tauri 2 + React (Vite) desktop utility app featuring:
+- Image conversion (Rust `image` crate)
+- Video conversion (ffmpeg via Rust `tokio::process`)
+- Audio conversion (ffmpeg via Rust `tokio::process`)
+- Video/audio downloader (yt-dlp via Rust `tokio::process`)
+- PDF tools (Rust `lopdf`: merge, split, compress)
+- File hasher (Rust `sha2`, `sha1`, `md-5`)
+- File inspector (metadata analysis)
+- Media player with waveform visualisation
 
-## Current Branch: `win-dev`
-Windows-specific work branch. Key Windows fixes already applied:
-- ✅ `titleBarStyle` is now platform-aware (`hiddenInset` on macOS, `hidden` + overlay on Windows)
-- ✅ `titleBarOverlay` styled to match `#0D0D0F` background with white symbols
-- ✅ yt-dlp binary auto-downloads to `app.getPath('userData')` on first launch (no PATH dependency)
-- ✅ Path separators fixed in downloader (`path.join` instead of string concat)
-- ✅ Windows build targets added (NSIS installer + portable `.exe`)
-- ⚠️  App icon (`public/icon.ico`) still needed — add a 256x256 `.ico` file for Windows installer/taskbar
+## Architecture
+- **Frontend**: React + Vite (JavaScript/JSX)
+- **Backend**: Rust via Tauri 2 — all native operations are Tauri commands
+- **Bridge**: `src/tauriBridge.js` creates `window.htk` which wraps `@tauri-apps/api/core invoke()` calls
+- **No Electron, no Python** — strictly Rust backend
+
+## Current Branch: `win-rust`
+Windows-specific work branch with Tauri backend.
 
 ## Dev & Build Commands
 > **Run these in a Windows terminal (PowerShell or CMD), not Git Bash**
 
 ```
-npm install                        # Install dependencies (run first!)
-npm run electron:dev               # Dev mode — starts Vite + Electron together
-npm run electron:build:win         # Build Windows NSIS installer + portable exe → /release
-npm run electron:build:win:portable  # Build portable exe only
-npm run lint                       # ESLint
+npm install                # Install JS dependencies (run first!)
+npm run tauri:dev          # Dev mode — starts Vite + Tauri together
+npm run tauri:build        # Build Windows NSIS installer → src-tauri/target/release/bundle/
+npm run dev                # Vite dev server only (no Tauri shell)
+npm run lint               # ESLint
 ```
 
 ## Project Structure
 ```
-electron/
-  main.cjs              # Electron main process, BrowserWindow setup
-  preload.cjs           # Context bridge — exposes window.swissKnife to renderer
-  ipc/
-    audio.cjs           # Audio conversion handlers (ffmpeg)
-    video.cjs           # Video conversion handlers (ffmpeg)
-    image.cjs           # Image conversion handlers (sharp)
-    downloader.cjs      # yt-dlp download handlers (auto-downloads binary)
-    pdf.cjs             # PDF merge/split/compress handlers (pdf-lib)
-    hash.cjs            # File hash handlers
+src-tauri/
+  src/
+    main.rs               # Tauri app entry point, command registration
+    commands/
+      mod.rs              # Module declarations
+      image_commands.rs   # Image conversion (Rust image crate)
+      media_commands.rs   # Audio/video waveform + clip (ffmpeg)
+      download_commands.rs # yt-dlp download handlers
+      pdf_commands.rs     # PDF merge/split/compress (lopdf)
+      hash_commands.rs    # File hashing (SHA-256, SHA-1, MD5)
+      inspector_commands.rs # File metadata analysis
+      settings_commands.rs  # Settings read/write
+      dialog_commands.rs  # File/folder dialog wrappers
+  Cargo.toml              # Rust dependencies
+  tauri.conf.json          # Tauri window config, bundler, CSP
 src/
-  pages/                # One React page per tool
-  components/           # Sidebar, Icons, SwissKnifeWidget
-  App.jsx               # Router + layout
+  tauriBridge.js          # Creates window.htk — polyfills Tauri invoke() calls
+  pages/                  # One React page per tool
+  components/             # ToolKitWidget, WaveformPlayer, Sidebar, Icons
+  contexts/               # ThemeContext (11 themes + secret unlock system)
+  hooks/                  # useSettings
+  App.jsx                 # Router + layout
+  index.css               # All styles (plain CSS, no Tailwind)
 public/
-  icon.ico              # Windows icon (NEEDS TO BE ADDED)
-  icon.png              # macOS/Linux icon (NEEDS TO BE ADDED)
+  icon.ico                # Windows icon
+  icon.png                # App icon
 ```
 
 ## Code Style Guidelines
-- **System**: Direct me to run anything that needs a Windows terminal
 - **JavaScript/React**: Functional components with hooks
-- **Electron IPC**: All native ops go through `electron/ipc/`, exposed via `preload.cjs`
-- **CSS**: Plain CSS in `src/index.css` (no Tailwind — add if desired)
-- **Path handling**: Always use `path.join()` — never string-concatenate paths
-- **Platform checks**: Use `process.platform === 'win32'` / `'darwin'` for OS-specific logic
+- **Tauri IPC**: All native ops go through `src-tauri/src/commands/`, invoked via `window.htk` bridge
+- **CSS**: Plain CSS in `src/index.css` (no Tailwind)
+- **Path handling**: Always use proper path joining — never string-concatenate paths
+- **API bridge**: All pages use `const api = window.htk` to access backend commands
 
-## Known TODO (Windows)
-- [ ] Create `public/icon.ico` (256x256) for Windows taskbar + installer
-- [ ] Test ffmpeg-static binary resolution on Windows build
-- [ ] PDF → Image feature (needs `pdftoppm` or alternative bundled for Windows)
+## Known TODO
+- [ ] Consider tauri-plugin-updater for auto-update support
+- [ ] PDF → Image feature (needs alternative to pdftoppm)
 - [ ] Consider code-signing setup for Windows installer (SmartScreen warnings)

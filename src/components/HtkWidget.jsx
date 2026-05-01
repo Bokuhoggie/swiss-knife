@@ -49,7 +49,7 @@ function BladeSVG({ color, flip, baseColor }) {
   )
 }
 
-function ScissorsSVG({ color, flip, baseColor }) {
+function ScissorsSVG({ color, flip }) {
   return (
     <svg width="42" height="190" viewBox="0 0 42 190" fill="none">
       <g transform={flip ? "translate(42, 0) scale(-1, 1)" : undefined}>
@@ -229,7 +229,7 @@ function CorkscrewSVG({ color, flip, baseColor }) {
 }
 
 /* ============================================================
-   COLLEGE / THEME LOGOS  (replaces the swiss cross on handle)
+   COLLEGE / THEME LOGOS  (replaces the default logo on handle)
    All render in the cross area: x:86-114, y:24-52
 ============================================================ */
 /* ── College handle logos — centred in the 200×76 handle body ── */
@@ -305,7 +305,7 @@ const HANDLE_LOGOS = {
 }
 
 /* ============================================================
-   HORIZONTAL SWISS ARMY KNIFE HANDLE (200x76)
+   HORIZONTAL TOOL KIT HANDLE (200x76)
 ============================================================ */
 function KnifeHandleHorizontal({ open, themeId }) {
   const isTron = themeId === 'tron' || themeId === 'clu'
@@ -361,7 +361,7 @@ function KnifeHandleHorizontal({ open, themeId }) {
         </>
       )}
 
-      {/* ── Center logo (college theme) or default Swiss cross ── */}
+      {/* ── Center logo (college theme) or default HTK logo ── */}
       {(() => {
         if (isTron) return null // TRON: no center logo, lean on accents
         const Logo = HANDLE_LOGOS[themeId]
@@ -448,7 +448,7 @@ const ALL_TOOLS = [...LEFT_TOOLS, ...RIGHT_TOOLS]
 /* ============================================================
    WIDGET
 ============================================================ */
-export default function SwissKnifeWidget() {
+export default function HtkWidget() {
   const { themeId } = useTheme()
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(null)
@@ -488,7 +488,7 @@ export default function SwissKnifeWidget() {
       setIsWaving(true)
       setTimeout(() => setIsWaving(false), 500)
     }
-  }, [themeId])
+  }, [themeId, prevThemeRef])
 
   // Wave: choppy slicing pattern — interleaves left/right blades, each pops open briefly
   useEffect(() => {

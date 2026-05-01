@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { convertFileSrc } from '@tauri-apps/api/core'
 import { IconInspect } from '../components/Icons.jsx'
 import { consumePendingFile } from '../globalDrop.js'
 import { getFirstDropPath } from '../dropHelpers.js'
 import WaveformPlayer from '../components/WaveformPlayer.jsx'
 
-const api = window.swissKnife
+const api = window.htk
 
 // Category → accent colour
 const CATEGORY_ACCENT = {
@@ -77,14 +78,12 @@ export default function FileInspector() {
   // Read pending file on mount (dropped outside a component before we mounted)
   // and stay subscribed to future global drops while mounted.
   useEffect(() => {
-    const pending = consumePendingFile()
-    if (pending) analyze(pending)
-
     const handler = () => {
       const f = consumePendingFile()
       if (f) analyze(f)
     }
     window.addEventListener('global-file-drop', handler)
+    queueMicrotask(handler)
     return () => window.removeEventListener('global-file-drop', handler)
   }, [analyze])
 
@@ -108,7 +107,7 @@ export default function FileInspector() {
     try {
       const res = await api.hash.compute({ filePath: info.path, algorithms: ['sha256', 'md5'] })
       setHash(res?.hashes || null)
-    } catch (err) {
+    } catch {
       setHash(null)
     }
     setHashing(false)
@@ -279,7 +278,7 @@ export default function FileInspector() {
                 background: '#fff',
               }}>
                 <embed
-                  src={`sk-media://file?path=${encodeURIComponent(info.path)}`}
+                  src={convertFileSrc(info.path)}
                   type="application/pdf"
                   style={{ width: '100%', height: 500, display: 'block' }}
                 />

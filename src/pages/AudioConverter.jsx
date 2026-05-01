@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { IconAudio } from '../components/Icons.jsx'
 import { getDropPaths } from '../dropHelpers.js'
@@ -9,12 +9,12 @@ const FORMATS      = ['mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a', 'opus']
 const BITRATES     = ['64k', '128k', '192k', '256k', '320k']
 const SAMPLE_RATES = ['22050', '44100', '48000', '96000']
 const CHANNELS     = [{ value: '', label: 'Auto' }, { value: 'stereo', label: 'Stereo' }, { value: 'mono', label: 'Mono' }]
-const api = window.swissKnife
+const api = window.htk
 const CACHE_KEY = 'audio'
 
 export default function AudioConverter() {
   const { state } = useLocation()
-  const cached = useRef(loadPageState(CACHE_KEY)).current
+  const [cached] = useState(() => loadPageState(CACHE_KEY))
   const [tab, setTab] = useState('convert')
 
   const [files, setFiles]               = useState(cached?.files || [])
@@ -57,16 +57,9 @@ export default function AudioConverter() {
       if (s.audio?.normalize !== undefined) setNormalize(s.audio.normalize)
       if (s.audio?.fadeIn   !== undefined) setFadeIn(s.audio.fadeIn)
     }).catch(() => {})
-  }, [])
+  }, [cached])
 
-  useEffect(() => {
-    if (state?.file) addFiles([state.file], true)
-  }, [state?.file])
-
-
-  const basename = (p) => p ? p.split('/').pop().split('\\').pop() : ''
-
-  const addFiles = (paths, autoPreview = false) => {
+  const addFiles = useCallback((paths, autoPreview = false) => {
     setFiles(prev => {
       const unique = paths.filter(p => p && !prev.some(f => f.path === p))
       if (!unique.length) return prev
@@ -76,6 +69,12 @@ export default function AudioConverter() {
       return [...prev, ...objects]
     })
     setResults([])
+  }, [])
+
+  const [lastRouteFile, setLastRouteFile] = useState(null)
+  if (state?.file && state.file !== lastRouteFile) {
+    setLastRouteFile(state.file)
+    addFiles([state.file], true)
   }
 
   const handleDrop = (e) => {
